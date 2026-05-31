@@ -269,6 +269,8 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">Linked property</label><select id="b-linked-property" style="width:100%"><option value="">None</option></select></div>
     </div>
     <div class="form-g"><label class="form-lbl">Reminder note</label><input type="text" id="b-reminder-note" placeholder="Call about the 3/2 SFR on Maple Ave..." /></div>
+    <div class="form-sep"><i class="ti ti-building-estate"></i>Assigned Properties</div>
+    <div id="broker-linked-props" style="margin-bottom:4px"></div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeBrokerModal()">Cancel</button><button class="btn btn-primary" onclick="saveBroker()"><i class="ti ti-check"></i>Save</button></div>
   </div>
 </div>
@@ -718,9 +720,28 @@ function populatePropertySelect(sel){document.getElementById('b-linked-property'
 
 function openBrokerModal(id){
   editingBrokerId=id||null;populatePropertySelect('');
-  if(id){const b=state.brokers[id];document.getElementById('broker-modal-title').textContent='Edit Broker';document.getElementById('b-name').value=b.name||'';document.getElementById('b-phone').value=b.phone||'';document.getElementById('b-area').value=b.area||'';document.getElementById('b-status').value=b.status||'active';document.getElementById('b-reminder').value=b.reminder||'';document.getElementById('b-reminder-note').value=b.reminderNote||'';populatePropertySelect(b.linkedProperty||'');}
-  else{document.getElementById('broker-modal-title').textContent='Add Broker';['b-name','b-phone','b-area','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-status').value='active';}
+  if(id){const b=state.brokers[id];document.getElementById('broker-modal-title').textContent='Edit Broker';document.getElementById('b-name').value=b.name||'';document.getElementById('b-phone').value=b.phone||'';document.getElementById('b-area').value=b.area||'';document.getElementById('b-status').value=b.status||'active';document.getElementById('b-reminder').value=b.reminder||'';document.getElementById('b-reminder-note').value=b.reminderNote||'';populatePropertySelect(b.linkedProperty||'');renderBrokerLinkedProps(id);}
+  else{document.getElementById('broker-modal-title').textContent='Add Broker';['b-name','b-phone','b-area','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-status').value='active';renderBrokerLinkedProps(null);}
   document.getElementById('broker-modal').classList.add('open');
+}
+function renderBrokerLinkedProps(brokerId){
+  const el=document.getElementById('broker-linked-props');
+  if(!el)return;
+  if(!brokerId){el.innerHTML='<p style="font-size:12px;color:var(--text3);padding:4px 0">No properties assigned to this broker</p>';return;}
+  const props=pArr().filter(p=>p.brokerId===brokerId);
+  if(!props.length){el.innerHTML='<p style="font-size:12px;color:var(--text3);padding:4px 0">No properties assigned to this broker</p>';return;}
+  el.innerHTML=props.map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;gap:12px">
+      <div style="min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.address}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap">
+          ${p.type?`<span style="font-size:10px;font-weight:700;background:#F3F4F6;color:#374151;padding:2px 6px;border-radius:100px">${p.type}</span>`:''}
+          <span class="badge ${pSCls[p.status]||'bg-gray'}" style="font-size:10px">${pSLbl[p.status]||p.status}</span>
+          ${p.askingPrice?`<span style="font-size:11px;color:var(--text2)">${'$'+Math.round(Number(p.askingPrice)/1000)+'K'}</span>`:''}
+        </div>
+      </div>
+      <button onclick="closeBrokerModal();switchTab('properties');setTimeout(()=>openPropertyModal('${p.id}'),100)" class="btn btn-ghost btn-sm" style="white-space:nowrap;flex-shrink:0">View <i class="ti ti-arrow-right" style="font-size:13px"></i></button>
+    </div>`).join('');
 }
 function closeBrokerModal(){document.getElementById('broker-modal').classList.remove('open');}
 function saveBroker(){
