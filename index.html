@@ -302,6 +302,7 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">Size (sqft)</label><input type="number" id="p-size" placeholder="1800" /></div>
     </div>
     <div class="form-g"><label class="form-lbl">Notes</label><textarea id="p-notes" placeholder="Condition, repairs needed, pros, cons..."></textarea></div>
+    <div class="form-g"><label class="form-lbl">Property Link (Zillow, Redfin, MLS...)</label><input type="url" id="p-url" placeholder="https://www.zillow.com/..." /></div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closePropertyModal()">Cancel</button><button class="btn btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i>Save</button></div>
   </div>
 </div>
@@ -441,6 +442,7 @@ function renderProperties(){
           ${p.renoCost?`<div class="price-item"><div class="price-lbl">Reno Cost</div><div class="price-val amber">${fmtMoney(p.renoCost)}</div></div>`:''}
         </div>`:''}
         ${p.notes?`<div class="note-box" style="margin-top:10px">${p.notes.slice(0,130)}${p.notes.length>130?'...':''}</div>`:''}
+        ${p.url?`<div style="margin-top:8px"><a href="${p.url}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--green-d);text-decoration:none;font-weight:500;padding:4px 10px;background:var(--green-l);border-radius:6px;border:1px solid rgba(29,158,117,0.2)"><i class="ti ti-external-link" style="font-size:13px"></i>View Listing</a></div>`:''}
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
@@ -512,14 +514,14 @@ function clearReminder(id){db.ref('brokers/'+id).update({reminder:'',reminderNot
 
 function openPropertyModal(id){
   editingPropertyId=id||null;populateBrokerSelect('');
-  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';populateBrokerSelect(p.brokerId||'');}
-  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
+  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';populateBrokerSelect(p.brokerId||'');}
+  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
   document.getElementById('property-modal').classList.add('open');
 }
 function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
 function saveProperty(){
   const address=document.getElementById('p-address').value.trim();if(!address){showToast('⚠ Address is required');return;}
-  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
+  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
   const id=editingPropertyId||db.ref('properties').push().key;
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
