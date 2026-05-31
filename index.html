@@ -536,7 +536,7 @@ function renderDashboard(){
     const cl=s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Today':`In ${d}d`;
     if(isBroker){
       const prop=item.linkedProperty?state.properties[item.linkedProperty]:null;
-      return`<div class="act-row" style="cursor:pointer" onclick="switchTab('reminders')">
+      return`<div class="act-row" style="cursor:pointer" onclick="switchTab('brokers');setTimeout(()=>openBrokerModal('${item.id}'),120)">
         <div class="av" style="width:32px;height:32px;font-size:11px">${initials(item.name)}</div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
@@ -545,7 +545,7 @@ function renderDashboard(){
         </div></div>`;
     } else {
       const broker=item.brokerId?state.brokers[item.brokerId]:null;
-      return`<div class="act-row" style="cursor:pointer" onclick="switchTab('reminders')">
+      return`<div class="act-row" style="cursor:pointer" onclick="scrollToProperty('${item.id}')">
         <div class="act-dot" style="width:32px;height:32px"><i class="ti ti-building" style="font-size:14px"></i></div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.address}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
