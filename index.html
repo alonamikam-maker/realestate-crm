@@ -303,6 +303,11 @@ select{width:auto;cursor:pointer;}
     <div class="form-g"><label class="form-lbl">Days on Market (current)</label><input type="number" id="p-dom" placeholder="e.g. 30" min="0" /></div>
     <div class="form-g"><label class="form-lbl">Notes</label><textarea id="p-notes" placeholder="Condition, repairs needed, pros, cons..."></textarea></div>
     <div class="form-g"><label class="form-lbl">Property Link (Zillow, Redfin, MLS...)</label><input type="url" id="p-url" placeholder="https://www.zillow.com/..." /></div>
+    <div class="form-sep"><i class="ti ti-bell"></i>Follow-up Reminder</div>
+    <div class="form-row">
+      <div class="form-g"><label class="form-lbl">Reminder date</label><input type="date" id="p-reminder" style="width:100%" /></div>
+      <div class="form-g"><label class="form-lbl">Reminder note</label><input type="text" id="p-reminder-note" placeholder="Check on offer status..." /></div>
+    </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closePropertyModal()">Cancel</button><button class="btn btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i>Save</button></div>
   </div>
 </div>
@@ -364,6 +369,40 @@ function notesForBroker(brokerId){
     .filter(([,n])=>n.brokerId===brokerId)
     .map(([id,n])=>({id,...n}))
     .sort((a,b)=>b.createdAt-a.createdAt);
+}
+function notesForProperty(propertyId){
+  return Object.entries(state.notes)
+    .filter(([,n])=>n.propertyId===propertyId)
+    .map(([id,n])=>({id,...n}))
+    .sort((a,b)=>b.createdAt-a.createdAt);
+}
+function unreadCountProperty(propertyId){
+  if(!currentUser.id)return 0;
+  return notesForProperty(propertyId).filter(n=>!(n.readBy&&n.readBy[currentUser.id])).length;
+}
+function markPropertyNotesRead(propertyId){
+  if(!currentUser.id)return;
+  notesForProperty(propertyId).forEach(n=>{
+    if(!(n.readBy&&n.readBy[currentUser.id])){
+      db.ref(`notes/${n.id}/readBy/${currentUser.id}`).set(true);
+    }
+  });
+}
+function addPropertyNote(propertyId){
+  if(!currentUser.id){showToast('⚠ Please select a user first');return;}
+  const ta=document.getElementById(`pnote-input-${propertyId}`);
+  const text=(ta?.value||'').trim();
+  if(!text){showToast('⚠ Note cannot be empty');return;}
+  const noteId=db.ref('notes').push().key;
+  db.ref(`notes/${noteId}`).set({id:noteId,propertyId,text,createdBy:currentUser.name,createdById:currentUser.id,createdAt:Date.now(),readBy:{[currentUser.id]:true}}).then(()=>{ta.value='';showToast('✓ Note added');});
+}
+function togglePropertyNotes(propertyId){
+  const panel=document.getElementById(`pnotes-panel-${propertyId}`);
+  const toggle=document.getElementById(`pnotes-toggle-${propertyId}`);
+  if(!panel||!toggle)return;
+  const isOpen=openNotesPanels.has('p_'+propertyId);
+  if(isOpen){openNotesPanels.delete('p_'+propertyId);panel.classList.remove('open');toggle.classList.remove('open');}
+  else{openNotesPanels.add('p_'+propertyId);panel.classList.add('open');toggle.classList.add('open');markPropertyNotesRead(propertyId);const badge=document.getElementById(`punread-badge-${propertyId}`);if(badge)badge.style.display='none';}
 }
 function unreadCount(brokerId){
   if(!currentUser.id)return 0;
@@ -552,41 +591,83 @@ function renderProperties(){
   el.innerHTML=list.map(p=>{
     const broker=p.brokerId?state.brokers[p.brokerId]:null;
     const hp=p.listPrice||p.askingPrice||p.arv||p.renoCost;
-    return`<div class="card"><div class="card-top">
-      <div class="prop-icon"><i class="ti ${tIcon[p.type]||'ti-building'}"></i></div>
-      <div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:14px;font-weight:600">${p.address}</span>
-          <span class="badge bg-gray" style="font-size:10px;font-weight:700;letter-spacing:0.03em">${p.type||''}</span>
-          <span class="badge ${pSCls[p.status]||'bg-gray'}">${pSLbl[p.status]||p.status}</span>
-          ${p.addedBy?`<span style="font-size:10px;font-weight:500;color:var(--text3);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-user-check" style="font-size:11px"></i>${p.addedBy}</span>`:''}
+    const pNotes=notesForProperty(p.id);
+    const pUnread=unreadCountProperty(p.id);
+    const pIsOpen=openNotesPanels.has('p_'+p.id);
+    return`<div class="card">
+      <div class="card-top">
+        <div class="prop-icon"><i class="ti ${tIcon[p.type]||'ti-building'}"></i></div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:600">${p.address}</span>
+            <span class="badge bg-gray" style="font-size:10px;font-weight:700;letter-spacing:0.03em">${p.type||''}</span>
+            <span class="badge ${pSCls[p.status]||'bg-gray'}">${pSLbl[p.status]||p.status}</span>
+            ${p.addedBy?`<span style="font-size:10px;font-weight:500;color:var(--text3);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-user-check" style="font-size:11px"></i>${p.addedBy}</span>`:''}
+          </div>
+          ${broker?`<div style="display:flex;align-items:center;gap:12px;margin-top:7px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:600;color:#111827;display:flex;align-items:center;gap:5px"><i class="ti ti-user" style="font-size:14px;color:var(--green)"></i>${broker.name}</span>
+            ${broker.phone?`<button onclick="navigator.clipboard.writeText('${broker.phone}').then(()=>showToast('✓ Phone copied'))" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;display:flex;align-items:center;gap:5px;padding:0;font-family:inherit" title="Click to copy"><i class="ti ti-phone" style="font-size:14px;color:var(--green)"></i>${broker.phone} <i class="ti ti-copy" style="font-size:12px;color:var(--text3)"></i></button>`:''}
+          </div>`:''}
+          <div class="prop-meta" style="margin-top:5px">
+            ${p.rooms?`<span><i class="ti ti-door"></i>${p.rooms} bd</span>`:''}
+            ${p.baths?`<span><i class="ti ti-droplet"></i>${p.baths} ba</span>`:''}
+            ${p.size?`<span><i class="ti ti-arrows-maximize"></i>${Number(p.size).toLocaleString()} sqft</span>`:''}
+          </div>
+          ${hp?`<div class="prices">
+            ${p.listPrice?`<div class="price-item"><div class="price-lbl">List</div><div class="price-val">${fmtMoney(p.listPrice)}</div></div>`:''}
+            ${p.askingPrice?`<div class="price-item"><div class="price-lbl">Asking</div><div class="price-val">${fmtMoney(p.askingPrice)}</div></div>`:''}
+            ${p.arv?`<div class="price-item"><div class="price-lbl">ARV</div><div class="price-val green">${fmtMoney(p.arv)}</div></div>`:''}
+            ${p.renoCost?`<div class="price-item"><div class="price-lbl">Reno Cost</div><div class="price-val amber">${fmtMoney(p.renoCost)}</div></div>`:''}
+          </div>`:''}
+          ${p.notes?`<div class="note-box" style="margin-top:10px">${p.notes.slice(0,130)}${p.notes.length>130?'...':''}</div>`:''}
+          ${p.url?`<div style="margin-top:8px"><a href="${p.url}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--green-d);text-decoration:none;font-weight:500;padding:4px 10px;background:var(--green-l);border-radius:6px;border:1px solid rgba(29,158,117,0.2)"><i class="ti ti-external-link" style="font-size:13px"></i>View Listing</a></div>`:''}
         </div>
-        <div class="prop-meta">
-          ${p.rooms?`<span><i class="ti ti-door"></i>${p.rooms} bd</span>`:''}
-          ${p.baths?`<span><i class="ti ti-droplet"></i>${p.baths} ba</span>`:''}
-          ${p.size?`<span><i class="ti ti-arrows-maximize"></i>${Number(p.size).toLocaleString()} sqft</span>`:''}
-          ${broker?`<span><i class="ti ti-user"></i>${broker.name}</span>`:''}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          ${p.domStart?`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;min-width:64px;${calcDOM(p.domStart)>60?'background:#FEF2F2;border:1px solid #FECACA;':calcDOM(p.domStart)>30?'background:#FFFBEB;border:1px solid #FDE68A;':'background:#ECFDF5;border:1px solid #A7F3D0;'}">
+            <div style="font-size:22px;font-weight:700;line-height:1;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">${calcDOM(p.domStart)}</div>
+            <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;text-align:center;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">Days on<br>market</div>
+          </div>`:''}
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
+          </div>
         </div>
-        ${hp?`<div class="prices">
-          ${p.listPrice?`<div class="price-item"><div class="price-lbl">List</div><div class="price-val">${fmtMoney(p.listPrice)}</div></div>`:''}
-          ${p.askingPrice?`<div class="price-item"><div class="price-lbl">Asking</div><div class="price-val">${fmtMoney(p.askingPrice)}</div></div>`:''}
-          ${p.arv?`<div class="price-item"><div class="price-lbl">ARV</div><div class="price-val green">${fmtMoney(p.arv)}</div></div>`:''}
-          ${p.renoCost?`<div class="price-item"><div class="price-lbl">Reno Cost</div><div class="price-val amber">${fmtMoney(p.renoCost)}</div></div>`:''}
-        </div>`:''}
-        ${p.notes?`<div class="note-box" style="margin-top:10px">${p.notes.slice(0,130)}${p.notes.length>130?'...':''}</div>`:''}
-        ${p.url?`<div style="margin-top:8px"><a href="${p.url}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--green-d);text-decoration:none;font-weight:500;padding:4px 10px;background:var(--green-l);border-radius:6px;border:1px solid rgba(29,158,117,0.2)"><i class="ti ti-external-link" style="font-size:13px"></i>View Listing</a></div>`:''}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-        ${p.domStart?`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;min-width:64px;${calcDOM(p.domStart)>60?'background:#FEF2F2;border:1px solid #FECACA;':calcDOM(p.domStart)>30?'background:#FFFBEB;border:1px solid #FDE68A;':'background:#ECFDF5;border:1px solid #A7F3D0;'}">
-          <div style="font-size:22px;font-weight:700;line-height:1;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">${calcDOM(p.domStart)}</div>
-          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;text-align:center;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">Days on<br>market</div>
-        </div>`:''}
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
-          <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
+
+      <button class="notes-toggle ${pIsOpen?'open':''}" id="pnotes-toggle-${p.id}" onclick="togglePropertyNotes('${p.id}')">
+        <span style="display:flex;align-items:center;gap:6px">
+          <i class="ti ti-notes" style="font-size:15px"></i>
+          Notes
+          <span style="color:var(--text3);font-weight:400">(${pNotes.length})</span>
+          ${pUnread>0?`<span class="unread-badge" id="punread-badge-${p.id}">${pUnread} unread</span>`:`<span id="punread-badge-${p.id}" style="display:none"></span>`}
+        </span>
+        <i class="ti ti-chevron-down chevron"></i>
+      </button>
+
+      <div class="notes-panel ${pIsOpen?'open':''}" id="pnotes-panel-${p.id}">
+        <div class="notes-list">
+          ${pNotes.length===0?`<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:13px">No notes yet — add the first one below</div>`:
+          pNotes.map(n=>{
+            const isUnread=currentUser.id&&!(n.readBy&&n.readBy[currentUser.id]);
+            const uc=userColors[n.createdById]||{bg:'#F3F4F6',color:'#374151'};
+            return`<div class="note-item ${isUnread?'unread':''}">
+              <div class="note-meta">
+                <div class="note-avatar" style="background:${uc.bg};color:${uc.color}">${initials(n.createdBy)}</div>
+                <span class="note-author">${n.createdBy}</span>
+                <span class="note-time">${fmtDateTime(n.createdAt)}</span>
+                ${isUnread?`<div class="note-unread-dot" title="Unread"></div>`:''}
+                ${currentUser.id===n.createdById?`<button onclick="deleteNote('${n.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px"><i class="ti ti-trash"></i></button>`:''}
+              </div>
+              <div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="add-note-area">
+          <textarea id="pnote-input-${p.id}" placeholder="Add a note..." rows="2" onkeydown="if(event.key==='Enter'&&(event.metaKey||event.ctrlKey)){addPropertyNote('${p.id}');event.preventDefault()}"></textarea>
+          <button class="btn btn-primary btn-sm" onclick="addPropertyNote('${p.id}')"><i class="ti ti-send"></i>Add</button>
         </div>
       </div>
-    </div></div>`;
+    </div>`;
   }).join('');
 }
 
@@ -659,14 +740,14 @@ function clearReminder(id){db.ref('brokers/'+id).update({reminder:'',reminderNot
 
 function openPropertyModal(id){
   editingPropertyId=id||null;populateBrokerSelect('');
-  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';populateBrokerSelect(p.brokerId||'');}
-  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
+  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';document.getElementById('p-reminder').value=p.reminder||'';document.getElementById('p-reminder-note').value=p.reminderNote||'';populateBrokerSelect(p.brokerId||'');}
+  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom','p-reminder','p-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
   document.getElementById('property-modal').classList.add('open');
 }
 function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
 function saveProperty(){
   const address=document.getElementById('p-address').value.trim();if(!address){showToast('⚠ Address is required');return;}
-  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
+  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),reminder:document.getElementById('p-reminder').value,reminderNote:document.getElementById('p-reminder-note').value,brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
   const id=editingPropertyId||db.ref('properties').push().key;
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
