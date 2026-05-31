@@ -6,102 +6,90 @@
 <title>Maple Holdings CRM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
 <style>
 :root {
-  --green: #1D9E75; --green-l: #E8F8F2; --green-m: #5DCAA5; --green-d: #0F6E56;
-  --bg: #f4f5f7; --surface: #ffffff; --surface2: #f9fafb;
-  --text1: #111827; --text2: #6B7280; --text3: #9CA3AF;
-  --border: #E5E7EB; --border2: #D1D5DB;
-  --r: 10px; --r-lg: 14px; --r-xl: 18px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-}
-@media(prefers-color-scheme:dark){
-  :root{
-    --bg:#111827; --surface:#1F2937; --surface2:#111827;
-    --text1:#F9FAFB; --text2:#9CA3AF; --text3:#6B7280;
-    --border:#374151; --border2:#4B5563;
-    --green-l:#052E1E;
-    --shadow:0 1px 3px rgba(0,0,0,0.3); --shadow-md:0 4px 12px rgba(0,0,0,0.4);
-  }
+  --green:#1D9E75; --green-l:#E8F8F2; --green-m:#5DCAA5; --green-d:#0F6E56;
+  --bg:#F3F4F6; --surface:#FFFFFF; --surface2:#F9FAFB;
+  --text1:#111827; --text2:#6B7280; --text3:#9CA3AF;
+  --border:#E5E7EB; --border2:#D1D5DB;
+  --r:10px; --r-lg:14px;
+  --shadow:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.09),0 2px 4px rgba(0,0,0,0.04);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;font-size:14px;line-height:1.5;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;}
 
-/* Layout */
-.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
-.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
-.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.logo-icon{width:34px;height:34px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.logo-icon i{color:#fff;font-size:18px;}
-.logo-text{font-size:14px;font-weight:600;color:var(--text1);line-height:1.2;}
-.logo-sub{font-size:10px;color:var(--text3);font-weight:400;}
-.sidebar-nav{padding:12px 10px;flex:1;}
-.nav-section{font-size:10px;font-weight:600;letter-spacing:0.07em;color:var(--text3);text-transform:uppercase;padding:8px 10px 6px;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;}
-.nav-item i{font-size:17px;flex-shrink:0;}
-.nav-item:hover{background:var(--surface2);color:var(--text1);}
-.nav-item.active{background:var(--green-l);color:var(--green-d);font-weight:600;}
-.nav-item.active i{color:var(--green);}
-.nav-badge{margin-left:auto;background:#FEE2E2;color:#991B1B;font-size:10px;font-weight:600;padding:1px 6px;border-radius:100px;}
-.sidebar-footer{padding:14px 16px;border-top:1px solid var(--border);}
-.sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:#9CA3AF;flex-shrink:0;}
+/* Topbar */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+.topbar-brand{display:flex;align-items:center;gap:10px;padding:14px 0;}
+.brand-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.brand-icon i{color:#fff;font-size:17px;}
+.brand-name{font-size:15px;font-weight:600;color:var(--text1);}
+.brand-sync{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;margin-left:4px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block;}
 .sync-dot.ok{background:var(--green);}
 .sync-dot.err{background:#EF4444;}
+.nav-tabs{display:flex;gap:2px;padding:10px 0;}
+.tab-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--r);border:none;background:transparent;cursor:pointer;color:var(--text2);font-family:inherit;transition:all 0.15s;position:relative;}
+.tab-btn i{font-size:17px;}
+.tab-btn:hover{background:var(--surface2);color:var(--text1);}
+.tab-btn.active{background:var(--green-l);color:var(--green-d);font-weight:600;}
+.tab-btn.active i{color:var(--green);}
+.tab-badge{background:#FEE2E2;color:#991B1B;font-size:10px;font-weight:600;padding:1px 6px;border-radius:100px;margin-left:2px;}
 
-/* Main */
-.main{flex:1;overflow:auto;}
-.page-header{padding:28px 32px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-.page-title{font-size:22px;font-weight:600;color:var(--text1);}
-.page-sub{font-size:13px;color:var(--text3);margin-top:3px;}
-.page-body{padding:24px 32px;}
+/* Page */
+.page{max-width:1020px;margin:0 auto;padding:28px 24px;}
+.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap;}
+.page-title{font-size:20px;font-weight:600;color:var(--text1);}
+.page-sub{font-size:13px;color:var(--text3);margin-top:2px;}
 
 /* Stats */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
-@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr);}}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow);}
-.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.stat-icon{width:36px;height:36px;border-radius:9px;background:var(--green-l);display:flex;align-items:center;justify-content:center;}
-.stat-icon i{font-size:18px;color:var(--green);}
-.stat-icon.red{background:#FEF2F2;} .stat-icon.red i{color:#EF4444;}
-.stat-icon.amber{background:#FFFBEB;} .stat-icon.amber i{color:#D97706;}
-.stat-icon.blue{background:#EFF6FF;} .stat-icon.blue i{color:#2563EB;}
-.stat-val{font-size:28px;font-weight:600;color:var(--text1);line-height:1;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+@media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr);}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:14px;}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-icon i{font-size:20px;}
+.si-green{background:var(--green-l);} .si-green i{color:var(--green);}
+.si-blue{background:#EFF6FF;} .si-blue i{color:#2563EB;}
+.si-amber{background:#FFFBEB;} .si-amber i{color:#D97706;}
+.si-red{background:#FEF2F2;} .si-red i{color:#EF4444;}
+.stat-body{}
+.stat-val{font-size:26px;font-weight:600;line-height:1;color:var(--text1);}
 .stat-lbl{font-size:12px;color:var(--text2);margin-top:4px;}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:2px;}
 
-/* Dash grid */
-.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-@media(max-width:700px){.dash-grid{grid-template-columns:1fr;}}
+/* Dash panels */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:680px){.dash-grid{grid-template-columns:1fr;}}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;}
-.panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.panel-title{font-size:13px;font-weight:600;color:var(--text1);display:flex;align-items:center;gap:7px;}
-.panel-title i{font-size:16px;color:var(--green);}
-.panel-body{padding:12px;}
+.panel-hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.panel-hd-title{font-size:13px;font-weight:600;color:var(--text1);}
+.panel-hd i{font-size:16px;color:var(--green);}
+.panel-body{padding:8px 10px;}
 
 /* Filter bar */
 .filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
-.search-wrap{flex:1;min-width:180px;position:relative;}
-.search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text3);}
-.search-wrap input{padding-left:34px;}
+.search-box{flex:1;min-width:180px;position:relative;}
+.search-box i{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text3);pointer-events:none;}
+.search-box input{padding-left:34px;width:100%;}
 
 /* Inputs */
 input,textarea,select{width:100%;padding:9px 12px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text1);border:1px solid var(--border2);border-radius:var(--r);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
-input:focus,textarea:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12);}
+input:focus,textarea:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.1);}
 textarea{resize:vertical;min-height:76px;line-height:1.6;}
 select{width:auto;cursor:pointer;}
 
 /* Buttons */
-.btn{padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--r);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
-.btn-primary{background:var(--green);color:#fff;box-shadow:0 1px 2px rgba(29,158,117,0.3);}
+.btn{padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--r);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:inherit;transition:all 0.15s;white-space:nowrap;}
+.btn-primary{background:var(--green);color:#fff;}
 .btn-primary:hover{background:var(--green-d);}
 .btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border2);}
 .btn-ghost:hover{background:var(--surface2);color:var(--text1);}
-.btn-danger-ghost{background:transparent;color:#DC2626;border:1px solid #FECACA;}
-.btn-danger-ghost:hover{background:#FEF2F2;}
-.btn-sm{padding:5px 10px;font-size:12px;border-radius:7px;}
+.btn-del{background:transparent;color:#DC2626;border:1px solid #FECACA;}
+.btn-del:hover{background:#FEF2F2;}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:8px;}
 
 /* Cards */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:10px;box-shadow:var(--shadow);transition:box-shadow 0.15s,border-color 0.15s;}
@@ -109,53 +97,59 @@ select{width:auto;cursor:pointer;}
 .card-grid{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;}
 
 /* Avatar */
-.avatar{width:40px;height:40px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--green-d);flex-shrink:0;border:1.5px solid rgba(29,158,117,0.15);}
+.av{width:40px;height:40px;border-radius:50%;background:var(--green-l);border:2px solid rgba(29,158,117,0.15);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--green-d);flex-shrink:0;}
 
 /* Badges */
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:500;line-height:1;}
-.bg-green{background:#ECFDF5;color:#065F46;} .bg-amber{background:#FFFBEB;color:#92400E;}
-.bg-red{background:#FEF2F2;color:#991B1B;} .bg-blue{background:#EFF6FF;color:#1E40AF;}
-.bg-gray{background:#F3F4F6;color:#374151;} .bg-purple{background:#F5F3FF;color:#4C1D95;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:500;}
+.bg-green{background:#ECFDF5;color:#065F46;}
+.bg-amber{background:#FFFBEB;color:#92400E;}
+.bg-red{background:#FEF2F2;color:#991B1B;}
+.bg-blue{background:#EFF6FF;color:#1E40AF;}
+.bg-gray{background:#F3F4F6;color:#374151;}
+.bg-purple{background:#F5F3FF;color:#4C1D95;}
 .bg-teal{background:#F0FDFA;color:#134E4A;}
 
-/* Reminder chip */
+/* Chips */
 .chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:500;border:1px solid transparent;}
 .chip-amber{background:#FFFBEB;color:#92400E;border-color:#FDE68A;}
 .chip-red{background:#FEF2F2;color:#991B1B;border-color:#FECACA;}
 .chip-green{background:#ECFDF5;color:#065F46;border-color:#A7F3D0;}
 
-/* Notes */
-.note-box{font-size:12px;color:var(--text2);margin-top:10px;background:var(--surface2);padding:8px 12px;border-radius:8px;border-left:3px solid var(--green-m);line-height:1.6;}
-.linked-prop{margin-top:6px;display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
+/* Note box */
+.note-box{font-size:12px;color:var(--text2);margin-top:9px;background:var(--surface2);padding:8px 12px;border-radius:8px;border-left:3px solid var(--green-m);line-height:1.6;}
+.linked{margin-top:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);}
 
-/* Property prices */
-.prices{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+/* Prop */
+.prop-icon{width:44px;height:44px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;color:var(--green-d);font-size:20px;flex-shrink:0;}
+.prop-meta{font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.prop-meta span{display:flex;align-items:center;gap:4px;}
+.prices{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 .price-item{display:flex;flex-direction:column;gap:2px;}
-.price-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;}
+.price-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;}
 .price-val{font-size:13px;font-weight:600;color:var(--text1);}
 .price-val.green{color:var(--green-d);}
 .price-val.amber{color:#92400E;}
 
-/* Prop icon */
-.prop-icon{width:44px;height:44px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;color:var(--green-d);font-size:20px;flex-shrink:0;}
-.prop-meta{font-size:12px;color:var(--text2);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;}
-.prop-meta span{display:flex;align-items:center;gap:4px;}
-
-/* Reminders page */
-.reminder-card{display:grid;grid-template-columns:4px 1fr auto;gap:16px;align-items:start;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:10px;box-shadow:var(--shadow);}
-.reminder-card.overdue{border-color:#FECACA;border-left:4px solid #EF4444;}
-.reminder-card.today{border-color:#A7F3D0;border-left:4px solid var(--green);}
-.reminder-card.upcoming{border-left:4px solid #E5E7EB;}
-.r-accent{display:none;}
+/* Reminder cards */
+.r-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:10px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;}
+.r-card.overdue{border-left:4px solid #EF4444;border-color:#FECACA;}
+.r-card.today{border-left:4px solid var(--green);border-color:#A7F3D0;}
+.r-card.upcoming{border-left:4px solid #E5E7EB;}
 .r-name{font-size:13px;font-weight:600;color:var(--text1);}
 .r-date{font-size:11px;color:var(--text2);margin-top:3px;display:flex;align-items:center;gap:5px;}
-.r-note{font-size:12px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:7px;}
-.section-head{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin:20px 0 8px;display:flex;align-items:center;gap:6px;}
+.r-note{font-size:12px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:7px;line-height:1.5;}
+.sec-head{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin:18px 0 8px;display:flex;align-items:center;gap:6px;}
+
+/* Activity */
+.act-row{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:var(--r);transition:background 0.1s;}
+.act-row:hover{background:var(--surface2);}
+.act-dot{width:32px;height:32px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.act-dot i{font-size:15px;color:var(--green);}
 
 /* Modal */
-.overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,0.5);z-index:100;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto;backdrop-filter:blur(2px);}
+.overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,0.45);z-index:100;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto;}
 .overlay.open{display:flex;}
-.modal{background:var(--surface);border-radius:var(--r-xl);padding:28px;width:100%;max-width:560px;border:1px solid var(--border);box-shadow:var(--shadow-md);margin:auto;}
+.modal{background:var(--surface);border-radius:16px;padding:28px;width:100%;max-width:560px;border:1px solid var(--border);box-shadow:var(--shadow-md);margin:auto;}
 .modal-hd{font-size:16px;font-weight:600;margin-bottom:22px;color:var(--text1);display:flex;justify-content:space-between;align-items:center;}
 .form-lbl{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;display:block;}
 .form-g{margin-bottom:14px;}
@@ -164,189 +158,103 @@ select{width:auto;cursor:pointer;}
 @media(max-width:480px){.form-row,.form-row3{grid-template-columns:1fr;}}
 .form-sep{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
 .form-sep i{font-size:13px;}
-.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
 
 /* Empty */
 .empty{text-align:center;padding:48px 20px;color:var(--text3);}
-.empty i{font-size:40px;margin-bottom:12px;display:block;color:var(--border2);}
+.empty i{font-size:42px;margin-bottom:12px;display:block;color:var(--border2);}
 .empty p{font-size:14px;color:var(--text2);}
 .empty small{font-size:12px;margin-top:4px;display:block;}
 
-/* Activity item */
-.act-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r);transition:background 0.1s;cursor:default;}
-.act-item:hover{background:var(--surface2);}
-.act-dot{width:32px;height:32px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.act-dot i{font-size:15px;color:var(--green);}
-
 /* Toast */
-#toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text1);color:#fff;border-radius:10px;padding:10px 20px;font-size:13px;z-index:300;white-space:nowrap;box-shadow:var(--shadow-md);}
-
-/* Loading */
-.toploader{position:fixed;top:0;left:0;right:0;height:2px;background:var(--green);z-index:400;transform-origin:left;animation:tload 1.2s ease-in-out infinite;}
-@keyframes tload{0%{transform:scaleX(0)}60%{transform:scaleX(0.8)}100%{transform:scaleX(1);opacity:0}}
-
-@media(max-width:768px){
-  .shell{grid-template-columns:1fr;}
-  .sidebar{display:none;}
-  .page-body{padding:16px;}
-  .page-header{padding:16px 16px 0;}
-}
+#toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text1);color:#fff;border-radius:10px;padding:10px 22px;font-size:13px;z-index:300;white-space:nowrap;box-shadow:var(--shadow-md);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
 </style>
 </head>
 <body>
-<div id="toploader" class="toploader"></div>
 
-<div class="shell">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon"><i class="ti ti-building"></i></div>
-      <div>
-        <div class="logo-text">Maple Holdings</div>
-        <div class="logo-sub">Real Estate CRM</div>
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon"><i class="ti ti-building"></i></div>
+    <span class="brand-name">Maple Holdings</span>
+    <span class="brand-sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-lbl">Connecting...</span></span>
+  </div>
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('brokers')" id="nav-brokers"><i class="ti ti-users"></i>Brokers</button>
+    <button class="tab-btn" onclick="switchTab('properties')" id="nav-properties"><i class="ti ti-building-estate"></i>Properties</button>
+    <button class="tab-btn" onclick="switchTab('reminders')" id="nav-reminders"><i class="ti ti-bell"></i>Reminders<span id="reminder-badge" class="tab-badge" style="display:none">0</span></button>
+  </nav>
+</header>
+
+<!-- Dashboard -->
+<div class="tab-content active" id="tab-dashboard">
+  <div class="page">
+    <div class="page-hd">
+      <div><div class="page-title">Dashboard</div><div class="page-sub">Your pipeline at a glance</div></div>
+    </div>
+    <div class="stats" id="stats-row"></div>
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="panel-hd"><i class="ti ti-bell-ringing"></i><span class="panel-hd-title">Upcoming Follow-ups</span></div>
+        <div class="panel-body" id="dash-reminders"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><i class="ti ti-clock"></i><span class="panel-hd-title">Recent Activity</span></div>
+        <div class="panel-body" id="dash-activity"></div>
       </div>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <button class="nav-item active" onclick="switchTab('dashboard')" id="nav-dashboard">
-        <i class="ti ti-layout-dashboard"></i> Dashboard
-      </button>
-      <button class="nav-item" onclick="switchTab('brokers')" id="nav-brokers">
-        <i class="ti ti-users"></i> Brokers
-      </button>
-      <button class="nav-item" onclick="switchTab('properties')" id="nav-properties">
-        <i class="ti ti-building-estate"></i> Properties
-      </button>
-      <div class="nav-section" style="margin-top:8px">Follow-ups</div>
-      <button class="nav-item" onclick="switchTab('reminders')" id="nav-reminders">
-        <i class="ti ti-bell"></i> Reminders
-        <span id="reminder-badge" class="nav-badge" style="display:none">0</span>
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="sync-status">
-        <div class="sync-dot" id="sync-dot"></div>
-        <span id="sync-label">Connecting...</span>
-      </div>
+  </div>
+</div>
+
+<!-- Brokers -->
+<div class="tab-content" id="tab-brokers">
+  <div class="page">
+    <div class="page-hd">
+      <div><div class="page-title">Brokers</div><div class="page-sub">Manage your broker relationships</div></div>
+      <button class="btn btn-primary" onclick="openBrokerModal()"><i class="ti ti-plus"></i>Add Broker</button>
     </div>
-  </aside>
-
-  <!-- Main content -->
-  <main class="main">
-
-    <!-- Dashboard -->
-    <div class="tab-content active" id="tab-dashboard">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Dashboard</div>
-          <div class="page-sub">Overview of your pipeline</div>
-        </div>
-      </div>
-      <div class="page-body">
-        <div class="stats-row" id="stats-row"></div>
-        <div class="dash-grid">
-          <div class="panel">
-            <div class="panel-head">
-              <span class="panel-title"><i class="ti ti-bell-ringing"></i> Upcoming Follow-ups</span>
-            </div>
-            <div class="panel-body" id="dash-reminders"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-head">
-              <span class="panel-title"><i class="ti ti-clock"></i> Recent Activity</span>
-            </div>
-            <div class="panel-body" id="dash-activity"></div>
-          </div>
-        </div>
-      </div>
+    <div class="filter-bar">
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" id="broker-search" placeholder="Search by name or area..." oninput="renderBrokers()" /></div>
+      <select id="broker-filter" onchange="renderBrokers()"><option value="">All statuses</option><option value="active">Active</option><option value="waiting">Awaiting follow-up</option><option value="done">Closed</option></select>
     </div>
+    <div id="brokers-list"></div>
+  </div>
+</div>
 
-    <!-- Brokers -->
-    <div class="tab-content" id="tab-brokers">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Brokers</div>
-          <div class="page-sub">Manage your broker relationships</div>
-        </div>
-        <button class="btn btn-primary" onclick="openBrokerModal()"><i class="ti ti-plus"></i> Add Broker</button>
-      </div>
-      <div class="page-body">
-        <div class="filter-bar">
-          <div class="search-wrap">
-            <i class="ti ti-search"></i>
-            <input type="text" id="broker-search" placeholder="Search by name or area..." oninput="renderBrokers()" style="width:100%" />
-          </div>
-          <select id="broker-filter" onchange="renderBrokers()">
-            <option value="">All statuses</option>
-            <option value="active">Active</option>
-            <option value="waiting">Awaiting follow-up</option>
-            <option value="done">Closed</option>
-          </select>
-        </div>
-        <div id="brokers-list"></div>
-      </div>
+<!-- Properties -->
+<div class="tab-content" id="tab-properties">
+  <div class="page">
+    <div class="page-hd">
+      <div><div class="page-title">Properties</div><div class="page-sub">Track deals and listings</div></div>
+      <button class="btn btn-primary" onclick="openPropertyModal()"><i class="ti ti-plus"></i>Add Property</button>
     </div>
-
-    <!-- Properties -->
-    <div class="tab-content" id="tab-properties">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Properties</div>
-          <div class="page-sub">Track deals and listings</div>
-        </div>
-        <button class="btn btn-primary" onclick="openPropertyModal()"><i class="ti ti-plus"></i> Add Property</button>
-      </div>
-      <div class="page-body">
-        <div class="filter-bar">
-          <div class="search-wrap">
-            <i class="ti ti-search"></i>
-            <input type="text" id="prop-search" placeholder="Search address..." oninput="renderProperties()" style="width:100%" />
-          </div>
-          <select id="prop-type-filter" onchange="renderProperties()">
-            <option value="">All types</option>
-            <option value="SFR">SFR</option>
-            <option value="MFR">MFR</option>
-            <option value="commercial">Commercial</option>
-            <option value="land">Land</option>
-          </select>
-          <select id="prop-filter" onchange="renderProperties()">
-            <option value="">All statuses</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="uc">UC</option>
-            <option value="offer_sent">Offer Sent</option>
-            <option value="rejected">Rejected</option>
-            <option value="follow_up">In Follow Up</option>
-          </select>
-        </div>
-        <div id="properties-list"></div>
-      </div>
+    <div class="filter-bar">
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" id="prop-search" placeholder="Search address..." oninput="renderProperties()" /></div>
+      <select id="prop-type-filter" onchange="renderProperties()"><option value="">All types</option><option value="SFR">SFR</option><option value="MFR">MFR</option><option value="commercial">Commercial</option><option value="land">Land</option></select>
+      <select id="prop-filter" onchange="renderProperties()"><option value="">All statuses</option><option value="active">Active</option><option value="pending">Pending</option><option value="uc">UC</option><option value="offer_sent">Offer Sent</option><option value="rejected">Rejected</option><option value="follow_up">In Follow Up</option></select>
     </div>
+    <div id="properties-list"></div>
+  </div>
+</div>
 
-    <!-- Reminders -->
-    <div class="tab-content" id="tab-reminders">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Reminders</div>
-          <div class="page-sub">Scheduled follow-up calls</div>
-        </div>
-      </div>
-      <div class="page-body">
-        <div id="reminders-list"></div>
-      </div>
+<!-- Reminders -->
+<div class="tab-content" id="tab-reminders">
+  <div class="page">
+    <div class="page-hd">
+      <div><div class="page-title">Reminders</div><div class="page-sub">Scheduled follow-up calls</div></div>
     </div>
-
-  </main>
+    <div id="reminders-list"></div>
+  </div>
 </div>
 
 <!-- Broker Modal -->
 <div class="overlay" id="broker-modal">
   <div class="modal">
-    <div class="modal-hd">
-      <span id="broker-modal-title">Add Broker</span>
-      <button class="btn btn-ghost btn-sm" onclick="closeBrokerModal()"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="form-sep"><i class="ti ti-id-badge"></i> Contact Info</div>
+    <div class="modal-hd"><span id="broker-modal-title">Add Broker</span><button class="btn btn-ghost btn-sm" onclick="closeBrokerModal()"><i class="ti ti-x"></i></button></div>
+    <div class="form-sep"><i class="ti ti-id-badge"></i>Contact Info</div>
     <div class="form-row">
       <div class="form-g"><label class="form-lbl">Full name *</label><input type="text" id="b-name" placeholder="John Smith" /></div>
       <div class="form-g"><label class="form-lbl">Phone</label><input type="text" id="b-phone" placeholder="+1 555 000 0000" /></div>
@@ -355,35 +263,29 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">Area / Zone</label><input type="text" id="b-area" placeholder="Miami, Broward..." /></div>
       <div class="form-g"><label class="form-lbl">Status</label><select id="b-status" style="width:100%"><option value="active">Active</option><option value="waiting">Awaiting follow-up</option><option value="done">Closed</option></select></div>
     </div>
-    <div class="form-sep"><i class="ti ti-notes"></i> Call Notes</div>
+    <div class="form-sep"><i class="ti ti-notes"></i>Call Notes</div>
     <div class="form-g"><label class="form-lbl">Notes</label><textarea id="b-notes" placeholder="What did we discuss? What properties did they show?..."></textarea></div>
-    <div class="form-sep"><i class="ti ti-bell"></i> Follow-up Reminder</div>
+    <div class="form-sep"><i class="ti ti-bell"></i>Follow-up Reminder</div>
     <div class="form-row">
       <div class="form-g"><label class="form-lbl">Reminder date</label><input type="date" id="b-reminder" style="width:100%" /></div>
       <div class="form-g"><label class="form-lbl">Linked property</label><select id="b-linked-property" style="width:100%"><option value="">None</option></select></div>
     </div>
     <div class="form-g"><label class="form-lbl">Reminder note</label><input type="text" id="b-reminder-note" placeholder="Call about the 3/2 SFR on Maple Ave..." /></div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeBrokerModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveBroker()"><i class="ti ti-check"></i> Save</button>
-    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeBrokerModal()">Cancel</button><button class="btn btn-primary" onclick="saveBroker()"><i class="ti ti-check"></i>Save</button></div>
   </div>
 </div>
 
 <!-- Property Modal -->
 <div class="overlay" id="property-modal">
   <div class="modal">
-    <div class="modal-hd">
-      <span id="prop-modal-title">Add Property</span>
-      <button class="btn btn-ghost btn-sm" onclick="closePropertyModal()"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="form-sep"><i class="ti ti-building"></i> Property Info</div>
+    <div class="modal-hd"><span id="prop-modal-title">Add Property</span><button class="btn btn-ghost btn-sm" onclick="closePropertyModal()"><i class="ti ti-x"></i></button></div>
+    <div class="form-sep"><i class="ti ti-building"></i>Property Info</div>
     <div class="form-g"><label class="form-lbl">Address *</label><input type="text" id="p-address" placeholder="123 Maple Ave, Miami, FL" /></div>
     <div class="form-row">
       <div class="form-g"><label class="form-lbl">Type</label><select id="p-type" style="width:100%"><option value="SFR">SFR — Single Family</option><option value="MFR">MFR — Multi Family</option><option value="commercial">Commercial</option><option value="land">Land</option></select></div>
       <div class="form-g"><label class="form-lbl">Status</label><select id="p-status" style="width:100%"><option value="active">Active</option><option value="pending">Pending</option><option value="uc">UC (Under Contract)</option><option value="offer_sent">Offer Sent</option><option value="rejected">Rejected</option><option value="follow_up">In Follow Up</option></select></div>
     </div>
-    <div class="form-sep"><i class="ti ti-currency-dollar"></i> Pricing</div>
+    <div class="form-sep"><i class="ti ti-currency-dollar"></i>Pricing</div>
     <div class="form-row3">
       <div class="form-g"><label class="form-lbl">List Price ($)</label><input type="number" id="p-list-price" placeholder="350000" /></div>
       <div class="form-g"><label class="form-lbl">Asking Price ($)</label><input type="number" id="p-asking-price" placeholder="340000" /></div>
@@ -393,17 +295,14 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">Renovation Cost ($)</label><input type="number" id="p-reno-cost" placeholder="45000" /></div>
       <div class="form-g"><label class="form-lbl">Linked broker</label><select id="p-broker" style="width:100%"></select></div>
     </div>
-    <div class="form-sep"><i class="ti ti-ruler"></i> Details</div>
+    <div class="form-sep"><i class="ti ti-ruler"></i>Details</div>
     <div class="form-row3">
       <div class="form-g"><label class="form-lbl">Beds</label><input type="number" id="p-rooms" placeholder="3" min="0" /></div>
       <div class="form-g"><label class="form-lbl">Baths</label><input type="number" id="p-baths" placeholder="2" min="0" step="0.5" /></div>
       <div class="form-g"><label class="form-lbl">Size (sqft)</label><input type="number" id="p-size" placeholder="1800" /></div>
     </div>
     <div class="form-g"><label class="form-lbl">Notes</label><textarea id="p-notes" placeholder="Condition, repairs needed, pros, cons..."></textarea></div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closePropertyModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i> Save</button>
-    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closePropertyModal()">Cancel</button><button class="btn btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i>Save</button></div>
   </div>
 </div>
 
@@ -412,337 +311,223 @@ select{width:auto;cursor:pointer;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-firebase.initializeApp({ databaseURL: "https://maple-holdings-group-default-rtdb.firebaseio.com/" });
-const db = firebase.database();
+firebase.initializeApp({databaseURL:"https://maple-holdings-group-default-rtdb.firebaseio.com/"});
+const db=firebase.database();
+let state={brokers:{},properties:{}},editingBrokerId=null,editingPropertyId=null;
 
-let state = { brokers: {}, properties: {} };
-let editingBrokerId = null, editingPropertyId = null;
+function showToast(m,d=2500){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',d);}
+function setSyncStatus(s){const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-lbl');if(s==='ok'){dot.className='sync-dot ok';lbl.textContent='Live';}else if(s==='err'){dot.className='sync-dot err';lbl.textContent='Offline';}else{dot.className='sync-dot';lbl.textContent='Connecting...';}}
 
-function showToast(msg, d=2500) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', d);
-}
+db.ref('brokers').on('value',snap=>{state.brokers=snap.val()||{};setSyncStatus('ok');renderAll();},()=>setSyncStatus('err'));
+db.ref('properties').on('value',snap=>{state.properties=snap.val()||{};renderAll();});
 
-function setSyncStatus(s) {
-  const dot = document.getElementById('sync-dot');
-  const lbl = document.getElementById('sync-label');
-  if (s==='ok') { dot.className='sync-dot ok'; lbl.textContent='Live sync'; }
-  else if (s==='err') { dot.className='sync-dot err'; lbl.textContent='Offline'; }
-  else { dot.className='sync-dot'; lbl.textContent='Connecting...'; }
-}
+function fmtDate(d){if(!d)return'';return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmtMoney(n){if(!n)return'';const v=Number(n);if(v>=1000000)return'$'+(v/1000000).toFixed(2)+'M';if(v>=1000)return'$'+Math.round(v/1000)+'K';return'$'+v.toLocaleString();}
+function daysUntil(d){if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const r=new Date(d);r.setHours(0,0,0,0);return Math.round((r-t)/86400000);}
+function rStatus(b){if(!b.reminder)return null;const d=daysUntil(b.reminder);return d<0?'overdue':d===0?'today':'upcoming';}
+function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function bArr(){return Object.entries(state.brokers).map(([id,v])=>({id,...v}));}
+function pArr(){return Object.entries(state.properties).map(([id,v])=>({id,...v}));}
 
-db.ref('brokers').on('value', snap => {
-  state.brokers = snap.val() || {};
-  setSyncStatus('ok');
-  document.getElementById('toploader').style.display = 'none';
-  renderAll();
-}, () => setSyncStatus('err'));
+const bSLbl={active:'Active',waiting:'Follow-up',done:'Closed'};
+const pSLbl={active:'Active',pending:'Pending',uc:'UC',offer_sent:'Offer Sent',rejected:'Rejected',follow_up:'In Follow Up'};
+const bSCls={active:'bg-green',waiting:'bg-amber',done:'bg-gray'};
+const pSCls={active:'bg-green',pending:'bg-amber',uc:'bg-blue',offer_sent:'bg-purple',rejected:'bg-red',follow_up:'bg-teal'};
+const tIcon={SFR:'ti-home',MFR:'ti-building',commercial:'ti-briefcase',land:'ti-map'};
 
-db.ref('properties').on('value', snap => {
-  state.properties = snap.val() || {};
-  renderAll();
-});
+function renderAll(){renderStats();renderDashboard();renderBrokers();renderProperties();renderReminders();updateBadge();}
 
-function fmtDate(d) {
-  if (!d) return '';
-  return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-}
-function fmtMoney(n) {
-  if (!n) return '';
-  const num = Number(n);
-  if (num >= 1000000) return '$' + (num/1000000).toFixed(2) + 'M';
-  if (num >= 1000) return '$' + Math.round(num/1000) + 'K';
-  return '$' + num.toLocaleString();
-}
-function daysUntil(d) {
-  if (!d) return null;
-  const t = new Date(); t.setHours(0,0,0,0);
-  const r = new Date(d); r.setHours(0,0,0,0);
-  return Math.round((r-t)/86400000);
-}
-function rStatus(b) {
-  if (!b.reminder) return null;
-  const d = daysUntil(b.reminder);
-  return d < 0 ? 'overdue' : d === 0 ? 'today' : 'upcoming';
-}
-function initials(name) { return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
-function bArr() { return Object.entries(state.brokers).map(([id,v])=>({id,...v})); }
-function pArr() { return Object.entries(state.properties).map(([id,v])=>({id,...v})); }
-
-const bStatusLbl = { active:'Active', waiting:'Follow-up', done:'Closed' };
-const pStatusLbl = { active:'Active', pending:'Pending', uc:'UC', offer_sent:'Offer Sent', rejected:'Rejected', follow_up:'In Follow Up' };
-const bStatusCls = { active:'bg-green', waiting:'bg-amber', done:'bg-gray' };
-const pStatusCls = { active:'bg-green', pending:'bg-amber', uc:'bg-blue', offer_sent:'bg-purple', rejected:'bg-red', follow_up:'bg-teal' };
-const typeIcon = { SFR:'ti-home', MFR:'ti-building', commercial:'ti-briefcase', land:'ti-map' };
-
-function renderAll() {
-  renderStats(); renderDashboard(); renderBrokers(); renderProperties(); renderReminders(); updateBadge();
-}
-
-function renderStats() {
-  const br = bArr(), pr = pArr();
-  const overdue = br.filter(b=>rStatus(b)==='overdue').length;
-  const today = br.filter(b=>rStatus(b)==='today').length;
-  document.getElementById('stats-row').innerHTML = `
-    <div class="stat"><div class="stat-top"><div class="stat-icon"><i class="ti ti-users"></i></div></div><div class="stat-val">${br.length}</div><div class="stat-lbl">Total brokers · ${br.filter(b=>b.status==='active').length} active</div></div>
-    <div class="stat"><div class="stat-top"><div class="stat-icon blue"><i class="ti ti-building-estate"></i></div></div><div class="stat-val">${pr.length}</div><div class="stat-lbl">Properties · ${pr.filter(p=>p.status==='active').length} active</div></div>
-    <div class="stat"><div class="stat-top"><div class="stat-icon amber"><i class="ti ti-bell"></i></div></div><div class="stat-val" style="color:${today>0?'var(--green)':'inherit'}">${today}</div><div class="stat-lbl">Follow-ups today</div></div>
-    <div class="stat"><div class="stat-top"><div class="stat-icon red"><i class="ti ti-alert-circle"></i></div></div><div class="stat-val" style="color:${overdue>0?'#EF4444':'inherit'}">${overdue}</div><div class="stat-lbl">Overdue follow-ups</div></div>
+function renderStats(){
+  const br=bArr(),pr=pArr();
+  const ov=br.filter(b=>rStatus(b)==='overdue').length,td=br.filter(b=>rStatus(b)==='today').length;
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat"><div class="stat-icon si-green"><i class="ti ti-users"></i></div><div class="stat-body"><div class="stat-val">${br.length}</div><div class="stat-lbl">Brokers</div><div class="stat-sub">${br.filter(b=>b.status==='active').length} active</div></div></div>
+    <div class="stat"><div class="stat-icon si-blue"><i class="ti ti-building-estate"></i></div><div class="stat-body"><div class="stat-val">${pr.length}</div><div class="stat-lbl">Properties</div><div class="stat-sub">${pr.filter(p=>p.status==='active').length} active</div></div></div>
+    <div class="stat"><div class="stat-icon si-amber"><i class="ti ti-bell"></i></div><div class="stat-body"><div class="stat-val" style="color:${td>0?'var(--green)':'inherit'}">${td}</div><div class="stat-lbl">Today's calls</div><div class="stat-sub">due today</div></div></div>
+    <div class="stat"><div class="stat-icon si-red"><i class="ti ti-alert-circle"></i></div><div class="stat-body"><div class="stat-val" style="color:${ov>0?'#EF4444':'inherit'}">${ov}</div><div class="stat-lbl">Overdue</div><div class="stat-sub">missed follow-ups</div></div></div>
   `;
 }
 
-function renderDashboard() {
-  const reminders = bArr().filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder)).slice(0,5);
-  const dr = document.getElementById('dash-reminders');
-  if (!reminders.length) { dr.innerHTML = '<div class="empty" style="padding:24px"><i class="ti ti-bell-off"></i><p>No upcoming reminders</p></div>'; }
-  else dr.innerHTML = reminders.map(b => {
-    const d = daysUntil(b.reminder), s = rStatus(b);
-    const chipCls = s==='overdue'?'chip-red':s==='today'?'chip-green':'chip-amber';
-    const chipLbl = s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Today':`In ${d}d`;
-    const prop = b.linkedProperty ? state.properties[b.linkedProperty] : null;
-    return `<div class="act-item" style="cursor:pointer" onclick="switchTab('reminders')">
-      <div class="avatar" style="width:34px;height:34px;font-size:11px">${initials(b.name)}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:13px;font-weight:600">${b.name}</span>
-          <span class="chip ${chipCls}"><i class="ti ti-bell" style="font-size:10px"></i> ${chipLbl}</span>
-        </div>
-        ${b.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${b.reminderNote}</div>`:''}
-        ${prop?`<div class="linked-prop"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
-      </div>
-    </div>`;
+function renderDashboard(){
+  const rem=bArr().filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder)).slice(0,5);
+  const dr=document.getElementById('dash-reminders');
+  if(!rem.length){dr.innerHTML='<div class="empty" style="padding:20px"><i class="ti ti-bell-off"></i><p>No upcoming reminders</p></div>';}
+  else dr.innerHTML=rem.map(b=>{
+    const d=daysUntil(b.reminder),s=rStatus(b);
+    const cc=s==='overdue'?'chip-red':s==='today'?'chip-green':'chip-amber';
+    const cl=s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Today':`In ${d}d`;
+    const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
+    return`<div class="act-row" style="cursor:pointer" onclick="switchTab('reminders')">
+      <div class="av" style="width:32px;height:32px;font-size:11px">${initials(b.name)}</div>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${b.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
+      ${b.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${b.reminderNote}</div>`:''}
+      ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
+      </div></div>`;
   }).join('');
 
-  const acts = [...bArr().map(b=>({...b,_t:'broker'})),...pArr().map(p=>({...p,_t:'property'}))].filter(x=>x.createdAt).sort((a,b)=>b.createdAt-a.createdAt).slice(0,6);
-  const ra = document.getElementById('dash-activity');
-  if (!acts.length) { ra.innerHTML = '<div class="empty" style="padding:24px"><i class="ti ti-activity"></i><p>No activity yet</p></div>'; return; }
-  ra.innerHTML = acts.map(x=>`<div class="act-item">
-    <div class="act-dot"><i class="ti ${x._t==='broker'?'ti-user':'ti-building'}"></i></div>
+  const acts=[...bArr().map(b=>({...b,_t:'broker'})),...pArr().map(p=>({...p,_t:'property'}))].filter(x=>x.createdAt).sort((a,b)=>b.createdAt-a.createdAt).slice(0,6);
+  const ra=document.getElementById('dash-activity');
+  if(!acts.length){ra.innerHTML='<div class="empty" style="padding:20px"><i class="ti ti-activity"></i><p>No activity yet</p></div>';return;}
+  ra.innerHTML=acts.map(x=>`<div class="act-row"><div class="act-dot"><i class="ti ${x._t==='broker'?'ti-user':'ti-building'}"></i></div>
     <div><div style="font-size:13px;font-weight:500">${x._t==='broker'?x.name:x.address}</div>
-    <div style="font-size:11px;color:var(--text3)">${x._t==='broker'?'Broker added':'Property added'} · ${fmtDate(x.createdAt)}</div></div>
-  </div>`).join('');
+    <div style="font-size:11px;color:var(--text3)">${x._t==='broker'?'Broker added':'Property added'} · ${fmtDate(x.createdAt)}</div></div></div>`).join('');
 }
 
-function renderBrokers() {
-  const search = (document.getElementById('broker-search')||{}).value?.toLowerCase()||'';
-  const filter = (document.getElementById('broker-filter')||{}).value||'';
-  const list = bArr().filter(b=>(b.name.toLowerCase().includes(search)||(b.area||'').toLowerCase().includes(search))&&(!filter||b.status===filter))
-    .sort((a,b)=>({overdue:0,today:1,upcoming:2,null:3}[rStatus(a)??'null']??3)-({overdue:0,today:1,upcoming:2,null:3}[rStatus(b)??'null']??3));
-  const el = document.getElementById('brokers-list');
-  if (!list.length) { el.innerHTML = '<div class="empty"><i class="ti ti-users-off"></i><p>No brokers found</p><small>Click "Add Broker" to get started</small></div>'; return; }
-  el.innerHTML = list.map(b => {
-    const s = rStatus(b), d = daysUntil(b.reminder);
-    const chipCls = s==='overdue'?'chip-red':s==='today'?'chip-green':'chip-amber';
-    const chipLbl = s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Follow-up today!':s?`In ${d} days`:'';
-    const prop = b.linkedProperty ? state.properties[b.linkedProperty] : null;
-    return `<div class="card">
-      <div class="card-grid">
-        <div class="avatar">${initials(b.name)}</div>
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span style="font-size:14px;font-weight:600">${b.name}</span>
-            <span class="badge ${bStatusCls[b.status]||'bg-gray'}">${bStatusLbl[b.status]||b.status}</span>
-            ${s?`<span class="chip ${chipCls}"><i class="ti ti-bell" style="font-size:10px"></i> ${chipLbl}</span>`:''}
-          </div>
-          <div style="font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap">
-            ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i> ${b.phone}</span>`:''}
-            ${b.area?`<span><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px"></i> ${b.area}</span>`:''}
-            ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${fmtDate(b.reminder)}</span>`:''}
-          </div>
-          ${b.notes?`<div class="note-box">${b.notes.slice(0,160)}${b.notes.length>160?'...':''}</div>`:''}
-          ${prop?`<div class="linked-prop"><i class="ti ti-building" style="font-size:11px"></i> ${prop.address}</div>`:''}
-          ${b.reminderNote&&s?`<div style="font-size:11px;color:#92400E;margin-top:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-message" style="font-size:12px"></i>${b.reminderNote}</div>`:''}
+function renderBrokers(){
+  const search=(document.getElementById('broker-search')||{}).value?.toLowerCase()||'';
+  const filter=(document.getElementById('broker-filter')||{}).value||'';
+  const list=bArr().filter(b=>(b.name.toLowerCase().includes(search)||(b.area||'').toLowerCase().includes(search))&&(!filter||b.status===filter))
+    .sort((a,b)=>({'overdue':0,'today':1,'upcoming':2,'null':3}[rStatus(a)||'null']??3)-({'overdue':0,'today':1,'upcoming':2,'null':3}[rStatus(b)||'null']??3));
+  const el=document.getElementById('brokers-list');
+  if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-users-off"></i><p>No brokers found</p><small>Click "Add Broker" to get started</small></div>';return;}
+  el.innerHTML=list.map(b=>{
+    const s=rStatus(b),d=daysUntil(b.reminder);
+    const cc=s==='overdue'?'chip-red':s==='today'?'chip-green':'chip-amber';
+    const cl=s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Follow-up today!':s?`In ${d} days`:'';
+    const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
+    return`<div class="card"><div class="card-grid">
+      <div class="av">${initials(b.name)}</div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:14px;font-weight:600">${b.name}</span>
+          <span class="badge ${bSCls[b.status]||'bg-gray'}">${bSLbl[b.status]||b.status}</span>
+          ${s?`<span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span>`:''}
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i></button>
-          <button class="btn btn-danger-ghost btn-sm" onclick="deleteBroker('${b.id}')"><i class="ti ti-trash"></i></button>
+        <div style="font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap">
+          ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span>`:''}
+          ${b.area?`<span><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px"></i>${b.area}</span>`:''}
+          ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i>${fmtDate(b.reminder)}</span>`:''}
         </div>
+        ${b.notes?`<div class="note-box">${b.notes.slice(0,160)}${b.notes.length>160?'...':''}</div>`:''}
+        ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
+        ${b.reminderNote&&s?`<div style="font-size:11px;color:#92400E;margin-top:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-message" style="font-size:12px"></i>${b.reminderNote}</div>`:''}
       </div>
-    </div>`;
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-del btn-sm" onclick="deleteBroker('${b.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div></div>`;
   }).join('');
 }
 
-function renderProperties() {
-  const search = (document.getElementById('prop-search')||{}).value?.toLowerCase()||'';
-  const filter = (document.getElementById('prop-filter')||{}).value||'';
-  const tf = (document.getElementById('prop-type-filter')||{}).value||'';
-  const list = pArr().filter(p=>p.address.toLowerCase().includes(search)&&(!filter||p.status===filter)&&(!tf||p.type===tf));
-  const el = document.getElementById('properties-list');
-  if (!list.length) { el.innerHTML = '<div class="empty"><i class="ti ti-building-off"></i><p>No properties found</p><small>Click "Add Property" to get started</small></div>'; return; }
-  el.innerHTML = list.map(p => {
-    const broker = p.brokerId ? state.brokers[p.brokerId] : null;
-    const hasPrice = p.listPrice||p.askingPrice||p.arv||p.renoCost;
-    return `<div class="card">
-      <div class="card-grid">
-        <div class="prop-icon"><i class="ti ${typeIcon[p.type]||'ti-building'}"></i></div>
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span style="font-size:14px;font-weight:600">${p.address}</span>
-            <span class="badge bg-gray" style="font-size:10px;font-weight:700;letter-spacing:0.03em">${p.type||''}</span>
-            <span class="badge ${pStatusCls[p.status]||'bg-gray'}">${pStatusLbl[p.status]||p.status}</span>
-          </div>
-          <div class="prop-meta">
-            ${p.rooms?`<span><i class="ti ti-door"></i>${p.rooms} bd</span>`:''}
-            ${p.baths?`<span><i class="ti ti-droplet"></i>${p.baths} ba</span>`:''}
-            ${p.size?`<span><i class="ti ti-arrows-maximize"></i>${Number(p.size).toLocaleString()} sqft</span>`:''}
-            ${broker?`<span><i class="ti ti-user"></i>${broker.name}</span>`:''}
-          </div>
-          ${hasPrice?`<div class="prices">
-            ${p.listPrice?`<div class="price-item"><div class="price-label">List</div><div class="price-val">${fmtMoney(p.listPrice)}</div></div>`:''}
-            ${p.askingPrice?`<div class="price-item"><div class="price-label">Asking</div><div class="price-val">${fmtMoney(p.askingPrice)}</div></div>`:''}
-            ${p.arv?`<div class="price-item"><div class="price-label">ARV</div><div class="price-val green">${fmtMoney(p.arv)}</div></div>`:''}
-            ${p.renoCost?`<div class="price-item"><div class="price-label">Reno Cost</div><div class="price-val amber">${fmtMoney(p.renoCost)}</div></div>`:''}
-          </div>`:''}
-          ${p.notes?`<div class="note-box" style="margin-top:10px">${p.notes.slice(0,130)}${p.notes.length>130?'...':''}</div>`:''}
+function renderProperties(){
+  const search=(document.getElementById('prop-search')||{}).value?.toLowerCase()||'';
+  const filter=(document.getElementById('prop-filter')||{}).value||'';
+  const tf=(document.getElementById('prop-type-filter')||{}).value||'';
+  const list=pArr().filter(p=>p.address.toLowerCase().includes(search)&&(!filter||p.status===filter)&&(!tf||p.type===tf));
+  const el=document.getElementById('properties-list');
+  if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-building-off"></i><p>No properties found</p><small>Click "Add Property" to get started</small></div>';return;}
+  el.innerHTML=list.map(p=>{
+    const broker=p.brokerId?state.brokers[p.brokerId]:null;
+    const hp=p.listPrice||p.askingPrice||p.arv||p.renoCost;
+    return`<div class="card"><div class="card-grid">
+      <div class="prop-icon"><i class="ti ${tIcon[p.type]||'ti-building'}"></i></div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:14px;font-weight:600">${p.address}</span>
+          <span class="badge bg-gray" style="font-size:10px;font-weight:700;letter-spacing:0.03em">${p.type||''}</span>
+          <span class="badge ${pSCls[p.status]||'bg-gray'}">${pSLbl[p.status]||p.status}</span>
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
-          <button class="btn btn-danger-ghost btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
+        <div class="prop-meta">
+          ${p.rooms?`<span><i class="ti ti-door"></i>${p.rooms} bd</span>`:''}
+          ${p.baths?`<span><i class="ti ti-droplet"></i>${p.baths} ba</span>`:''}
+          ${p.size?`<span><i class="ti ti-arrows-maximize"></i>${Number(p.size).toLocaleString()} sqft</span>`:''}
+          ${broker?`<span><i class="ti ti-user"></i>${broker.name}</span>`:''}
         </div>
+        ${hp?`<div class="prices">
+          ${p.listPrice?`<div class="price-item"><div class="price-lbl">List</div><div class="price-val">${fmtMoney(p.listPrice)}</div></div>`:''}
+          ${p.askingPrice?`<div class="price-item"><div class="price-lbl">Asking</div><div class="price-val">${fmtMoney(p.askingPrice)}</div></div>`:''}
+          ${p.arv?`<div class="price-item"><div class="price-lbl">ARV</div><div class="price-val green">${fmtMoney(p.arv)}</div></div>`:''}
+          ${p.renoCost?`<div class="price-item"><div class="price-lbl">Reno Cost</div><div class="price-val amber">${fmtMoney(p.renoCost)}</div></div>`:''}
+        </div>`:''}
+        ${p.notes?`<div class="note-box" style="margin-top:10px">${p.notes.slice(0,130)}${p.notes.length>130?'...':''}</div>`:''}
       </div>
-    </div>`;
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div></div>`;
   }).join('');
 }
 
-function renderReminders() {
-  const withR = bArr().filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder));
-  const el = document.getElementById('reminders-list');
-  if (!withR.length) { el.innerHTML = '<div class="empty"><i class="ti ti-bell-off"></i><p>No reminders set</p><small>Set a follow-up date when editing a broker</small></div>'; return; }
-  const overdue = withR.filter(b=>rStatus(b)==='overdue');
-  const today = withR.filter(b=>rStatus(b)==='today');
-  const upcoming = withR.filter(b=>rStatus(b)==='upcoming');
-  let html = '';
-  if (overdue.length) { html+=`<div class="section-head" style="color:#EF4444"><i class="ti ti-alert-circle"></i>Overdue (${overdue.length})</div>`+overdue.map(rCard).join(''); }
-  if (today.length) { html+=`<div class="section-head" style="color:var(--green)"><i class="ti ti-star"></i>Today (${today.length})</div>`+today.map(rCard).join(''); }
-  if (upcoming.length) { html+=`<div class="section-head"><i class="ti ti-calendar"></i>Upcoming (${upcoming.length})</div>`+upcoming.map(rCard).join(''); }
-  el.innerHTML = html;
+function renderReminders(){
+  const withR=bArr().filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder));
+  const el=document.getElementById('reminders-list');
+  if(!withR.length){el.innerHTML='<div class="empty"><i class="ti ti-bell-off"></i><p>No reminders set</p><small>Set a follow-up date when editing a broker</small></div>';return;}
+  const ov=withR.filter(b=>rStatus(b)==='overdue'),td=withR.filter(b=>rStatus(b)==='today'),up=withR.filter(b=>rStatus(b)==='upcoming');
+  let html='';
+  if(ov.length)html+=`<div class="sec-head" style="color:#EF4444"><i class="ti ti-alert-circle"></i>Overdue (${ov.length})</div>`+ov.map(rCard).join('');
+  if(td.length)html+=`<div class="sec-head" style="color:var(--green)"><i class="ti ti-star"></i>Today (${td.length})</div>`+td.map(rCard).join('');
+  if(up.length)html+=`<div class="sec-head"><i class="ti ti-calendar"></i>Upcoming (${up.length})</div>`+up.map(rCard).join('');
+  el.innerHTML=html;
 }
 
-function rCard(b) {
-  const s = rStatus(b), d = daysUntil(b.reminder);
-  const lbl = s==='overdue'?`${Math.abs(d)} days overdue`:s==='today'?'Today':`In ${d} days`;
-  const prop = b.linkedProperty ? state.properties[b.linkedProperty] : null;
-  return `<div class="reminder-card ${s||'upcoming'}">
-    <div></div>
+function rCard(b){
+  const s=rStatus(b),d=daysUntil(b.reminder);
+  const lbl=s==='overdue'?`${Math.abs(d)} days overdue`:s==='today'?'Today':`In ${d} days`;
+  const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
+  return`<div class="r-card ${s||'upcoming'}">
     <div>
       <div class="r-name">${b.name}${b.phone?` · <span style="font-weight:400;color:var(--text2)">${b.phone}</span>`:''}</div>
       <div class="r-date"><i class="ti ti-calendar" style="font-size:12px"></i>${fmtDate(b.reminder)} · ${lbl}</div>
       ${b.reminderNote?`<div class="r-note">${b.reminderNote}</div>`:''}
-      ${b.notes?`<div class="r-note" style="margin-top:5px"><i class="ti ti-notes" style="font-size:12px;vertical-align:-2px;margin-right:3px"></i>${b.notes.slice(0,120)}${b.notes.length>120?'...':''}</div>`:''}
-      ${prop?`<div class="linked-prop"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
+      ${b.notes?`<div class="r-note" style="margin-top:5px"><i class="ti ti-notes" style="font-size:12px;margin-right:3px;vertical-align:-2px"></i>${b.notes.slice(0,120)}${b.notes.length>120?'...':''}</div>`:''}
+      ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
     </div>
     <div style="display:flex;flex-direction:column;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i> Edit</button>
-      <button class="btn btn-sm" style="background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0" onclick="clearReminder('${b.id}')"><i class="ti ti-check"></i> Done</button>
+      <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i>Edit</button>
+      <button class="btn btn-sm" style="background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0" onclick="clearReminder('${b.id}')"><i class="ti ti-check"></i>Done</button>
     </div>
   </div>`;
 }
 
-function updateBadge() {
-  const n = bArr().filter(b=>rStatus(b)==='overdue'||rStatus(b)==='today').length;
-  const el = document.getElementById('reminder-badge');
-  el.textContent = n; el.style.display = n > 0 ? 'inline' : 'none';
-}
+function updateBadge(){const n=bArr().filter(b=>rStatus(b)==='overdue'||rStatus(b)==='today').length;const el=document.getElementById('reminder-badge');el.textContent=n;el.style.display=n>0?'inline':'none';}
 
-function switchTab(tab) {
-  ['dashboard','brokers','properties','reminders'].forEach(t => {
-    document.getElementById('tab-'+t)?.classList.toggle('active', t===tab);
-    document.getElementById('tab-'+t) && (document.getElementById('tab-'+t).style.display = t===tab?'block':'none');
-    document.getElementById('nav-'+t)?.classList.toggle('active', t===tab);
+function switchTab(tab){
+  ['dashboard','brokers','properties','reminders'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('nav-'+t).classList.toggle('active',t===tab);
   });
 }
 
-document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-document.getElementById('tab-dashboard').style.display = 'block';
+function populateBrokerSelect(sel){document.getElementById('p-broker').innerHTML='<option value="">None</option>'+bArr().map(b=>`<option value="${b.id}" ${b.id===sel?'selected':''}>${b.name}</option>`).join('');}
+function populatePropertySelect(sel){document.getElementById('b-linked-property').innerHTML='<option value="">None</option>'+pArr().map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${p.address}</option>`).join('');}
 
-function populateBrokerSelect(sel) {
-  document.getElementById('p-broker').innerHTML = '<option value="">None</option>' + bArr().map(b=>`<option value="${b.id}" ${b.id===sel?'selected':''}>${b.name}</option>`).join('');
-}
-function populatePropertySelect(sel) {
-  document.getElementById('b-linked-property').innerHTML = '<option value="">None</option>' + pArr().map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${p.address}</option>`).join('');
-}
-
-function openBrokerModal(id) {
-  editingBrokerId = id || null;
-  populatePropertySelect('');
-  if (id) {
-    const b = state.brokers[id];
-    document.getElementById('broker-modal-title').textContent = 'Edit Broker';
-    document.getElementById('b-name').value = b.name||'';
-    document.getElementById('b-phone').value = b.phone||'';
-    document.getElementById('b-area').value = b.area||'';
-    document.getElementById('b-status').value = b.status||'active';
-    document.getElementById('b-notes').value = b.notes||'';
-    document.getElementById('b-reminder').value = b.reminder||'';
-    document.getElementById('b-reminder-note').value = b.reminderNote||'';
-    populatePropertySelect(b.linkedProperty||'');
-  } else {
-    document.getElementById('broker-modal-title').textContent = 'Add Broker';
-    ['b-name','b-phone','b-area','b-notes','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('b-status').value = 'active';
-  }
+function openBrokerModal(id){
+  editingBrokerId=id||null;populatePropertySelect('');
+  if(id){const b=state.brokers[id];document.getElementById('broker-modal-title').textContent='Edit Broker';document.getElementById('b-name').value=b.name||'';document.getElementById('b-phone').value=b.phone||'';document.getElementById('b-area').value=b.area||'';document.getElementById('b-status').value=b.status||'active';document.getElementById('b-notes').value=b.notes||'';document.getElementById('b-reminder').value=b.reminder||'';document.getElementById('b-reminder-note').value=b.reminderNote||'';populatePropertySelect(b.linkedProperty||'');}
+  else{document.getElementById('broker-modal-title').textContent='Add Broker';['b-name','b-phone','b-area','b-notes','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-status').value='active';}
   document.getElementById('broker-modal').classList.add('open');
 }
-function closeBrokerModal() { document.getElementById('broker-modal').classList.remove('open'); }
-function saveBroker() {
-  const name = document.getElementById('b-name').value.trim();
-  if (!name) { showToast('⚠ Name is required'); return; }
-  const data = { name, phone:document.getElementById('b-phone').value, area:document.getElementById('b-area').value, status:document.getElementById('b-status').value, notes:document.getElementById('b-notes').value, reminder:document.getElementById('b-reminder').value, reminderNote:document.getElementById('b-reminder-note').value, linkedProperty:document.getElementById('b-linked-property').value, createdAt:editingBrokerId?(state.brokers[editingBrokerId]?.createdAt||Date.now()):Date.now() };
-  const id = editingBrokerId || db.ref('brokers').push().key;
+function closeBrokerModal(){document.getElementById('broker-modal').classList.remove('open');}
+function saveBroker(){
+  const name=document.getElementById('b-name').value.trim();if(!name){showToast('⚠ Name is required');return;}
+  const data={name,phone:document.getElementById('b-phone').value,area:document.getElementById('b-area').value,status:document.getElementById('b-status').value,notes:document.getElementById('b-notes').value,reminder:document.getElementById('b-reminder').value,reminderNote:document.getElementById('b-reminder-note').value,linkedProperty:document.getElementById('b-linked-property').value,createdAt:editingBrokerId?(state.brokers[editingBrokerId]?.createdAt||Date.now()):Date.now()};
+  const id=editingBrokerId||db.ref('brokers').push().key;
   db.ref('brokers/'+id).set(data).then(()=>showToast(editingBrokerId?'✓ Broker updated':'✓ Broker added'));
   closeBrokerModal();
 }
-function deleteBroker(id) {
-  if (!confirm('Delete this broker?')) return;
-  db.ref('brokers/'+id).remove().then(()=>showToast('Broker deleted'));
-}
-function clearReminder(id) {
-  db.ref('brokers/'+id).update({reminder:'',reminderNote:''}).then(()=>showToast('✓ Marked as done'));
-}
+function deleteBroker(id){if(!confirm('Delete this broker?'))return;db.ref('brokers/'+id).remove().then(()=>showToast('Broker deleted'));}
+function clearReminder(id){db.ref('brokers/'+id).update({reminder:'',reminderNote:''}).then(()=>showToast('✓ Marked as done'));}
 
-function openPropertyModal(id) {
-  editingPropertyId = id || null;
-  populateBrokerSelect('');
-  if (id) {
-    const p = state.properties[id];
-    document.getElementById('prop-modal-title').textContent = 'Edit Property';
-    document.getElementById('p-address').value = p.address||'';
-    document.getElementById('p-type').value = p.type||'SFR';
-    document.getElementById('p-status').value = p.status||'active';
-    document.getElementById('p-list-price').value = p.listPrice||'';
-    document.getElementById('p-asking-price').value = p.askingPrice||'';
-    document.getElementById('p-arv').value = p.arv||'';
-    document.getElementById('p-reno-cost').value = p.renoCost||'';
-    document.getElementById('p-rooms').value = p.rooms||'';
-    document.getElementById('p-baths').value = p.baths||'';
-    document.getElementById('p-size').value = p.size||'';
-    document.getElementById('p-notes').value = p.notes||'';
-    populateBrokerSelect(p.brokerId||'');
-  } else {
-    document.getElementById('prop-modal-title').textContent = 'Add Property';
-    ['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('p-type').value='SFR';
-    document.getElementById('p-status').value='active';
-  }
+function openPropertyModal(id){
+  editingPropertyId=id||null;populateBrokerSelect('');
+  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';populateBrokerSelect(p.brokerId||'');}
+  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
   document.getElementById('property-modal').classList.add('open');
 }
-function closePropertyModal() { document.getElementById('property-modal').classList.remove('open'); }
-function saveProperty() {
-  const address = document.getElementById('p-address').value.trim();
-  if (!address) { showToast('⚠ Address is required'); return; }
-  const data = { address, type:document.getElementById('p-type').value, status:document.getElementById('p-status').value, listPrice:document.getElementById('p-list-price').value, askingPrice:document.getElementById('p-asking-price').value, arv:document.getElementById('p-arv').value, renoCost:document.getElementById('p-reno-cost').value, rooms:document.getElementById('p-rooms').value, baths:document.getElementById('p-baths').value, size:document.getElementById('p-size').value, notes:document.getElementById('p-notes').value, brokerId:document.getElementById('p-broker').value, createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now() };
-  const id = editingPropertyId || db.ref('properties').push().key;
+function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
+function saveProperty(){
+  const address=document.getElementById('p-address').value.trim();if(!address){showToast('⚠ Address is required');return;}
+  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
+  const id=editingPropertyId||db.ref('properties').push().key;
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
 }
-function deleteProperty(id) {
-  if (!confirm('Delete this property?')) return;
-  db.ref('properties/'+id).remove().then(()=>showToast('Property deleted'));
-}
+function deleteProperty(id){if(!confirm('Delete this property?'))return;db.ref('properties/'+id).remove().then(()=>showToast('Property deleted'));}
 
-document.getElementById('broker-modal').addEventListener('click', e=>{if(e.target===e.currentTarget)closeBrokerModal();});
-document.getElementById('property-modal').addEventListener('click', e=>{if(e.target===e.currentTarget)closePropertyModal();});
+document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBrokerModal();});
+document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
 </script>
 </body>
 </html>
