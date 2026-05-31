@@ -1,0 +1,6 @@
+{
+  "name": "maple-holdings-openphone-webhook",
+  "version": "1.0.0",
+  "description": "OpenPhone webhook for Maple Holdings CRM",
+  "main": "api/webhook.js"
+}
