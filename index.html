@@ -179,20 +179,16 @@ select{width:auto;cursor:pointer;}
    MOBILE STYLES
 ═══════════════════════════════════════ */
 @media(max-width:768px){
-  /* Hide desktop topbar nav on mobile */
+  /* Hide desktop topbar completely on mobile */
   .nav-tabs{display:none;}
   #current-user-label{display:none !important;}
+  .topbar{display:none;}
 
-  /* Compact topbar */
-  .topbar{padding:0 16px;}
-  .topbar-brand{padding:12px 0;}
-  .brand-name{font-size:14px;}
-
-  /* Bottom navigation bar */
+  /* Show mobile nav */
   .mobile-nav{display:flex !important;}
 
   /* Page padding */
-  .page{padding:16px 14px 90px;}
+  .page{padding:16px 14px 24px;}
   .page-hd{margin-bottom:16px;}
   .page-title{font-size:18px;}
 
@@ -206,16 +202,20 @@ select{width:auto;cursor:pointer;}
   /* Dashboard panels stack */
   .dash-grid{grid-template-columns:1fr;gap:14px;}
 
-  /* Cards */
-  .card{padding:14px;}
-  .card-top{grid-template-columns:36px 1fr auto;gap:10px;}
+  /* Cards — prevent overflow */
+  .card{padding:12px;overflow:hidden;}
+  .card-top{grid-template-columns:36px 1fr auto;gap:8px;}
   .av{width:36px;height:36px;font-size:12px;}
 
-  /* Broker meta wrap nicely */
+  /* Text wrapping */
   .broker-meta{gap:8px;}
+  .card-top > div:nth-child(2){min-width:0;overflow:hidden;}
+  .card-top > div:nth-child(2) > div:first-child{flex-wrap:wrap;}
 
   /* Property card */
-  .prop-icon{width:38px;height:38px;font-size:17px;}
+  .prop-icon{width:36px;height:36px;font-size:16px;border-radius:8px;}
+  /* Prevent right column overflow */
+  .card-top > div:last-child{min-width:0;flex-shrink:0;}
 
   /* Prices horizontal scroll */
   .prices{gap:12px;overflow-x:auto;padding-bottom:4px;flex-wrap:nowrap;}
@@ -251,8 +251,10 @@ select{width:auto;cursor:pointer;}
   /* Status select */
   .status-select{font-size:12px !important;padding:4px 22px 4px 9px !important;}
 
-  /* DOM badge smaller */
-  .dom-val{font-size:18px !important;}
+  /* DOM badge — compact on mobile */
+  .dom-badge-wrap{min-width:52px !important;padding:6px 8px !important;}
+  .dom-num{font-size:17px !important;}
+  .dom-lbl{font-size:8px !important;}
 
   /* Reminder popover full width on mobile */
   .reminder-popover{width:calc(100vw - 28px) !important;left:14px !important;right:14px !important;}
@@ -264,6 +266,9 @@ select{width:auto;cursor:pointer;}
 
   /* Section heads */
   .sec-head{font-size:12px;}
+  /* Page header on mobile */
+  .page-hd{margin-bottom:14px;}
+  .page-title{font-size:17px;}
 
   /* ZIP dividers */
   .zip-head{font-size:11px;}
@@ -281,36 +286,39 @@ select{width:auto;cursor:pointer;}
 /* Bottom navigation bar */
 .mobile-nav{
   display:none;
-  position:fixed;
-  bottom:0;left:0;right:0;
+  position:sticky;
+  top:0;
+  left:0;right:0;
   background:var(--surface);
-  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
   z-index:100;
-  padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+  padding:0;
   gap:0;
+  box-shadow:0 1px 3px rgba(0,0,0,0.07);
 }
 .mobile-nav-item{
   flex:1;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:3px;
-  padding:6px 4px;
+  gap:2px;
+  padding:8px 4px;
   cursor:pointer;
   border:none;
+  border-bottom:2px solid transparent;
   background:transparent;
   color:var(--text3);
   font-family:inherit;
   font-size:10px;
   font-weight:500;
-  transition:color 0.15s;
+  transition:all 0.15s;
   position:relative;
 }
-.mobile-nav-item i{font-size:22px;}
-.mobile-nav-item.active{color:var(--green);}
+.mobile-nav-item i{font-size:20px;}
+.mobile-nav-item.active{color:var(--green);border-bottom-color:var(--green);}
 .mobile-nav-item.active i{color:var(--green);}
 .mobile-nav-badge{
-  position:absolute;top:4px;right:calc(50% - 14px);
+  position:absolute;top:6px;right:calc(50% - 16px);
   background:#EF4444;color:#fff;
   font-size:9px;font-weight:700;
   padding:1px 5px;border-radius:100px;
