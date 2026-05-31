@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Real Estate CRM</title>
+<title>Real Estate CRM — Maple Holdings</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
 <style>
 :root {
@@ -31,11 +31,13 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text1); min-height: 100vh; }
-.app { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+.app { max-width: 980px; margin: 0 auto; padding: 20px 16px; }
 .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); flex-wrap: wrap; gap: 12px; }
 .topbar-title { font-size: 17px; font-weight: 600; color: var(--text1); display: flex; align-items: center; gap: 8px; }
 .topbar-title i { color: var(--c-accent); font-size: 20px; }
-.sync { font-size: 11px; color: var(--text3); margin-right: 8px; }
+.sync { font-size: 11px; color: var(--text3); margin-left: 8px; }
+.sync.ok { color: var(--c-accent); }
+.sync.err { color: #E24B4A; }
 .nav-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
 .tab-btn { padding: 7px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius); border: 0.5px solid transparent; background: transparent; cursor: pointer; color: var(--text2); transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
 .tab-btn:hover { background: var(--bg2); color: var(--text1); }
@@ -68,6 +70,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .badge-red { background: #FCEBEB; color: #A32D2D; }
 .badge-blue { background: #E6F1FB; color: #185FA5; }
 .badge-gray { background: #F1EFE8; color: #5F5E5A; }
+.badge-purple { background: #EEEDFE; color: #3C3489; }
+.badge-teal { background: #E1F5EE; color: #085041; }
 .reminder-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 100px; font-size: 11px; background: #FAEEDA; color: #854F0B; border: 0.5px solid #FAC775; }
 .reminder-chip.overdue { background: #FCEBEB; color: #A32D2D; border-color: #F7C1C1; }
 .reminder-chip.today { background: #E1F5EE; color: #0F6E56; border-color: #9FE1CB; }
@@ -84,19 +88,24 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus { border-color: var(--c-accent); }
 textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
 select { width: auto; }
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-start; justify-content: center; padding: 24px 16px; overflow-y: auto; }
 .modal-overlay.open { display: flex; }
-.modal { background: var(--bg); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 520px; border: 0.5px solid var(--border2); max-height: 88vh; overflow-y: auto; }
+.modal { background: var(--bg); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 560px; border: 0.5px solid var(--border2); margin: auto; }
 .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text1); display: flex; justify-content: space-between; align-items: center; }
 .form-group { margin-bottom: 14px; }
 .form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media(max-width:480px){ .form-row { grid-template-columns: 1fr; } }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media(max-width:480px){ .form-row, .form-row-3 { grid-template-columns: 1fr; } }
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 0.5px solid var(--border); }
+.form-section { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 0.5px solid var(--border); }
 .property-card { display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: start; }
 .prop-icon { width: 46px; height: 46px; border-radius: var(--radius); background: var(--c-accent-light); display: flex; align-items: center; justify-content: center; color: #0F6E56; font-size: 22px; flex-shrink: 0; }
 .prop-title { font-size: 14px; font-weight: 600; color: var(--text1); }
 .prop-meta { font-size: 12px; color: var(--text2); margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; }
+.prop-prices { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+.price-chip { font-size: 11px; color: var(--text2); display: flex; flex-direction: column; gap: 1px; }
+.price-chip span { font-size: 13px; font-weight: 600; color: var(--text1); }
 .reminder-item { display: grid; grid-template-columns: 10px 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 8px; }
 .reminder-item.overdue { border-color: #F7C1C1; background: rgba(252,235,235,0.4); }
 .reminder-item.today { border-color: #9FE1CB; background: rgba(225,245,238,0.4); }
@@ -114,15 +123,18 @@ select { width: auto; }
 #toast { display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text1); color: var(--bg); border-radius: var(--radius-lg); padding: 10px 20px; font-size: 13px; z-index: 200; white-space: nowrap; }
 .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media(max-width:600px){ .dash-grid { grid-template-columns: 1fr; } }
+.loading-bar { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--c-accent), var(--c-accent-mid)); z-index: 300; animation: loadpulse 1s ease-in-out infinite; }
+@keyframes loadpulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 </style>
 </head>
 <body>
+<div id="loading-bar" class="loading-bar"></div>
 <div class="app">
   <div class="topbar">
     <div class="topbar-title">
       <i class="ti ti-building"></i>
-      Real Estate CRM
-      <span class="sync" id="sync-indicator"></span>
+      Maple Holdings CRM
+      <span class="sync" id="sync-indicator">connecting...</span>
     </div>
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
@@ -166,13 +178,21 @@ select { width: auto; }
   <div class="tab-content" id="tab-properties">
     <div class="filter-row">
       <input type="text" id="prop-search" placeholder="Search property..." oninput="renderProperties()" style="width:auto;flex:1" />
+      <select id="prop-type-filter" onchange="renderProperties()">
+        <option value="">All types</option>
+        <option value="SFR">SFR</option>
+        <option value="MFR">MFR</option>
+        <option value="commercial">Commercial</option>
+        <option value="land">Land</option>
+      </select>
       <select id="prop-filter" onchange="renderProperties()">
         <option value="">All statuses</option>
-        <option value="new">New</option>
-        <option value="interesting">Interesting</option>
-        <option value="visited">Visited</option>
-        <option value="offer">Offer made</option>
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+        <option value="uc">UC</option>
+        <option value="offer_sent">Offer Sent</option>
         <option value="rejected">Rejected</option>
+        <option value="follow_up">In Follow Up</option>
       </select>
       <button class="btn-primary" onclick="openPropertyModal()"><i class="ti ti-plus"></i> Add Property</button>
     </div>
@@ -192,6 +212,7 @@ select { width: auto; }
       <span id="broker-modal-title">Add Broker</span>
       <button class="btn-sm" onclick="closeBrokerModal()"><i class="ti ti-x"></i></button>
     </div>
+    <div class="form-section">Contact Info</div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Full name *</label>
@@ -205,7 +226,7 @@ select { width: auto; }
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Area / Zone</label>
-        <input type="text" id="b-area" placeholder="Tel Aviv, North..." />
+        <input type="text" id="b-area" placeholder="Miami, Broward..." />
       </div>
       <div class="form-group">
         <label class="form-label">Status</label>
@@ -216,13 +237,15 @@ select { width: auto; }
         </select>
       </div>
     </div>
+    <div class="form-section">Call Notes</div>
     <div class="form-group">
-      <label class="form-label">Call notes</label>
+      <label class="form-label">Notes</label>
       <textarea id="b-notes" placeholder="What did we discuss? What properties did they show? Key details..."></textarea>
     </div>
+    <div class="form-section">Follow-up Reminder</div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label"><i class="ti ti-bell" style="font-size:13px"></i> Follow-up reminder</label>
+        <label class="form-label"><i class="ti ti-bell" style="font-size:13px"></i> Reminder date</label>
         <input type="date" id="b-reminder" style="width:100%" />
       </div>
       <div class="form-group">
@@ -234,7 +257,7 @@ select { width: auto; }
     </div>
     <div class="form-group">
       <label class="form-label">Reminder note</label>
-      <input type="text" id="b-reminder-note" placeholder="Call about the 3BR on Herzl St..." />
+      <input type="text" id="b-reminder-note" placeholder="Call about the 3/2 SFR on Maple Ave..." />
     </div>
     <div class="form-actions">
       <button class="btn-sm" onclick="closeBrokerModal()">Cancel</button>
@@ -250,47 +273,64 @@ select { width: auto; }
       <span id="prop-modal-title">Add Property</span>
       <button class="btn-sm" onclick="closePropertyModal()"><i class="ti ti-x"></i></button>
     </div>
+    <div class="form-section">Property Info</div>
     <div class="form-group">
       <label class="form-label">Address *</label>
-      <input type="text" id="p-address" placeholder="5 Herzl St, Tel Aviv" />
+      <input type="text" id="p-address" placeholder="123 Maple Ave, Miami, FL" />
     </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Type</label>
         <select id="p-type" style="width:100%">
-          <option value="apartment">Apartment</option>
-          <option value="penthouse">Penthouse</option>
-          <option value="house">Private house</option>
+          <option value="SFR">SFR — Single Family</option>
+          <option value="MFR">MFR — Multi Family</option>
           <option value="commercial">Commercial</option>
           <option value="land">Land</option>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Price (₪)</label>
-        <input type="number" id="p-price" placeholder="2500000" />
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Rooms</label>
-        <input type="number" id="p-rooms" placeholder="4" min="1" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Size (m²)</label>
-        <input type="number" id="p-size" placeholder="100" />
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
         <label class="form-label">Status</label>
         <select id="p-status" style="width:100%">
-          <option value="new">New</option>
-          <option value="interesting">Interesting</option>
-          <option value="visited">Visited</option>
-          <option value="offer">Offer made</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="uc">UC (Under Contract)</option>
+          <option value="offer_sent">Offer Sent</option>
           <option value="rejected">Rejected</option>
+          <option value="follow_up">In Follow Up</option>
         </select>
       </div>
+    </div>
+    <div class="form-section">Pricing</div>
+    <div class="form-row-3">
+      <div class="form-group">
+        <label class="form-label">List Price ($)</label>
+        <input type="number" id="p-list-price" placeholder="350000" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Asking Price ($)</label>
+        <input type="number" id="p-asking-price" placeholder="340000" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">ARV ($)</label>
+        <input type="number" id="p-arv" placeholder="420000" />
+      </div>
+    </div>
+    <div class="form-section">Details</div>
+    <div class="form-row-3">
+      <div class="form-group">
+        <label class="form-label">Beds</label>
+        <input type="number" id="p-rooms" placeholder="3" min="0" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Baths</label>
+        <input type="number" id="p-baths" placeholder="2" min="0" step="0.5" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Size (sqft)</label>
+        <input type="number" id="p-size" placeholder="1800" />
+      </div>
+    </div>
+    <div class="form-row">
       <div class="form-group">
         <label class="form-label">Linked broker</label>
         <select id="p-broker" style="width:100%"></select>
@@ -298,7 +338,7 @@ select { width: auto; }
     </div>
     <div class="form-group">
       <label class="form-label">Notes</label>
-      <textarea id="p-notes" placeholder="Description, pros, cons..."></textarea>
+      <textarea id="p-notes" placeholder="Condition, repairs needed, pros, cons..."></textarea>
     </div>
     <div class="form-actions">
       <button class="btn-sm" onclick="closePropertyModal()">Cancel</button>
@@ -309,10 +349,19 @@ select { width: auto; }
 
 <div id="toast"></div>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-const STORAGE_KEY = 'realestate-crm-v2';
-let state = { brokers: [], properties: [] };
+const firebaseConfig = {
+  databaseURL: "https://maple-holdings-group-default-rtdb.firebaseio.com/"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let state = { brokers: {}, properties: {} };
 let editingBrokerId = null, editingPropertyId = null;
+let _saving = false;
 
 function showToast(msg, duration=2500) {
   const t = document.getElementById('toast');
@@ -321,27 +370,36 @@ function showToast(msg, duration=2500) {
   setTimeout(() => t.style.display = 'none', duration);
 }
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = { ...state, ...JSON.parse(raw) };
-  } catch(e) {}
+function setSyncStatus(s) {
+  const el = document.getElementById('sync-indicator');
+  if (s === 'ok') { el.textContent = '● Live'; el.className = 'sync ok'; }
+  else if (s === 'err') { el.textContent = '✕ Offline'; el.className = 'sync err'; }
+  else { el.textContent = '○ connecting...'; el.className = 'sync'; }
+}
+
+// Real-time listeners
+db.ref('brokers').on('value', snap => {
+  state.brokers = snap.val() || {};
+  setSyncStatus('ok');
+  document.getElementById('loading-bar').style.display = 'none';
   renderAll();
-}
+}, () => setSyncStatus('err'));
 
-function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    document.getElementById('sync-indicator').textContent = '✓ Saved';
-    setTimeout(() => document.getElementById('sync-indicator').textContent = '', 2000);
-  } catch(e) {}
-}
+db.ref('properties').on('value', snap => {
+  state.properties = snap.val() || {};
+  renderAll();
+});
 
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function uid() { return db.ref('brokers').push().key; }
 
 function formatDate(d) {
   if (!d) return '';
-  return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatMoney(n) {
+  if (!n) return '';
+  return '$' + Number(n).toLocaleString();
 }
 
 function daysUntil(d) {
@@ -359,50 +417,61 @@ function reminderStatus(broker) {
   return 'upcoming';
 }
 
-function statusLabel(s) {
-  return { active:'Active', waiting:'Follow-up', done:'Closed', new:'New', interesting:'Interesting', visited:'Visited', offer:'Offer', rejected:'Rejected' }[s] || s;
+function brokerStatusLabel(s) {
+  return { active:'Active', waiting:'Follow-up', done:'Closed' }[s] || s;
 }
 
-function statusBadgeClass(s) {
-  return { active:'badge-green', waiting:'badge-amber', done:'badge-gray', new:'badge-blue', interesting:'badge-green', visited:'badge-amber', offer:'badge-green', rejected:'badge-red' }[s] || 'badge-gray';
+function propStatusLabel(s) {
+  return { active:'Active', pending:'Pending', uc:'UC', offer_sent:'Offer Sent', rejected:'Rejected', follow_up:'In Follow Up' }[s] || s;
+}
+
+function brokerStatusBadge(s) {
+  return { active:'badge-green', waiting:'badge-amber', done:'badge-gray' }[s] || 'badge-gray';
+}
+
+function propStatusBadge(s) {
+  return { active:'badge-green', pending:'badge-amber', uc:'badge-blue', offer_sent:'badge-purple', rejected:'badge-red', follow_up:'badge-teal' }[s] || 'badge-gray';
 }
 
 function propTypeIcon(t) {
-  return { apartment:'ti-building', penthouse:'ti-building-skyscraper', house:'ti-home', commercial:'ti-briefcase', land:'ti-map' }[t] || 'ti-building';
+  return { SFR:'ti-home', MFR:'ti-building', commercial:'ti-briefcase', land:'ti-map' }[t] || 'ti-building';
 }
 
 function getInitials(name) {
-  return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 }
+
+function brokersArray() { return Object.entries(state.brokers).map(([id,v])=>({id,...v})); }
+function propertiesArray() { return Object.entries(state.properties).map(([id,v])=>({id,...v})); }
 
 function renderAll() {
   renderStats(); renderBrokers(); renderProperties(); renderReminders(); renderDashboard(); updateReminderBadge();
 }
 
 function renderStats() {
-  const total = state.brokers.length;
-  const active = state.brokers.filter(b=>b.status==='active').length;
-  const overdue = state.brokers.filter(b=>reminderStatus(b)==='overdue').length;
-  const today = state.brokers.filter(b=>reminderStatus(b)==='today').length;
-  const props = state.properties.length;
+  const brokers = brokersArray();
+  const props = propertiesArray();
+  const overdue = brokers.filter(b=>reminderStatus(b)==='overdue').length;
+  const today = brokers.filter(b=>reminderStatus(b)==='today').length;
   document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card"><div class="stat-label">Brokers</div><div class="stat-value">${total}</div><div class="stat-sub">${active} active</div></div>
-    <div class="stat-card"><div class="stat-label">Properties</div><div class="stat-value">${props}</div><div class="stat-sub">${state.properties.filter(p=>p.status==='interesting').length} interesting</div></div>
+    <div class="stat-card"><div class="stat-label">Brokers</div><div class="stat-value">${brokers.length}</div><div class="stat-sub">${brokers.filter(b=>b.status==='active').length} active</div></div>
+    <div class="stat-card"><div class="stat-label">Properties</div><div class="stat-value">${props.length}</div><div class="stat-sub">${props.filter(p=>p.status==='active').length} active</div></div>
     <div class="stat-card"><div class="stat-label">Today's calls</div><div class="stat-value" style="color:${today>0?'var(--c-accent)':'inherit'}">${today}</div><div class="stat-sub">due today</div></div>
     <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:${overdue>0?'#E24B4A':'inherit'}">${overdue}</div><div class="stat-sub">missed follow-ups</div></div>
   `;
 }
 
 function renderDashboard() {
-  const reminders = state.brokers.filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder)).slice(0,5);
+  const brokers = brokersArray();
+  const reminders = brokers.filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder)).slice(0,5);
   const dr = document.getElementById('dashboard-reminders');
   if (!reminders.length) { dr.innerHTML = '<div class="empty-state"><i class="ti ti-bell-off"></i><p>No upcoming reminders</p></div>'; }
   else dr.innerHTML = reminders.map(b => {
     const d = daysUntil(b.reminder);
     const s = reminderStatus(b);
     const chipClass = s==='overdue'?'overdue':s==='today'?'today':'';
-    const label = s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Today':`In ${d} days`;
-    const prop = b.linkedProperty ? state.properties.find(p=>p.id===b.linkedProperty) : null;
+    const label = s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Today':`In ${d}d`;
+    const prop = b.linkedProperty ? state.properties[b.linkedProperty] : null;
     return `<div class="card" style="cursor:pointer" onclick="switchTab('reminders')">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div style="display:flex;align-items:center;gap:8px">
@@ -416,7 +485,10 @@ function renderDashboard() {
     </div>`;
   }).join('');
 
-  const acts = [...state.brokers.map(b=>({...b,_t:'broker'})), ...state.properties.map(p=>({...p,_t:'property'}))].filter(x=>x.createdAt).sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
+  const acts = [
+    ...brokers.map(b=>({...b,_t:'broker'})),
+    ...propertiesArray().map(p=>({...p,_t:'property'}))
+  ].filter(x=>x.createdAt).sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
   const ra = document.getElementById('recent-activity');
   if (!acts.length) { ra.innerHTML = '<div class="empty-state"><i class="ti ti-activity"></i><p>No activity yet</p></div>'; return; }
   ra.innerHTML = acts.map(x=>`<div class="card" style="padding:10px 14px">
@@ -433,9 +505,9 @@ function renderDashboard() {
 function renderBrokers() {
   const search = (document.getElementById('broker-search')||{}).value?.toLowerCase()||'';
   const filter = (document.getElementById('broker-filter')||{}).value||'';
-  const list = state.brokers.filter(b => {
-    return (b.name.toLowerCase().includes(search)||(b.area||'').toLowerCase().includes(search)) && (!filter||b.status===filter);
-  }).sort((a,b) => {
+  const list = brokersArray().filter(b =>
+    (b.name.toLowerCase().includes(search)||(b.area||'').toLowerCase().includes(search)) && (!filter||b.status===filter)
+  ).sort((a,b) => {
     const ord = { overdue:0, today:1, upcoming:2, null:3 };
     return (ord[reminderStatus(a)]??3) - (ord[reminderStatus(b)]??3);
   });
@@ -445,15 +517,15 @@ function renderBrokers() {
     const rs = reminderStatus(b);
     const d = daysUntil(b.reminder);
     const chipClass = rs==='overdue'?'overdue':rs==='today'?'today':'';
-    const chipLabel = rs==='overdue'?`${Math.abs(d)}d overdue`:rs==='today'?'Follow-up today!':rs?`Follow-up in ${d} days`:'';
-    const prop = b.linkedProperty ? state.properties.find(p=>p.id===b.linkedProperty) : null;
+    const chipLabel = rs==='overdue'?`${Math.abs(d)}d overdue`:rs==='today'?'Follow-up today!':rs?`In ${d} days`:'';
+    const prop = b.linkedProperty ? state.properties[b.linkedProperty] : null;
     return `<div class="card">
       <div class="broker-card">
         <div class="avatar">${getInitials(b.name)}</div>
         <div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span class="broker-name">${b.name}</span>
-            <span class="badge ${statusBadgeClass(b.status)}">${statusLabel(b.status)}</span>
+            <span class="badge ${brokerStatusBadge(b.status)}">${brokerStatusLabel(b.status)}</span>
             ${rs?`<span class="reminder-chip ${chipClass}"><i class="ti ti-bell" style="font-size:11px"></i> ${chipLabel}</span>`:''}
           </div>
           <div class="broker-meta">
@@ -477,25 +549,35 @@ function renderBrokers() {
 function renderProperties() {
   const search = (document.getElementById('prop-search')||{}).value?.toLowerCase()||'';
   const filter = (document.getElementById('prop-filter')||{}).value||'';
-  const list = state.properties.filter(p => p.address.toLowerCase().includes(search) && (!filter||p.status===filter));
+  const typeFilter = (document.getElementById('prop-type-filter')||{}).value||'';
+  const list = propertiesArray().filter(p =>
+    p.address.toLowerCase().includes(search) && (!filter||p.status===filter) && (!typeFilter||p.type===typeFilter)
+  );
   const el = document.getElementById('properties-list');
   if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-building-off"></i><p>No properties found</p><small>Click "Add Property" to get started</small></div>'; return; }
   el.innerHTML = list.map(p => {
-    const broker = p.brokerId ? state.brokers.find(b=>b.id===p.brokerId) : null;
+    const broker = p.brokerId ? state.brokers[p.brokerId] : null;
+    const hasAnyPrice = p.listPrice || p.askingPrice || p.arv;
     return `<div class="card">
       <div class="property-card">
         <div class="prop-icon"><i class="ti ${propTypeIcon(p.type)}"></i></div>
         <div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span class="prop-title">${p.address}</span>
-            <span class="badge ${statusBadgeClass(p.status)}">${statusLabel(p.status)}</span>
+            <span class="badge badge-gray" style="font-size:10px;font-weight:700">${p.type||''}</span>
+            <span class="badge ${propStatusBadge(p.status)}">${propStatusLabel(p.status)}</span>
           </div>
           <div class="prop-meta">
-            ${p.price?`<span><i class="ti ti-currency-shekel" style="font-size:12px"></i> ₪${Number(p.price).toLocaleString()}</span>`:''}
-            ${p.rooms?`<span><i class="ti ti-door" style="font-size:12px"></i> ${p.rooms} rooms</span>`:''}
-            ${p.size?`<span><i class="ti ti-arrows-maximize" style="font-size:12px"></i> ${p.size} m²</span>`:''}
+            ${p.rooms?`<span><i class="ti ti-door" style="font-size:12px"></i> ${p.rooms} bd</span>`:''}
+            ${p.baths?`<span><i class="ti ti-droplet" style="font-size:12px"></i> ${p.baths} ba</span>`:''}
+            ${p.size?`<span><i class="ti ti-arrows-maximize" style="font-size:12px"></i> ${Number(p.size).toLocaleString()} sqft</span>`:''}
             ${broker?`<span><i class="ti ti-user" style="font-size:12px"></i> ${broker.name}</span>`:''}
           </div>
+          ${hasAnyPrice ? `<div class="prop-prices">
+            ${p.listPrice?`<div class="price-chip">List<span>${formatMoney(p.listPrice)}</span></div>`:''}
+            ${p.askingPrice?`<div class="price-chip">Asking<span>${formatMoney(p.askingPrice)}</span></div>`:''}
+            ${p.arv?`<div class="price-chip" style="color:var(--c-accent)">ARV<span style="color:var(--c-accent)">${formatMoney(p.arv)}</span></div>`:''}
+          </div>` : ''}
           ${p.notes?`<div class="notes-preview">${p.notes.slice(0,120)}${p.notes.length>120?'...':''}</div>`:''}
         </div>
         <div class="broker-actions">
@@ -508,16 +590,16 @@ function renderProperties() {
 }
 
 function renderReminders() {
-  const withR = state.brokers.filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder));
+  const withR = brokersArray().filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder));
   const el = document.getElementById('reminders-list');
   if (!withR.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-bell-off"></i><p>No reminders set</p><small>Set a follow-up date when editing a broker</small></div>'; return; }
   const overdue = withR.filter(b=>reminderStatus(b)==='overdue');
   const today = withR.filter(b=>reminderStatus(b)==='today');
   const upcoming = withR.filter(b=>reminderStatus(b)==='upcoming');
   let html = '';
-  if (overdue.length) { html += `<div class="section-divider" style="color:#A32D2D"><i class="ti ti-alert-circle"></i> Overdue (${overdue.length})</div>`; html += overdue.map(b=>reminderItem(b)).join(''); }
-  if (today.length) { html += `<div class="section-divider" style="color:#0F6E56;margin-top:${overdue.length?16:0}px"><i class="ti ti-star"></i> Today (${today.length})</div>`; html += today.map(b=>reminderItem(b)).join(''); }
-  if (upcoming.length) { html += `<div class="section-divider" style="margin-top:${(overdue.length||today.length)?16:0}px"><i class="ti ti-calendar"></i> Upcoming (${upcoming.length})</div>`; html += upcoming.map(b=>reminderItem(b)).join(''); }
+  if (overdue.length) { html += `<div class="section-divider" style="color:#A32D2D"><i class="ti ti-alert-circle"></i> Overdue (${overdue.length})</div>`; html += overdue.map(reminderItem).join(''); }
+  if (today.length) { html += `<div class="section-divider" style="color:#0F6E56;margin-top:${overdue.length?16:0}px"><i class="ti ti-star"></i> Today (${today.length})</div>`; html += today.map(reminderItem).join(''); }
+  if (upcoming.length) { html += `<div class="section-divider" style="margin-top:${(overdue.length||today.length)?16:0}px"><i class="ti ti-calendar"></i> Upcoming (${upcoming.length})</div>`; html += upcoming.map(reminderItem).join(''); }
   el.innerHTML = html;
 }
 
@@ -525,7 +607,7 @@ function reminderItem(b) {
   const s = reminderStatus(b);
   const d = daysUntil(b.reminder);
   const label = s==='overdue'?`${Math.abs(d)} days overdue`:s==='today'?'Today':`In ${d} days`;
-  const prop = b.linkedProperty ? state.properties.find(p=>p.id===b.linkedProperty) : null;
+  const prop = b.linkedProperty ? state.properties[b.linkedProperty] : null;
   return `<div class="reminder-item ${s||''}">
     <div class="reminder-dot ${s||''}"></div>
     <div>
@@ -543,7 +625,7 @@ function reminderItem(b) {
 }
 
 function updateReminderBadge() {
-  const count = state.brokers.filter(b=>reminderStatus(b)==='overdue'||reminderStatus(b)==='today').length;
+  const count = brokersArray().filter(b=>reminderStatus(b)==='overdue'||reminderStatus(b)==='today').length;
   const badge = document.getElementById('reminder-badge');
   badge.textContent = count; badge.style.display = count > 0 ? 'inline' : 'none';
 }
@@ -553,24 +635,23 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach((btn,i) => btn.classList.toggle('active', tabs[i]===tab));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
-  renderAll();
 }
 
 function populateBrokerSelect(selectedId) {
   const sel = document.getElementById('p-broker');
-  sel.innerHTML = '<option value="">None</option>' + state.brokers.map(b=>`<option value="${b.id}" ${b.id===selectedId?'selected':''}>${b.name}</option>`).join('');
+  sel.innerHTML = '<option value="">None</option>' + brokersArray().map(b=>`<option value="${b.id}" ${b.id===selectedId?'selected':''}>${b.name}</option>`).join('');
 }
 
 function populatePropertySelect(selectedId) {
   const sel = document.getElementById('b-linked-property');
-  sel.innerHTML = '<option value="">None</option>' + state.properties.map(p=>`<option value="${p.id}" ${p.id===selectedId?'selected':''}>${p.address}</option>`).join('');
+  sel.innerHTML = '<option value="">None</option>' + propertiesArray().map(p=>`<option value="${p.id}" ${p.id===selectedId?'selected':''}>${p.address}</option>`).join('');
 }
 
 function openBrokerModal(id) {
   editingBrokerId = id || null;
   populatePropertySelect('');
   if (id) {
-    const b = state.brokers.find(x=>x.id===id);
+    const b = state.brokers[id];
     document.getElementById('broker-modal-title').textContent = 'Edit Broker';
     document.getElementById('b-name').value = b.name||'';
     document.getElementById('b-phone').value = b.phone||'';
@@ -593,49 +674,52 @@ function closeBrokerModal() { document.getElementById('broker-modal').classList.
 function saveBroker() {
   const name = document.getElementById('b-name').value.trim();
   if (!name) { showToast('⚠ Name is required'); return; }
-  const data = { name, phone:document.getElementById('b-phone').value, area:document.getElementById('b-area').value, status:document.getElementById('b-status').value, notes:document.getElementById('b-notes').value, reminder:document.getElementById('b-reminder').value, reminderNote:document.getElementById('b-reminder-note').value, linkedProperty:document.getElementById('b-linked-property').value };
-  if (editingBrokerId) {
-    const i = state.brokers.findIndex(b=>b.id===editingBrokerId);
-    state.brokers[i] = { ...state.brokers[i], ...data };
-    showToast('✓ Broker updated');
-  } else {
-    state.brokers.push({ id:uid(), createdAt:Date.now(), ...data });
-    showToast('✓ Broker added');
-  }
-  saveState(); closeBrokerModal(); renderAll();
+  const data = {
+    name, phone:document.getElementById('b-phone').value,
+    area:document.getElementById('b-area').value,
+    status:document.getElementById('b-status').value,
+    notes:document.getElementById('b-notes').value,
+    reminder:document.getElementById('b-reminder').value,
+    reminderNote:document.getElementById('b-reminder-note').value,
+    linkedProperty:document.getElementById('b-linked-property').value,
+    createdAt: editingBrokerId ? (state.brokers[editingBrokerId]?.createdAt || Date.now()) : Date.now()
+  };
+  const id = editingBrokerId || db.ref('brokers').push().key;
+  db.ref('brokers/' + id).set(data).then(() => showToast(editingBrokerId ? '✓ Broker updated' : '✓ Broker added'));
+  closeBrokerModal();
 }
 
 function deleteBroker(id) {
   if (!confirm('Delete this broker?')) return;
-  state.brokers = state.brokers.filter(b=>b.id!==id);
-  saveState(); renderAll(); showToast('Broker deleted');
+  db.ref('brokers/' + id).remove().then(() => showToast('Broker deleted'));
 }
 
 function clearReminder(id) {
-  const b = state.brokers.find(x=>x.id===id);
-  if (b) { b.reminder = ''; b.reminderNote = ''; }
-  saveState(); renderAll(); showToast('✓ Marked as done');
+  db.ref('brokers/' + id).update({ reminder: '', reminderNote: '' }).then(() => showToast('✓ Marked as done'));
 }
 
 function openPropertyModal(id) {
   editingPropertyId = id || null;
   populateBrokerSelect('');
   if (id) {
-    const p = state.properties.find(x=>x.id===id);
+    const p = state.properties[id];
     document.getElementById('prop-modal-title').textContent = 'Edit Property';
     document.getElementById('p-address').value = p.address||'';
-    document.getElementById('p-type').value = p.type||'apartment';
-    document.getElementById('p-price').value = p.price||'';
+    document.getElementById('p-type').value = p.type||'SFR';
+    document.getElementById('p-status').value = p.status||'active';
+    document.getElementById('p-list-price').value = p.listPrice||'';
+    document.getElementById('p-asking-price').value = p.askingPrice||'';
+    document.getElementById('p-arv').value = p.arv||'';
     document.getElementById('p-rooms').value = p.rooms||'';
+    document.getElementById('p-baths').value = p.baths||'';
     document.getElementById('p-size').value = p.size||'';
-    document.getElementById('p-status').value = p.status||'new';
     document.getElementById('p-notes').value = p.notes||'';
     populateBrokerSelect(p.brokerId||'');
   } else {
     document.getElementById('prop-modal-title').textContent = 'Add Property';
-    ['p-address','p-price','p-rooms','p-size','p-notes'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('p-type').value = 'apartment';
-    document.getElementById('p-status').value = 'new';
+    ['p-address','p-list-price','p-asking-price','p-arv','p-rooms','p-baths','p-size','p-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('p-type').value = 'SFR';
+    document.getElementById('p-status').value = 'active';
   }
   document.getElementById('property-modal').classList.add('open');
 }
@@ -645,28 +729,32 @@ function closePropertyModal() { document.getElementById('property-modal').classL
 function saveProperty() {
   const address = document.getElementById('p-address').value.trim();
   if (!address) { showToast('⚠ Address is required'); return; }
-  const data = { address, type:document.getElementById('p-type').value, price:document.getElementById('p-price').value, rooms:document.getElementById('p-rooms').value, size:document.getElementById('p-size').value, status:document.getElementById('p-status').value, notes:document.getElementById('p-notes').value, brokerId:document.getElementById('p-broker').value };
-  if (editingPropertyId) {
-    const i = state.properties.findIndex(p=>p.id===editingPropertyId);
-    state.properties[i] = { ...state.properties[i], ...data };
-    showToast('✓ Property updated');
-  } else {
-    state.properties.push({ id:uid(), createdAt:Date.now(), ...data });
-    showToast('✓ Property added');
-  }
-  saveState(); closePropertyModal(); renderAll();
+  const data = {
+    address,
+    type: document.getElementById('p-type').value,
+    status: document.getElementById('p-status').value,
+    listPrice: document.getElementById('p-list-price').value,
+    askingPrice: document.getElementById('p-asking-price').value,
+    arv: document.getElementById('p-arv').value,
+    rooms: document.getElementById('p-rooms').value,
+    baths: document.getElementById('p-baths').value,
+    size: document.getElementById('p-size').value,
+    notes: document.getElementById('p-notes').value,
+    brokerId: document.getElementById('p-broker').value,
+    createdAt: editingPropertyId ? (state.properties[editingPropertyId]?.createdAt || Date.now()) : Date.now()
+  };
+  const id = editingPropertyId || db.ref('properties').push().key;
+  db.ref('properties/' + id).set(data).then(() => showToast(editingPropertyId ? '✓ Property updated' : '✓ Property added'));
+  closePropertyModal();
 }
 
 function deleteProperty(id) {
   if (!confirm('Delete this property?')) return;
-  state.properties = state.properties.filter(p=>p.id!==id);
-  saveState(); renderAll(); showToast('Property deleted');
+  db.ref('properties/' + id).remove().then(() => showToast('Property deleted'));
 }
 
 document.getElementById('broker-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBrokerModal(); });
 document.getElementById('property-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closePropertyModal(); });
-
-loadState();
 </script>
 </body>
 </html>
