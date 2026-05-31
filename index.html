@@ -293,7 +293,10 @@ select{width:auto;cursor:pointer;}
     <div class="modal-hd"><span id="prop-modal-title">Add Property</span><button class="btn btn-ghost btn-sm" onclick="closePropertyModal()"><i class="ti ti-x"></i></button></div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><label class="form-lbl" style="margin:0;white-space:nowrap">Added by</label><select id="p-added-by" style="width:auto;font-size:12px;padding:5px 10px"><option value="">— select —</option><option value="Alon">Alon</option><option value="Niv">Niv</option></select></div>
     <div class="form-sep"><i class="ti ti-building"></i>Property Info</div>
-    <div class="form-g"><label class="form-lbl">Address *</label><input type="text" id="p-address" placeholder="123 Maple Ave, Miami, FL" /></div>
+    <div class="form-row">
+      <div class="form-g" style="flex:2"><label class="form-lbl">Address *</label><input type="text" id="p-address" placeholder="123 Maple Ave, Miami, FL" /></div>
+      <div class="form-g" style="flex:1"><label class="form-lbl">Zip Code</label><input type="text" id="p-zip" placeholder="44121" maxlength="10" /></div>
+    </div>
     <div class="form-row">
       <div class="form-g"><label class="form-lbl">Type</label><select id="p-type" style="width:100%"><option value="SFR">SFR — Single Family</option><option value="MFR">MFR — Multi Family</option><option value="commercial">Commercial</option><option value="land">Land</option></select></div>
       <div class="form-g"><label class="form-lbl">Status</label><select id="p-status" style="width:100%"><option value="active">Active</option><option value="pending">Pending</option><option value="uc">UC (Under Contract)</option><option value="offer_sent">Offer Sent</option><option value="rejected">Rejected</option><option value="follow_up">In Follow Up</option></select></div>
@@ -619,7 +622,7 @@ function renderBrokers(){
             ${b.addedBy?`<span style="font-size:10px;font-weight:500;color:var(--text3);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-user-check" style="font-size:11px"></i>${b.addedBy}</span>`:''}
           </div>
           <div style="font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap">
-            ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span>`:''}
+            ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span><a href="openphone://call/${b.phone.replace(/\D/g,'')}" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;text-decoration:none" title="Call via OpenPhone"><i class="ti ti-phone-outgoing" style="font-size:12px"></i>Call</a>`:''}
             ${b.area?`<span><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px"></i>${b.area}</span>`:''}
             ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i>${fmtDate(b.reminder)}</span>`:''}
           </div>
@@ -648,15 +651,26 @@ function renderBrokers(){
           notes.map(n=>{
             const isUnread=currentUser.id&&!(n.readBy&&n.readBy[currentUser.id]);
             const uc=userColors[n.createdById]||{bg:'#F3F4F6',color:'#374151'};
+            const isCall=n.type==='call'||n.type==='call_missed';
+            const isSms=n.type==='sms';
+            const isAutoLogged=n.createdById==='openphone';
+            let noteIconBg='#F5F3FF',noteIconColor='#4C1D95',noteIcon='ti-notes';
+            if(n.type==='call'&&n.direction==='incoming'){noteIconBg='#ECFDF5';noteIconColor='#065F46';noteIcon='ti-phone-incoming';}
+            else if(n.type==='call'&&n.direction==='outgoing'){noteIconBg='#EFF6FF';noteIconColor='#1E40AF';noteIcon='ti-phone-outgoing';}
+            else if(n.type==='call_missed'){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';}
+            else if(n.type==='sms'&&n.direction==='incoming'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message';}
+            else if(n.type==='sms'&&n.direction==='outgoing'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message-share';}
             return`<div class="note-item ${isUnread?'unread':''}">
               <div class="note-meta">
-                <div class="note-avatar" style="background:${uc.bg};color:${uc.color}">${initials(n.createdBy)}</div>
-                <span class="note-author">${n.createdBy}</span>
+                <div class="note-avatar" style="background:${noteIconBg};color:${noteIconColor}"><i class="ti ${noteIcon}" style="font-size:12px"></i></div>
+                <span class="note-author">${isAutoLogged?'OpenPhone':n.createdBy}</span>
+                ${isAutoLogged?`<span style="font-size:10px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:100px;font-weight:500">auto-logged</span>`:''}
+                ${n.duration?`<span style="font-size:11px;color:var(--text2)">${n.duration}</span>`:''}
                 <span class="note-time">${fmtDateTime(n.createdAt)}</span>
                 ${isUnread?`<div class="note-unread-dot" title="Unread"></div>`:''}
-                ${currentUser.id===n.createdById?`<button onclick="deleteNote('${n.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px" title="Delete note"><i class="ti ti-trash"></i></button>`:''}
+                ${!isAutoLogged&&currentUser.id===n.createdById?`<button onclick="deleteNote('${n.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px" title="Delete note"><i class="ti ti-trash"></i></button>`:''}
               </div>
-              <div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>
+              ${isSms&&n.smsBody?`<div class="note-text" style="font-style:italic;color:var(--text2)">"${n.smsBody.replace(/\n/g,'<br>')}"</div>`:(!isCall?`<div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>`:'')}
             </div>`;
           }).join('')}
         </div>
@@ -673,10 +687,21 @@ function renderProperties(){
   const search=(document.getElementById('prop-search')||{}).value?.toLowerCase()||'';
   const filter=(document.getElementById('prop-filter')||{}).value||'';
   const tf=(document.getElementById('prop-type-filter')||{}).value||'';
-  const list=pArr().filter(p=>p.address.toLowerCase().includes(search)&&(!filter||p.status===filter)&&(!tf||p.type===tf));
+  const list=pArr().filter(p=>p.address.toLowerCase().includes(search)&&(!filter||p.status===filter)&&(!tf||p.type===tf))
+    .sort((a,b)=>{
+      const za=(a.zip||'zzzzz').toLowerCase(), zb=(b.zip||'zzzzz').toLowerCase();
+      if(za!==zb)return za.localeCompare(zb);
+      return (b.createdAt||0)-(a.createdAt||0);
+    });
   const el=document.getElementById('properties-list');
   if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-building-off"></i><p>No properties found</p><small>Click "Add Property" to get started</small></div>';return;}
-  el.innerHTML=list.map(p=>{
+  // Group by zip and render with dividers
+  const groups={};
+  list.forEach(p=>{const z=p.zip||'';if(!groups[z])groups[z]=[];groups[z].push(p);});
+  const sortedZips=Object.keys(groups).sort((a,b)=>{if(!a)return 1;if(!b)return -1;return a.localeCompare(b);});
+  el.innerHTML=sortedZips.map(zip=>{
+    const header=zip?`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin:${zip===sortedZips[0]?'0':'20px'} 0 8px;display:flex;align-items:center;gap:6px"><i class="ti ti-map-pin" style="font-size:13px"></i>Zip ${zip} <span style="font-weight:400">(${groups[zip].length})</span></div>`:'';
+    return header+groups[zip].map(p=>{
     const broker=p.brokerId?state.brokers[p.brokerId]:null;
     const hp=p.listPrice||p.askingPrice||p.arv||p.renoCost;
     const pNotes=notesForProperty(p.id);
@@ -687,7 +712,7 @@ function renderProperties(){
         <div class="prop-icon"><i class="ti ${tIcon[p.type]||'ti-building'}"></i></div>
         <div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span style="font-size:14px;font-weight:600">${p.address}</span>
+            <span style="font-size:14px;font-weight:600">${p.address}${p.zip?` <span style="font-size:12px;font-weight:400;color:var(--text2)">${p.zip}</span>`:''}</span>
             <span class="badge bg-gray" style="font-size:10px;font-weight:700;letter-spacing:0.03em">${p.type||''}</span>
             <select class="status-select ${({'active':'ss-green','pending':'ss-amber','uc':'ss-blue','offer_sent':'ss-purple','rejected':'ss-red','follow_up':'ss-teal'}[p.status]||'ss-gray')}"
             onchange="updatePropertyStatus('${p.id}',this.value);this.className='status-select '+({'active':'ss-green','pending':'ss-amber','uc':'ss-blue','offer_sent':'ss-purple','rejected':'ss-red','follow_up':'ss-teal'}[this.value]||'ss-gray')"
@@ -765,15 +790,25 @@ function renderProperties(){
           pNotes.map(n=>{
             const isUnread=currentUser.id&&!(n.readBy&&n.readBy[currentUser.id]);
             const uc=userColors[n.createdById]||{bg:'#F3F4F6',color:'#374151'};
+            const pIsCall=n.type==='call'||n.type==='call_missed';
+            const pIsSms=n.type==='sms';
+            const pIsAuto=n.createdById==='openphone';
+            let pNIBg='#F5F3FF',pNIC='#4C1D95',pNII='ti-notes';
+            if(n.type==='call'&&n.direction==='incoming'){pNIBg='#ECFDF5';pNIC='#065F46';pNII='ti-phone-incoming';}
+            else if(n.type==='call'&&n.direction==='outgoing'){pNIBg='#EFF6FF';pNIC='#1E40AF';pNII='ti-phone-outgoing';}
+            else if(n.type==='call_missed'){pNIBg='#FEF2F2';pNIC='#991B1B';pNII='ti-phone-off';}
+            else if(n.type==='sms'){pNIBg='#FFFBEB';pNIC='#92400E';pNII='ti-message';}
             return`<div class="note-item ${isUnread?'unread':''}">
               <div class="note-meta">
-                <div class="note-avatar" style="background:${uc.bg};color:${uc.color}">${initials(n.createdBy)}</div>
-                <span class="note-author">${n.createdBy}</span>
+                <div class="note-avatar" style="background:${pNIBg};color:${pNIC}"><i class="ti ${pNII}" style="font-size:12px"></i></div>
+                <span class="note-author">${pIsAuto?'OpenPhone':n.createdBy}</span>
+                ${pIsAuto?`<span style="font-size:10px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:100px;font-weight:500">auto-logged</span>`:''}
+                ${n.duration?`<span style="font-size:11px;color:var(--text2)">${n.duration}</span>`:''}
                 <span class="note-time">${fmtDateTime(n.createdAt)}</span>
                 ${isUnread?`<div class="note-unread-dot" title="Unread"></div>`:''}
-                ${currentUser.id===n.createdById?`<button onclick="deleteNote('${n.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px"><i class="ti ti-trash"></i></button>`:''}
+                ${!pIsAuto&&currentUser.id===n.createdById?`<button onclick="deleteNote('${n.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px"><i class="ti ti-trash"></i></button>`:''}
               </div>
-              <div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>
+              ${pIsSms&&n.smsBody?`<div class="note-text" style="font-style:italic;color:var(--text2)">"${n.smsBody.replace(/\n/g,'<br>')}"</div>`:(!pIsCall?`<div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>`:'')}
             </div>`;
           }).join('')}
         </div>
@@ -783,6 +818,7 @@ function renderProperties(){
         </div>
       </div>
     </div>`;
+    }).join('');
   }).join('');
 }
 
@@ -915,14 +951,14 @@ function updatePropertyStatus(propId, newStatus){
 }
 function openPropertyModal(id){
   editingPropertyId=id||null;populateBrokerSelect('');
-  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';populateBrokerSelect(p.brokerId||'');}
-  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
+  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-zip').value=p.zip||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';populateBrokerSelect(p.brokerId||'');}
+  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-zip','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
   document.getElementById('property-modal').classList.add('open');
 }
 function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
 function saveProperty(){
   const address=document.getElementById('p-address').value.trim();if(!address){showToast('⚠ Address is required');return;}
-  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
+  const data={address,zip:document.getElementById('p-zip').value,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
   const id=editingPropertyId||db.ref('properties').push().key;
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
