@@ -263,6 +263,7 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">Area / Zone</label><input type="text" id="b-area" placeholder="Miami, Broward..." /></div>
       <div class="form-g"><label class="form-lbl">Status</label><select id="b-status" style="width:100%"><option value="active">Active</option><option value="waiting">Awaiting follow-up</option><option value="done">Closed</option></select></div>
     </div>
+    <div class="form-g"><label class="form-lbl">Added by</label><select id="b-added-by" style="width:100%"><option value="">— select —</option><option value="Alon">Alon</option><option value="Niv">Niv</option></select></div>
     <div class="form-sep"><i class="ti ti-notes"></i>Call Notes</div>
     <div class="form-g"><label class="form-lbl">Notes</label><textarea id="b-notes" placeholder="What did we discuss? What properties did they show?..."></textarea></div>
     <div class="form-sep"><i class="ti ti-bell"></i>Follow-up Reminder</div>
@@ -279,6 +280,7 @@ select{width:auto;cursor:pointer;}
 <div class="overlay" id="property-modal">
   <div class="modal">
     <div class="modal-hd"><span id="prop-modal-title">Add Property</span><button class="btn btn-ghost btn-sm" onclick="closePropertyModal()"><i class="ti ti-x"></i></button></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><label class="form-lbl" style="margin:0;white-space:nowrap">Added by</label><select id="p-added-by" style="width:auto;font-size:12px;padding:5px 10px"><option value="">— select —</option><option value="Alon">Alon</option><option value="Niv">Niv</option></select></div>
     <div class="form-sep"><i class="ti ti-building"></i>Property Info</div>
     <div class="form-g"><label class="form-lbl">Address *</label><input type="text" id="p-address" placeholder="123 Maple Ave, Miami, FL" /></div>
     <div class="form-row">
@@ -301,6 +303,7 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">Baths</label><input type="number" id="p-baths" placeholder="2" min="0" step="0.5" /></div>
       <div class="form-g"><label class="form-lbl">Size (sqft)</label><input type="number" id="p-size" placeholder="1800" /></div>
     </div>
+    <div class="form-g"><label class="form-lbl">Days on Market (current)</label><input type="number" id="p-dom" placeholder="e.g. 30" min="0" /></div>
     <div class="form-g"><label class="form-lbl">Notes</label><textarea id="p-notes" placeholder="Condition, repairs needed, pros, cons..."></textarea></div>
     <div class="form-g"><label class="form-lbl">Property Link (Zillow, Redfin, MLS...)</label><input type="url" id="p-url" placeholder="https://www.zillow.com/..." /></div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closePropertyModal()">Cancel</button><button class="btn btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i>Save</button></div>
@@ -336,6 +339,7 @@ const bSCls={active:'bg-green',waiting:'bg-amber',done:'bg-gray'};
 const pSCls={active:'bg-green',pending:'bg-amber',uc:'bg-blue',offer_sent:'bg-purple',rejected:'bg-red',follow_up:'bg-teal'};
 const tIcon={SFR:'ti-home',MFR:'ti-building',commercial:'ti-briefcase',land:'ti-map'};
 
+function calcDOM(ts){if(!ts)return 0;return Math.floor((Date.now()-Number(ts))/86400000);}
 function renderAll(){renderStats();renderDashboard();renderBrokers();renderProperties();renderReminders();updateBadge();}
 
 function renderStats(){
@@ -402,6 +406,7 @@ function renderBrokers(){
         ${b.notes?`<div class="note-box">${b.notes.slice(0,160)}${b.notes.length>160?'...':''}</div>`:''}
         ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
         ${b.reminderNote&&s?`<div style="font-size:11px;color:#92400E;margin-top:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-message" style="font-size:12px"></i>${b.reminderNote}</div>`:''}
+        ${b.addedBy?`<div style="margin-top:8px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--text3);background:var(--surface2);padding:3px 8px;border-radius:6px;border:1px solid var(--border)"><i class="ti ti-user-check" style="font-size:12px"></i>Added by ${b.addedBy}</div>`:''}
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i></button>
@@ -428,6 +433,7 @@ function renderProperties(){
           <span style="font-size:14px;font-weight:600">${p.address}</span>
           <span class="badge bg-gray" style="font-size:10px;font-weight:700;letter-spacing:0.03em">${p.type||''}</span>
           <span class="badge ${pSCls[p.status]||'bg-gray'}">${pSLbl[p.status]||p.status}</span>
+          ${p.addedBy?`<span style="font-size:10px;font-weight:500;color:var(--text3);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-user-check" style="font-size:11px"></i>${p.addedBy}</span>`:''}
         </div>
         <div class="prop-meta">
           ${p.rooms?`<span><i class="ti ti-door"></i>${p.rooms} bd</span>`:''}
@@ -444,9 +450,15 @@ function renderProperties(){
         ${p.notes?`<div class="note-box" style="margin-top:10px">${p.notes.slice(0,130)}${p.notes.length>130?'...':''}</div>`:''}
         ${p.url?`<div style="margin-top:8px"><a href="${p.url}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--green-d);text-decoration:none;font-weight:500;padding:4px 10px;background:var(--green-l);border-radius:6px;border:1px solid rgba(29,158,117,0.2)"><i class="ti ti-external-link" style="font-size:13px"></i>View Listing</a></div>`:''}
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
-        <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        ${p.domStart?`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;min-width:64px;${calcDOM(p.domStart)>60?'background:#FEF2F2;border:1px solid #FECACA;':calcDOM(p.domStart)>30?'background:#FFFBEB;border:1px solid #FDE68A;':'background:#ECFDF5;border:1px solid #A7F3D0;'}">
+          <div style="font-size:22px;font-weight:700;line-height:1;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">${calcDOM(p.domStart)}</div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;text-align:center;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">Days on<br>market</div>
+        </div>`:''}
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
+        </div>
       </div>
     </div></div>`;
   }).join('');
@@ -497,14 +509,14 @@ function populatePropertySelect(sel){document.getElementById('b-linked-property'
 
 function openBrokerModal(id){
   editingBrokerId=id||null;populatePropertySelect('');
-  if(id){const b=state.brokers[id];document.getElementById('broker-modal-title').textContent='Edit Broker';document.getElementById('b-name').value=b.name||'';document.getElementById('b-phone').value=b.phone||'';document.getElementById('b-area').value=b.area||'';document.getElementById('b-status').value=b.status||'active';document.getElementById('b-notes').value=b.notes||'';document.getElementById('b-reminder').value=b.reminder||'';document.getElementById('b-reminder-note').value=b.reminderNote||'';populatePropertySelect(b.linkedProperty||'');}
-  else{document.getElementById('broker-modal-title').textContent='Add Broker';['b-name','b-phone','b-area','b-notes','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-status').value='active';}
+  if(id){const b=state.brokers[id];document.getElementById('broker-modal-title').textContent='Edit Broker';document.getElementById('b-name').value=b.name||'';document.getElementById('b-phone').value=b.phone||'';document.getElementById('b-area').value=b.area||'';document.getElementById('b-status').value=b.status||'active';document.getElementById('b-added-by').value=b.addedBy||'';document.getElementById('b-notes').value=b.notes||'';document.getElementById('b-reminder').value=b.reminder||'';document.getElementById('b-reminder-note').value=b.reminderNote||'';populatePropertySelect(b.linkedProperty||'');}
+  else{document.getElementById('broker-modal-title').textContent='Add Broker';['b-name','b-phone','b-area','b-notes','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-status').value='active';document.getElementById('b-added-by').value='';}
   document.getElementById('broker-modal').classList.add('open');
 }
 function closeBrokerModal(){document.getElementById('broker-modal').classList.remove('open');}
 function saveBroker(){
   const name=document.getElementById('b-name').value.trim();if(!name){showToast('⚠ Name is required');return;}
-  const data={name,phone:document.getElementById('b-phone').value,area:document.getElementById('b-area').value,status:document.getElementById('b-status').value,notes:document.getElementById('b-notes').value,reminder:document.getElementById('b-reminder').value,reminderNote:document.getElementById('b-reminder-note').value,linkedProperty:document.getElementById('b-linked-property').value,createdAt:editingBrokerId?(state.brokers[editingBrokerId]?.createdAt||Date.now()):Date.now()};
+  const data={name,phone:document.getElementById('b-phone').value,area:document.getElementById('b-area').value,status:document.getElementById('b-status').value,notes:document.getElementById('b-notes').value,reminder:document.getElementById('b-reminder').value,reminderNote:document.getElementById('b-reminder-note').value,linkedProperty:document.getElementById('b-linked-property').value,addedBy:document.getElementById('b-added-by').value,createdAt:editingBrokerId?(state.brokers[editingBrokerId]?.createdAt||Date.now()):Date.now()};
   const id=editingBrokerId||db.ref('brokers').push().key;
   db.ref('brokers/'+id).set(data).then(()=>showToast(editingBrokerId?'✓ Broker updated':'✓ Broker added'));
   closeBrokerModal();
@@ -514,14 +526,14 @@ function clearReminder(id){db.ref('brokers/'+id).update({reminder:'',reminderNot
 
 function openPropertyModal(id){
   editingPropertyId=id||null;populateBrokerSelect('');
-  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';populateBrokerSelect(p.brokerId||'');}
-  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
+  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';populateBrokerSelect(p.brokerId||'');}
+  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
   document.getElementById('property-modal').classList.add('open');
 }
 function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
 function saveProperty(){
   const address=document.getElementById('p-address').value.trim();if(!address){showToast('⚠ Address is required');return;}
-  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
+  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
   const id=editingPropertyId||db.ref('properties').push().key;
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
