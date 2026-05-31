@@ -154,6 +154,13 @@ select{width:auto;cursor:pointer;}
 .reminder-popover{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px;width:280px;box-shadow:var(--shadow-md);z-index:200;}
 .reminder-popover input{margin-bottom:8px;}
 .bell-wrap{position:relative;display:inline-block;}
+.status-select{border:none;border-radius:100px;font-size:11px;font-weight:500;padding:3px 22px 3px 9px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B7280'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;outline:none;font-family:inherit;}
+.ss-green{background:#ECFDF5;color:#065F46;}
+.ss-amber{background:#FFFBEB;color:#92400E;}
+.ss-blue{background:#EFF6FF;color:#1E40AF;}
+.ss-purple{background:#F5F3FF;color:#4C1D95;}
+.ss-red{background:#FEF2F2;color:#991B1B;}
+.ss-teal{background:#F0FDFA;color:#134E4A;}
 @keyframes highlightProp{0%{background:#EFF6FF;border-color:#93C5FD;}70%{background:#EFF6FF;border-color:#93C5FD;}100%{background:var(--surface);border-color:var(--border);}}
 .prop-highlight{animation:highlightProp 30s ease forwards !important;}
 #toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text1);color:#fff;border-radius:10px;padding:10px 22px;font-size:13px;z-index:300;white-space:nowrap;box-shadow:var(--shadow-md);}
@@ -682,7 +689,16 @@ function renderProperties(){
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span style="font-size:14px;font-weight:600">${p.address}</span>
             <span class="badge bg-gray" style="font-size:10px;font-weight:700;letter-spacing:0.03em">${p.type||''}</span>
-            <span class="badge ${pSCls[p.status]||'bg-gray'}">${pSLbl[p.status]||p.status}</span>
+            <select class="status-select ${({'active':'ss-green','pending':'ss-amber','uc':'ss-blue','offer_sent':'ss-purple','rejected':'ss-red','follow_up':'ss-teal'}[p.status]||'ss-gray')}"
+            onchange="updatePropertyStatus('${p.id}',this.value);this.className='status-select '+({'active':'ss-green','pending':'ss-amber','uc':'ss-blue','offer_sent':'ss-purple','rejected':'ss-red','follow_up':'ss-teal'}[this.value]||'ss-gray')"
+            onclick="event.stopPropagation()">
+            <option value="active" ${p.status==='active'?'selected':''}>Active</option>
+            <option value="pending" ${p.status==='pending'?'selected':''}>Pending</option>
+            <option value="uc" ${p.status==='uc'?'selected':''}>UC</option>
+            <option value="offer_sent" ${p.status==='offer_sent'?'selected':''}>Offer Sent</option>
+            <option value="rejected" ${p.status==='rejected'?'selected':''}>Rejected</option>
+            <option value="follow_up" ${p.status==='follow_up'?'selected':''}>In Follow Up</option>
+          </select>
             ${p.addedBy?`<span style="font-size:10px;font-weight:500;color:var(--text3);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-user-check" style="font-size:11px"></i>${p.addedBy}</span>`:''}
           </div>
           ${broker?`<div style="display:flex;align-items:center;gap:12px;margin-top:7px;flex-wrap:wrap">
@@ -894,6 +910,9 @@ function deleteBroker(id){
 }
 function clearReminder(id){db.ref('brokers/'+id).update({reminder:'',reminderNote:''}).then(()=>showToast('✓ Marked as done'));}
 
+function updatePropertyStatus(propId, newStatus){
+  db.ref('properties/'+propId).update({status:newStatus}).then(()=>showToast('✓ Status updated'));
+}
 function openPropertyModal(id){
   editingPropertyId=id||null;populateBrokerSelect('');
   if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';populateBrokerSelect(p.brokerId||'');}
@@ -903,7 +922,7 @@ function openPropertyModal(id){
 function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
 function saveProperty(){
   const address=document.getElementById('p-address').value.trim();if(!address){showToast('⚠ Address is required');return;}
-  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),reminder:document.getElementById('p-reminder').value,reminderNote:document.getElementById('p-reminder-note').value,brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
+  const data={address,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
   const id=editingPropertyId||db.ref('properties').push().key;
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
