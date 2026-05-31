@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Real Estate CRM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+:root {
+  --c-accent: #1D9E75;
+  --c-accent-light: #E1F5EE;
+  --c-accent-mid: #5DCAA5;
+  --bg: #ffffff;
+  --bg2: #f6f6f4;
+  --bg3: #f0f0ed;
+  --text1: #1a1a18;
+  --text2: #5f5e5a;
+  --text3: #99988f;
+  --border: rgba(0,0,0,0.12);
+  --border2: rgba(0,0,0,0.22);
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1a; --bg2: #242422; --bg3: #2c2c2a;
+    --text1: #f0f0ec; --text2: #a8a8a0; --text3: #666660;
+    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+    --c-accent-light: #04342C;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text1); min-height: 100vh; }
+.app { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 14px 20px; background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); flex-wrap: wrap; gap: 12px; }
+.topbar-title { font-size: 17px; font-weight: 600; color: var(--text1); display: flex; align-items: center; gap: 8px; }
+.topbar-title i { color: var(--c-accent); font-size: 20px; }
+.sync { font-size: 11px; color: var(--text3); margin-right: 8px; }
+.nav-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab-btn { padding: 7px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius); border: 0.5px solid transparent; background: transparent; cursor: pointer; color: var(--text2); transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+.tab-btn:hover { background: var(--bg2); color: var(--text1); }
+.tab-btn.active { background: var(--c-accent-light); color: #0F6E56; border-color: #9FE1CB; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+@media(max-width:600px){ .stats-grid { grid-template-columns: repeat(2,1fr); } }
+.stat-card { background: var(--bg); border-radius: var(--radius); padding: 14px 16px; border: 0.5px solid var(--border); }
+.stat-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-value { font-size: 26px; font-weight: 600; color: var(--text1); }
+.stat-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-title { font-size: 14px; font-weight: 600; color: var(--text1); display: flex; align-items: center; gap: 6px; }
+.btn-primary { padding: 8px 14px; font-size: 13px; font-weight: 500; background: var(--c-accent); color: #fff; border: none; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.15s; white-space: nowrap; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-sm { padding: 5px 10px; font-size: 12px; background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); cursor: pointer; color: var(--text2); display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s; white-space: nowrap; }
+.btn-sm:hover { background: var(--bg2); color: var(--text1); }
+.btn-danger { border-color: #F09595; color: #A32D2D; }
+.btn-danger:hover { background: #FCEBEB; }
+.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 10px; transition: border-color 0.15s; }
+.card:hover { border-color: var(--border2); }
+.broker-card { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--c-accent-light); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; color: #0F6E56; flex-shrink: 0; }
+.broker-name { font-size: 14px; font-weight: 600; color: var(--text1); }
+.broker-meta { font-size: 12px; color: var(--text2); margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 500; }
+.badge-green { background: #E1F5EE; color: #0F6E56; }
+.badge-amber { background: #FAEEDA; color: #854F0B; }
+.badge-red { background: #FCEBEB; color: #A32D2D; }
+.badge-blue { background: #E6F1FB; color: #185FA5; }
+.badge-gray { background: #F1EFE8; color: #5F5E5A; }
+.reminder-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 100px; font-size: 11px; background: #FAEEDA; color: #854F0B; border: 0.5px solid #FAC775; }
+.reminder-chip.overdue { background: #FCEBEB; color: #A32D2D; border-color: #F7C1C1; }
+.reminder-chip.today { background: #E1F5EE; color: #0F6E56; border-color: #9FE1CB; }
+.notes-preview { font-size: 12px; color: var(--text2); margin-top: 8px; background: var(--bg2); padding: 7px 10px; border-radius: var(--radius); border-left: 2px solid var(--c-accent-mid); line-height: 1.5; }
+.broker-actions { display: flex; gap: 6px; align-items: flex-start; }
+.property-linked { margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text3); }
+.filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.filter-row input[type="text"] { flex: 1; min-width: 140px; }
+input, textarea, select {
+  width: 100%; padding: 8px 10px; font-size: 13px; font-family: inherit;
+  background: var(--bg); color: var(--text1); border: 0.5px solid var(--border2);
+  border-radius: var(--radius); outline: none; transition: border-color 0.15s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--c-accent); }
+textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+select { width: auto; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 520px; border: 0.5px solid var(--border2); max-height: 88vh; overflow-y: auto; }
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text1); display: flex; justify-content: space-between; align-items: center; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:480px){ .form-row { grid-template-columns: 1fr; } }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 0.5px solid var(--border); }
+.property-card { display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: start; }
+.prop-icon { width: 46px; height: 46px; border-radius: var(--radius); background: var(--c-accent-light); display: flex; align-items: center; justify-content: center; color: #0F6E56; font-size: 22px; flex-shrink: 0; }
+.prop-title { font-size: 14px; font-weight: 600; color: var(--text1); }
+.prop-meta { font-size: 12px; color: var(--text2); margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; }
+.reminder-item { display: grid; grid-template-columns: 10px 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 8px; }
+.reminder-item.overdue { border-color: #F7C1C1; background: rgba(252,235,235,0.4); }
+.reminder-item.today { border-color: #9FE1CB; background: rgba(225,245,238,0.4); }
+.reminder-dot { width: 10px; height: 10px; border-radius: 50%; background: #FAC775; flex-shrink: 0; }
+.reminder-dot.overdue { background: #E24B4A; }
+.reminder-dot.today { background: var(--c-accent); }
+.reminder-broker { font-size: 13px; font-weight: 600; color: var(--text1); }
+.reminder-date { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.reminder-note { font-size: 12px; color: var(--text2); margin-top: 5px; padding: 5px 8px; background: var(--bg2); border-radius: var(--radius); }
+.section-divider { font-size: 12px; font-weight: 600; color: var(--text2); margin: 16px 0 8px; display: flex; align-items: center; gap: 6px; }
+.empty-state { text-align: center; padding: 40px 16px; color: var(--text3); }
+.empty-state i { font-size: 38px; margin-bottom: 10px; display: block; }
+.empty-state p { font-size: 14px; }
+.empty-state small { font-size: 12px; margin-top: 4px; display: block; }
+#toast { display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text1); color: var(--bg); border-radius: var(--radius-lg); padding: 10px 20px; font-size: 13px; z-index: 200; white-space: nowrap; }
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:600px){ .dash-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-title">
+      <i class="ti ti-building"></i>
+      Real Estate CRM
+      <span class="sync" id="sync-indicator"></span>
+    </div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('brokers')"><i class="ti ti-users"></i> Brokers</button>
+      <button class="tab-btn" onclick="switchTab('properties')"><i class="ti ti-building-estate"></i> Properties</button>
+      <button class="tab-btn" onclick="switchTab('reminders')"><i class="ti ti-bell"></i> Reminders <span id="reminder-badge" style="display:none;background:#E24B4A;color:#fff;font-size:10px;padding:1px 6px;border-radius:100px;margin-left:2px"></span></button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="dash-grid">
+      <div>
+        <div class="section-header"><span class="section-title"><i class="ti ti-bell-ringing"></i> Upcoming Follow-ups</span></div>
+        <div id="dashboard-reminders"></div>
+      </div>
+      <div>
+        <div class="section-header"><span class="section-title"><i class="ti ti-clock"></i> Recent Activity</span></div>
+        <div id="recent-activity"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brokers -->
+  <div class="tab-content" id="tab-brokers">
+    <div class="filter-row">
+      <input type="text" id="broker-search" placeholder="Search broker..." oninput="renderBrokers()" style="width:auto;flex:1" />
+      <select id="broker-filter" onchange="renderBrokers()">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="waiting">Awaiting follow-up</option>
+        <option value="done">Closed</option>
+      </select>
+      <button class="btn-primary" onclick="openBrokerModal()"><i class="ti ti-plus"></i> Add Broker</button>
+    </div>
+    <div id="brokers-list"></div>
+  </div>
+
+  <!-- Properties -->
+  <div class="tab-content" id="tab-properties">
+    <div class="filter-row">
+      <input type="text" id="prop-search" placeholder="Search property..." oninput="renderProperties()" style="width:auto;flex:1" />
+      <select id="prop-filter" onchange="renderProperties()">
+        <option value="">All statuses</option>
+        <option value="new">New</option>
+        <option value="interesting">Interesting</option>
+        <option value="visited">Visited</option>
+        <option value="offer">Offer made</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <button class="btn-primary" onclick="openPropertyModal()"><i class="ti ti-plus"></i> Add Property</button>
+    </div>
+    <div id="properties-list"></div>
+  </div>
+
+  <!-- Reminders -->
+  <div class="tab-content" id="tab-reminders">
+    <div id="reminders-list"></div>
+  </div>
+</div>
+
+<!-- Broker Modal -->
+<div class="modal-overlay" id="broker-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="broker-modal-title">Add Broker</span>
+      <button class="btn-sm" onclick="closeBrokerModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Full name *</label>
+        <input type="text" id="b-name" placeholder="John Smith" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input type="text" id="b-phone" placeholder="+1 555 000 0000" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Area / Zone</label>
+        <input type="text" id="b-area" placeholder="Tel Aviv, North..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select id="b-status" style="width:100%">
+          <option value="active">Active</option>
+          <option value="waiting">Awaiting follow-up</option>
+          <option value="done">Closed</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Call notes</label>
+      <textarea id="b-notes" placeholder="What did we discuss? What properties did they show? Key details..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label"><i class="ti ti-bell" style="font-size:13px"></i> Follow-up reminder</label>
+        <input type="date" id="b-reminder" style="width:100%" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Linked property</label>
+        <select id="b-linked-property" style="width:100%">
+          <option value="">None</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reminder note</label>
+      <input type="text" id="b-reminder-note" placeholder="Call about the 3BR on Herzl St..." />
+    </div>
+    <div class="form-actions">
+      <button class="btn-sm" onclick="closeBrokerModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveBroker()"><i class="ti ti-check"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Property Modal -->
+<div class="modal-overlay" id="property-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="prop-modal-title">Add Property</span>
+      <button class="btn-sm" onclick="closePropertyModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Address *</label>
+      <input type="text" id="p-address" placeholder="5 Herzl St, Tel Aviv" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select id="p-type" style="width:100%">
+          <option value="apartment">Apartment</option>
+          <option value="penthouse">Penthouse</option>
+          <option value="house">Private house</option>
+          <option value="commercial">Commercial</option>
+          <option value="land">Land</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price (₪)</label>
+        <input type="number" id="p-price" placeholder="2500000" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Rooms</label>
+        <input type="number" id="p-rooms" placeholder="4" min="1" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Size (m²)</label>
+        <input type="number" id="p-size" placeholder="100" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select id="p-status" style="width:100%">
+          <option value="new">New</option>
+          <option value="interesting">Interesting</option>
+          <option value="visited">Visited</option>
+          <option value="offer">Offer made</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Linked broker</label>
+        <select id="p-broker" style="width:100%"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea id="p-notes" placeholder="Description, pros, cons..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-sm" onclick="closePropertyModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'realestate-crm-v2';
+let state = { brokers: [], properties: [] };
+let editingBrokerId = null, editingPropertyId = null;
+
+function showToast(msg, duration=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', duration);
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = { ...state, ...JSON.parse(raw) };
+  } catch(e) {}
+  renderAll();
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    document.getElementById('sync-indicator').textContent = '✓ Saved';
+    setTimeout(() => document.getElementById('sync-indicator').textContent = '', 2000);
+  } catch(e) {}
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function formatDate(d) {
+  if (!d) return '';
+  return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function daysUntil(d) {
+  if (!d) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(d); target.setHours(0,0,0,0);
+  return Math.round((target - today) / 86400000);
+}
+
+function reminderStatus(broker) {
+  if (!broker.reminder) return null;
+  const d = daysUntil(broker.reminder);
+  if (d < 0) return 'overdue';
+  if (d === 0) return 'today';
+  return 'upcoming';
+}
+
+function statusLabel(s) {
+  return { active:'Active', waiting:'Follow-up', done:'Closed', new:'New', interesting:'Interesting', visited:'Visited', offer:'Offer', rejected:'Rejected' }[s] || s;
+}
+
+function statusBadgeClass(s) {
+  return { active:'badge-green', waiting:'badge-amber', done:'badge-gray', new:'badge-blue', interesting:'badge-green', visited:'badge-amber', offer:'badge-green', rejected:'badge-red' }[s] || 'badge-gray';
+}
+
+function propTypeIcon(t) {
+  return { apartment:'ti-building', penthouse:'ti-building-skyscraper', house:'ti-home', commercial:'ti-briefcase', land:'ti-map' }[t] || 'ti-building';
+}
+
+function getInitials(name) {
+  return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+
+function renderAll() {
+  renderStats(); renderBrokers(); renderProperties(); renderReminders(); renderDashboard(); updateReminderBadge();
+}
+
+function renderStats() {
+  const total = state.brokers.length;
+  const active = state.brokers.filter(b=>b.status==='active').length;
+  const overdue = state.brokers.filter(b=>reminderStatus(b)==='overdue').length;
+  const today = state.brokers.filter(b=>reminderStatus(b)==='today').length;
+  const props = state.properties.length;
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Brokers</div><div class="stat-value">${total}</div><div class="stat-sub">${active} active</div></div>
+    <div class="stat-card"><div class="stat-label">Properties</div><div class="stat-value">${props}</div><div class="stat-sub">${state.properties.filter(p=>p.status==='interesting').length} interesting</div></div>
+    <div class="stat-card"><div class="stat-label">Today's calls</div><div class="stat-value" style="color:${today>0?'var(--c-accent)':'inherit'}">${today}</div><div class="stat-sub">due today</div></div>
+    <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:${overdue>0?'#E24B4A':'inherit'}">${overdue}</div><div class="stat-sub">missed follow-ups</div></div>
+  `;
+}
+
+function renderDashboard() {
+  const reminders = state.brokers.filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder)).slice(0,5);
+  const dr = document.getElementById('dashboard-reminders');
+  if (!reminders.length) { dr.innerHTML = '<div class="empty-state"><i class="ti ti-bell-off"></i><p>No upcoming reminders</p></div>'; }
+  else dr.innerHTML = reminders.map(b => {
+    const d = daysUntil(b.reminder);
+    const s = reminderStatus(b);
+    const chipClass = s==='overdue'?'overdue':s==='today'?'today':'';
+    const label = s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Today':`In ${d} days`;
+    const prop = b.linkedProperty ? state.properties.find(p=>p.id===b.linkedProperty) : null;
+    return `<div class="card" style="cursor:pointer" onclick="switchTab('reminders')">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="avatar" style="width:28px;height:28px;font-size:10px">${getInitials(b.name)}</div>
+          <span style="font-size:13px;font-weight:600">${b.name}</span>
+        </div>
+        <span class="reminder-chip ${chipClass}"><i class="ti ti-bell" style="font-size:11px"></i> ${label}</span>
+      </div>
+      ${b.reminderNote?`<div class="notes-preview" style="margin-top:8px">${b.reminderNote}</div>`:''}
+      ${prop?`<div class="property-linked"><i class="ti ti-building"></i> ${prop.address}</div>`:''}
+    </div>`;
+  }).join('');
+
+  const acts = [...state.brokers.map(b=>({...b,_t:'broker'})), ...state.properties.map(p=>({...p,_t:'property'}))].filter(x=>x.createdAt).sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
+  const ra = document.getElementById('recent-activity');
+  if (!acts.length) { ra.innerHTML = '<div class="empty-state"><i class="ti ti-activity"></i><p>No activity yet</p></div>'; return; }
+  ra.innerHTML = acts.map(x=>`<div class="card" style="padding:10px 14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <i class="ti ${x._t==='broker'?'ti-user':'ti-building'}" style="color:var(--c-accent);font-size:16px"></i>
+      <div>
+        <div style="font-size:13px;font-weight:600">${x._t==='broker'?x.name:x.address}</div>
+        <div style="font-size:11px;color:var(--text3)">${x._t==='broker'?'Broker added':'Property added'} · ${formatDate(x.createdAt)}</div>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+function renderBrokers() {
+  const search = (document.getElementById('broker-search')||{}).value?.toLowerCase()||'';
+  const filter = (document.getElementById('broker-filter')||{}).value||'';
+  const list = state.brokers.filter(b => {
+    return (b.name.toLowerCase().includes(search)||(b.area||'').toLowerCase().includes(search)) && (!filter||b.status===filter);
+  }).sort((a,b) => {
+    const ord = { overdue:0, today:1, upcoming:2, null:3 };
+    return (ord[reminderStatus(a)]??3) - (ord[reminderStatus(b)]??3);
+  });
+  const el = document.getElementById('brokers-list');
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-users-off"></i><p>No brokers found</p><small>Click "Add Broker" to get started</small></div>'; return; }
+  el.innerHTML = list.map(b => {
+    const rs = reminderStatus(b);
+    const d = daysUntil(b.reminder);
+    const chipClass = rs==='overdue'?'overdue':rs==='today'?'today':'';
+    const chipLabel = rs==='overdue'?`${Math.abs(d)}d overdue`:rs==='today'?'Follow-up today!':rs?`Follow-up in ${d} days`:'';
+    const prop = b.linkedProperty ? state.properties.find(p=>p.id===b.linkedProperty) : null;
+    return `<div class="card">
+      <div class="broker-card">
+        <div class="avatar">${getInitials(b.name)}</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="broker-name">${b.name}</span>
+            <span class="badge ${statusBadgeClass(b.status)}">${statusLabel(b.status)}</span>
+            ${rs?`<span class="reminder-chip ${chipClass}"><i class="ti ti-bell" style="font-size:11px"></i> ${chipLabel}</span>`:''}
+          </div>
+          <div class="broker-meta">
+            ${b.phone?`<span><i class="ti ti-phone" style="font-size:12px"></i> ${b.phone}</span>`:''}
+            ${b.area?`<span><i class="ti ti-map-pin" style="font-size:12px"></i> ${b.area}</span>`:''}
+            ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:12px"></i> ${formatDate(b.reminder)}</span>`:''}
+          </div>
+          ${b.notes?`<div class="notes-preview">${b.notes.slice(0,140)}${b.notes.length>140?'...':''}</div>`:''}
+          ${prop?`<div class="property-linked"><i class="ti ti-building"></i> ${prop.address}</div>`:''}
+          ${b.reminderNote&&rs?`<div style="font-size:11px;color:#854F0B;margin-top:5px"><i class="ti ti-message" style="font-size:11px"></i> ${b.reminderNote}</div>`:''}
+        </div>
+        <div class="broker-actions">
+          <button class="btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn-sm btn-danger" onclick="deleteBroker('${b.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderProperties() {
+  const search = (document.getElementById('prop-search')||{}).value?.toLowerCase()||'';
+  const filter = (document.getElementById('prop-filter')||{}).value||'';
+  const list = state.properties.filter(p => p.address.toLowerCase().includes(search) && (!filter||p.status===filter));
+  const el = document.getElementById('properties-list');
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-building-off"></i><p>No properties found</p><small>Click "Add Property" to get started</small></div>'; return; }
+  el.innerHTML = list.map(p => {
+    const broker = p.brokerId ? state.brokers.find(b=>b.id===p.brokerId) : null;
+    return `<div class="card">
+      <div class="property-card">
+        <div class="prop-icon"><i class="ti ${propTypeIcon(p.type)}"></i></div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="prop-title">${p.address}</span>
+            <span class="badge ${statusBadgeClass(p.status)}">${statusLabel(p.status)}</span>
+          </div>
+          <div class="prop-meta">
+            ${p.price?`<span><i class="ti ti-currency-shekel" style="font-size:12px"></i> ₪${Number(p.price).toLocaleString()}</span>`:''}
+            ${p.rooms?`<span><i class="ti ti-door" style="font-size:12px"></i> ${p.rooms} rooms</span>`:''}
+            ${p.size?`<span><i class="ti ti-arrows-maximize" style="font-size:12px"></i> ${p.size} m²</span>`:''}
+            ${broker?`<span><i class="ti ti-user" style="font-size:12px"></i> ${broker.name}</span>`:''}
+          </div>
+          ${p.notes?`<div class="notes-preview">${p.notes.slice(0,120)}${p.notes.length>120?'...':''}</div>`:''}
+        </div>
+        <div class="broker-actions">
+          <button class="btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn-sm btn-danger" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderReminders() {
+  const withR = state.brokers.filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder));
+  const el = document.getElementById('reminders-list');
+  if (!withR.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-bell-off"></i><p>No reminders set</p><small>Set a follow-up date when editing a broker</small></div>'; return; }
+  const overdue = withR.filter(b=>reminderStatus(b)==='overdue');
+  const today = withR.filter(b=>reminderStatus(b)==='today');
+  const upcoming = withR.filter(b=>reminderStatus(b)==='upcoming');
+  let html = '';
+  if (overdue.length) { html += `<div class="section-divider" style="color:#A32D2D"><i class="ti ti-alert-circle"></i> Overdue (${overdue.length})</div>`; html += overdue.map(b=>reminderItem(b)).join(''); }
+  if (today.length) { html += `<div class="section-divider" style="color:#0F6E56;margin-top:${overdue.length?16:0}px"><i class="ti ti-star"></i> Today (${today.length})</div>`; html += today.map(b=>reminderItem(b)).join(''); }
+  if (upcoming.length) { html += `<div class="section-divider" style="margin-top:${(overdue.length||today.length)?16:0}px"><i class="ti ti-calendar"></i> Upcoming (${upcoming.length})</div>`; html += upcoming.map(b=>reminderItem(b)).join(''); }
+  el.innerHTML = html;
+}
+
+function reminderItem(b) {
+  const s = reminderStatus(b);
+  const d = daysUntil(b.reminder);
+  const label = s==='overdue'?`${Math.abs(d)} days overdue`:s==='today'?'Today':`In ${d} days`;
+  const prop = b.linkedProperty ? state.properties.find(p=>p.id===b.linkedProperty) : null;
+  return `<div class="reminder-item ${s||''}">
+    <div class="reminder-dot ${s||''}"></div>
+    <div>
+      <div class="reminder-broker">${b.name}${b.phone?` · ${b.phone}`:''}</div>
+      <div class="reminder-date"><i class="ti ti-calendar" style="font-size:11px"></i> ${formatDate(b.reminder)} · ${label}</div>
+      ${b.reminderNote?`<div class="reminder-note">${b.reminderNote}</div>`:''}
+      ${b.notes?`<div class="reminder-note" style="margin-top:4px"><i class="ti ti-notes" style="font-size:11px"></i> ${b.notes.slice(0,100)}${b.notes.length>100?'...':''}</div>`:''}
+      ${prop?`<div class="property-linked"><i class="ti ti-building"></i> ${prop.address}</div>`:''}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <button class="btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i> Edit</button>
+      <button class="btn-sm" style="color:#0F6E56;border-color:#9FE1CB" onclick="clearReminder('${b.id}')"><i class="ti ti-check"></i> Done</button>
+    </div>
+  </div>`;
+}
+
+function updateReminderBadge() {
+  const count = state.brokers.filter(b=>reminderStatus(b)==='overdue'||reminderStatus(b)==='today').length;
+  const badge = document.getElementById('reminder-badge');
+  badge.textContent = count; badge.style.display = count > 0 ? 'inline' : 'none';
+}
+
+function switchTab(tab) {
+  const tabs = ['dashboard','brokers','properties','reminders'];
+  document.querySelectorAll('.tab-btn').forEach((btn,i) => btn.classList.toggle('active', tabs[i]===tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  renderAll();
+}
+
+function populateBrokerSelect(selectedId) {
+  const sel = document.getElementById('p-broker');
+  sel.innerHTML = '<option value="">None</option>' + state.brokers.map(b=>`<option value="${b.id}" ${b.id===selectedId?'selected':''}>${b.name}</option>`).join('');
+}
+
+function populatePropertySelect(selectedId) {
+  const sel = document.getElementById('b-linked-property');
+  sel.innerHTML = '<option value="">None</option>' + state.properties.map(p=>`<option value="${p.id}" ${p.id===selectedId?'selected':''}>${p.address}</option>`).join('');
+}
+
+function openBrokerModal(id) {
+  editingBrokerId = id || null;
+  populatePropertySelect('');
+  if (id) {
+    const b = state.brokers.find(x=>x.id===id);
+    document.getElementById('broker-modal-title').textContent = 'Edit Broker';
+    document.getElementById('b-name').value = b.name||'';
+    document.getElementById('b-phone').value = b.phone||'';
+    document.getElementById('b-area').value = b.area||'';
+    document.getElementById('b-status').value = b.status||'active';
+    document.getElementById('b-notes').value = b.notes||'';
+    document.getElementById('b-reminder').value = b.reminder||'';
+    document.getElementById('b-reminder-note').value = b.reminderNote||'';
+    populatePropertySelect(b.linkedProperty||'');
+  } else {
+    document.getElementById('broker-modal-title').textContent = 'Add Broker';
+    ['b-name','b-phone','b-area','b-notes','b-reminder','b-reminder-note'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('b-status').value = 'active';
+  }
+  document.getElementById('broker-modal').classList.add('open');
+}
+
+function closeBrokerModal() { document.getElementById('broker-modal').classList.remove('open'); }
+
+function saveBroker() {
+  const name = document.getElementById('b-name').value.trim();
+  if (!name) { showToast('⚠ Name is required'); return; }
+  const data = { name, phone:document.getElementById('b-phone').value, area:document.getElementById('b-area').value, status:document.getElementById('b-status').value, notes:document.getElementById('b-notes').value, reminder:document.getElementById('b-reminder').value, reminderNote:document.getElementById('b-reminder-note').value, linkedProperty:document.getElementById('b-linked-property').value };
+  if (editingBrokerId) {
+    const i = state.brokers.findIndex(b=>b.id===editingBrokerId);
+    state.brokers[i] = { ...state.brokers[i], ...data };
+    showToast('✓ Broker updated');
+  } else {
+    state.brokers.push({ id:uid(), createdAt:Date.now(), ...data });
+    showToast('✓ Broker added');
+  }
+  saveState(); closeBrokerModal(); renderAll();
+}
+
+function deleteBroker(id) {
+  if (!confirm('Delete this broker?')) return;
+  state.brokers = state.brokers.filter(b=>b.id!==id);
+  saveState(); renderAll(); showToast('Broker deleted');
+}
+
+function clearReminder(id) {
+  const b = state.brokers.find(x=>x.id===id);
+  if (b) { b.reminder = ''; b.reminderNote = ''; }
+  saveState(); renderAll(); showToast('✓ Marked as done');
+}
+
+function openPropertyModal(id) {
+  editingPropertyId = id || null;
+  populateBrokerSelect('');
+  if (id) {
+    const p = state.properties.find(x=>x.id===id);
+    document.getElementById('prop-modal-title').textContent = 'Edit Property';
+    document.getElementById('p-address').value = p.address||'';
+    document.getElementById('p-type').value = p.type||'apartment';
+    document.getElementById('p-price').value = p.price||'';
+    document.getElementById('p-rooms').value = p.rooms||'';
+    document.getElementById('p-size').value = p.size||'';
+    document.getElementById('p-status').value = p.status||'new';
+    document.getElementById('p-notes').value = p.notes||'';
+    populateBrokerSelect(p.brokerId||'');
+  } else {
+    document.getElementById('prop-modal-title').textContent = 'Add Property';
+    ['p-address','p-price','p-rooms','p-size','p-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('p-type').value = 'apartment';
+    document.getElementById('p-status').value = 'new';
+  }
+  document.getElementById('property-modal').classList.add('open');
+}
+
+function closePropertyModal() { document.getElementById('property-modal').classList.remove('open'); }
+
+function saveProperty() {
+  const address = document.getElementById('p-address').value.trim();
+  if (!address) { showToast('⚠ Address is required'); return; }
+  const data = { address, type:document.getElementById('p-type').value, price:document.getElementById('p-price').value, rooms:document.getElementById('p-rooms').value, size:document.getElementById('p-size').value, status:document.getElementById('p-status').value, notes:document.getElementById('p-notes').value, brokerId:document.getElementById('p-broker').value };
+  if (editingPropertyId) {
+    const i = state.properties.findIndex(p=>p.id===editingPropertyId);
+    state.properties[i] = { ...state.properties[i], ...data };
+    showToast('✓ Property updated');
+  } else {
+    state.properties.push({ id:uid(), createdAt:Date.now(), ...data });
+    showToast('✓ Property added');
+  }
+  saveState(); closePropertyModal(); renderAll();
+}
+
+function deleteProperty(id) {
+  if (!confirm('Delete this property?')) return;
+  state.properties = state.properties.filter(p=>p.id!==id);
+  saveState(); renderAll(); showToast('Property deleted');
+}
+
+document.getElementById('broker-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBrokerModal(); });
+document.getElementById('property-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closePropertyModal(); });
+
+loadState();
+</script>
+</body>
+</html>
