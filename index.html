@@ -9,19 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
 <style>
-:root {
-  --green:#1D9E75; --green-l:#E8F8F2; --green-m:#5DCAA5; --green-d:#0F6E56;
-  --bg:#F3F4F6; --surface:#FFFFFF; --surface2:#F9FAFB;
-  --text1:#111827; --text2:#6B7280; --text3:#9CA3AF;
-  --border:#E5E7EB; --border2:#D1D5DB;
-  --r:10px; --r-lg:14px;
+:root{
+  --green:#1D9E75;--green-l:#E8F8F2;--green-m:#5DCAA5;--green-d:#0F6E56;
+  --bg:#F3F4F6;--surface:#FFFFFF;--surface2:#F9FAFB;
+  --text1:#111827;--text2:#6B7280;--text3:#9CA3AF;
+  --border:#E5E7EB;--border2:#D1D5DB;
+  --r:10px;--r-lg:14px;
   --shadow:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
   --shadow-md:0 4px 16px rgba(0,0,0,0.09),0 2px 4px rgba(0,0,0,0.04);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;}
-
-/* Topbar */
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
 .topbar-brand{display:flex;align-items:center;gap:10px;padding:14px 0;}
 .brand-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;}
@@ -29,38 +27,30 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .brand-name{font-size:15px;font-weight:600;color:var(--text1);}
 .brand-sync{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;margin-left:4px;}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block;}
-.sync-dot.ok{background:var(--green);}
-.sync-dot.err{background:#EF4444;}
+.sync-dot.ok{background:var(--green);}.sync-dot.err{background:#EF4444;}
 .nav-tabs{display:flex;gap:2px;padding:10px 0;}
-.tab-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--r);border:none;background:transparent;cursor:pointer;color:var(--text2);font-family:inherit;transition:all 0.15s;position:relative;}
+.tab-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--r);border:none;background:transparent;cursor:pointer;color:var(--text2);font-family:inherit;transition:all 0.15s;}
 .tab-btn i{font-size:17px;}
 .tab-btn:hover{background:var(--surface2);color:var(--text1);}
 .tab-btn.active{background:var(--green-l);color:var(--green-d);font-weight:600;}
 .tab-btn.active i{color:var(--green);}
 .tab-badge{background:#FEE2E2;color:#991B1B;font-size:10px;font-weight:600;padding:1px 6px;border-radius:100px;margin-left:2px;}
-
-/* Page */
 .page{max-width:1020px;margin:0 auto;padding:28px 24px;}
 .page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap;}
 .page-title{font-size:20px;font-weight:600;color:var(--text1);}
 .page-sub{font-size:13px;color:var(--text3);margin-top:2px;}
-
-/* Stats */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
 @media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr);}}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:14px;}
 .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .stat-icon i{font-size:20px;}
-.si-green{background:var(--green-l);} .si-green i{color:var(--green);}
-.si-blue{background:#EFF6FF;} .si-blue i{color:#2563EB;}
-.si-amber{background:#FFFBEB;} .si-amber i{color:#D97706;}
-.si-red{background:#FEF2F2;} .si-red i{color:#EF4444;}
-.stat-body{}
+.si-green{background:var(--green-l);}.si-green i{color:var(--green);}
+.si-blue{background:#EFF6FF;}.si-blue i{color:#2563EB;}
+.si-amber{background:#FFFBEB;}.si-amber i{color:#D97706;}
+.si-red{background:#FEF2F2;}.si-red i{color:#EF4444;}
 .stat-val{font-size:26px;font-weight:600;line-height:1;color:var(--text1);}
 .stat-lbl{font-size:12px;color:var(--text2);margin-top:4px;}
 .stat-sub{font-size:11px;color:var(--text3);margin-top:2px;}
-
-/* Dash panels */
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
 @media(max-width:680px){.dash-grid{grid-template-columns:1fr;}}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;}
@@ -68,58 +58,60 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .panel-hd-title{font-size:13px;font-weight:600;color:var(--text1);}
 .panel-hd i{font-size:16px;color:var(--green);}
 .panel-body{padding:8px 10px;}
-
-/* Filter bar */
 .filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
 .search-box{flex:1;min-width:180px;position:relative;}
 .search-box i{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text3);pointer-events:none;}
 .search-box input{padding-left:34px;width:100%;}
-
-/* Inputs */
 input,textarea,select{width:100%;padding:9px 12px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text1);border:1px solid var(--border2);border-radius:var(--r);outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
 input:focus,textarea:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.1);}
 textarea{resize:vertical;min-height:76px;line-height:1.6;}
 select{width:auto;cursor:pointer;}
-
-/* Buttons */
 .btn{padding:8px 16px;font-size:13px;font-weight:500;border-radius:var(--r);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:inherit;transition:all 0.15s;white-space:nowrap;}
-.btn-primary{background:var(--green);color:#fff;}
-.btn-primary:hover{background:var(--green-d);}
-.btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border2);}
-.btn-ghost:hover{background:var(--surface2);color:var(--text1);}
-.btn-del{background:transparent;color:#DC2626;border:1px solid #FECACA;}
-.btn-del:hover{background:#FEF2F2;}
+.btn-primary{background:var(--green);color:#fff;}.btn-primary:hover{background:var(--green-d);}
+.btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border2);}.btn-ghost:hover{background:var(--surface2);color:var(--text1);}
+.btn-del{background:transparent;color:#DC2626;border:1px solid #FECACA;}.btn-del:hover{background:#FEF2F2;}
 .btn-sm{padding:5px 10px;font-size:12px;border-radius:8px;}
 
-/* Cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:10px;box-shadow:var(--shadow);transition:box-shadow 0.15s,border-color 0.15s;}
+/* Broker card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:10px;box-shadow:var(--shadow);transition:box-shadow 0.15s,border-color 0.15s;overflow:hidden;}
 .card:hover{box-shadow:var(--shadow-md);border-color:var(--border2);}
-.card-grid{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;}
-
-/* Avatar */
+.card-top{padding:16px 20px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;}
 .av{width:40px;height:40px;border-radius:50%;background:var(--green-l);border:2px solid rgba(29,158,117,0.15);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--green-d);flex-shrink:0;}
-
-/* Badges */
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:500;}
-.bg-green{background:#ECFDF5;color:#065F46;}
-.bg-amber{background:#FFFBEB;color:#92400E;}
-.bg-red{background:#FEF2F2;color:#991B1B;}
-.bg-blue{background:#EFF6FF;color:#1E40AF;}
-.bg-gray{background:#F3F4F6;color:#374151;}
-.bg-purple{background:#F5F3FF;color:#4C1D95;}
+.bg-green{background:#ECFDF5;color:#065F46;}.bg-amber{background:#FFFBEB;color:#92400E;}
+.bg-red{background:#FEF2F2;color:#991B1B;}.bg-blue{background:#EFF6FF;color:#1E40AF;}
+.bg-gray{background:#F3F4F6;color:#374151;}.bg-purple{background:#F5F3FF;color:#4C1D95;}
 .bg-teal{background:#F0FDFA;color:#134E4A;}
-
-/* Chips */
 .chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:500;border:1px solid transparent;}
 .chip-amber{background:#FFFBEB;color:#92400E;border-color:#FDE68A;}
 .chip-red{background:#FEF2F2;color:#991B1B;border-color:#FECACA;}
 .chip-green{background:#ECFDF5;color:#065F46;border-color:#A7F3D0;}
-
-/* Note box */
-.note-box{font-size:12px;color:var(--text2);margin-top:9px;background:var(--surface2);padding:8px 12px;border-radius:8px;border-left:3px solid var(--green-m);line-height:1.6;}
 .linked{margin-top:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);}
 
-/* Prop */
+/* Notes accordion */
+.notes-toggle{width:100%;background:var(--surface2);border:none;border-top:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;color:var(--text2);transition:background 0.15s;}
+.notes-toggle:hover{background:#F0F0EE;}
+.notes-toggle .chevron{font-size:16px;transition:transform 0.2s;color:var(--text3);}
+.notes-toggle.open .chevron{transform:rotate(180deg);}
+.notes-toggle .unread-badge{background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:100px;margin-left:6px;}
+.notes-panel{display:none;border-top:1px solid var(--border);}
+.notes-panel.open{display:block;}
+.notes-list{padding:0 20px;}
+.note-item{padding:14px 0;border-bottom:1px solid var(--border);position:relative;}
+.note-item:last-child{border-bottom:none;}
+.note-item.unread{background:transparent;}
+.note-item.unread::before{content:'';position:absolute;left:-20px;top:0;bottom:0;width:3px;background:var(--green);}
+.note-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.note-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.note-author{font-size:12px;font-weight:600;color:var(--text1);}
+.note-time{font-size:11px;color:var(--text3);}
+.note-text{font-size:13px;color:var(--text1);line-height:1.6;}
+.note-unread-dot{width:7px;height:7px;border-radius:50%;background:#EF4444;margin-left:auto;flex-shrink:0;}
+.add-note-area{padding:14px 20px;border-top:1px solid var(--border);background:var(--surface2);display:flex;gap:10px;align-items:flex-end;}
+.add-note-area textarea{min-height:52px;font-size:13px;flex:1;background:var(--surface);border-radius:8px;}
+.add-note-area .btn{flex-shrink:0;}
+
+/* Properties */
 .prop-icon{width:44px;height:44px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;color:var(--green-d);font-size:20px;flex-shrink:0;}
 .prop-meta{font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
 .prop-meta span{display:flex;align-items:center;gap:4px;}
@@ -127,10 +119,8 @@ select{width:auto;cursor:pointer;}
 .price-item{display:flex;flex-direction:column;gap:2px;}
 .price-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;}
 .price-val{font-size:13px;font-weight:600;color:var(--text1);}
-.price-val.green{color:var(--green-d);}
-.price-val.amber{color:#92400E;}
-
-/* Reminder cards */
+.price-val.green{color:var(--green-d);}.price-val.amber{color:#92400E;}
+.note-box{font-size:12px;color:var(--text2);margin-top:9px;background:var(--surface2);padding:8px 12px;border-radius:8px;border-left:3px solid var(--green-m);line-height:1.6;}
 .r-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:10px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;}
 .r-card.overdue{border-left:4px solid #EF4444;border-color:#FECACA;}
 .r-card.today{border-left:4px solid var(--green);border-color:#A7F3D0;}
@@ -139,8 +129,6 @@ select{width:auto;cursor:pointer;}
 .r-date{font-size:11px;color:var(--text2);margin-top:3px;display:flex;align-items:center;gap:5px;}
 .r-note{font-size:12px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:7px;line-height:1.5;}
 .sec-head{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin:18px 0 8px;display:flex;align-items:center;gap:6px;}
-
-/* Activity */
 .act-row{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:var(--r);transition:background 0.1s;}
 .act-row:hover{background:var(--surface2);}
 .act-dot{width:32px;height:32px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -159,52 +147,66 @@ select{width:auto;cursor:pointer;}
 .form-sep{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
 .form-sep i{font-size:13px;}
 .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
-
-/* Empty */
 .empty{text-align:center;padding:48px 20px;color:var(--text3);}
 .empty i{font-size:42px;margin-bottom:12px;display:block;color:var(--border2);}
 .empty p{font-size:14px;color:var(--text2);}
 .empty small{font-size:12px;margin-top:4px;display:block;}
-
-/* Toast */
 #toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text1);color:#fff;border-radius:10px;padding:10px 22px;font-size:13px;z-index:300;white-space:nowrap;box-shadow:var(--shadow-md);}
-.tab-content{display:none;}
-.tab-content.active{display:block;}
+.tab-content{display:none;}.tab-content.active{display:block;}
+
+/* User selector modal */
+.user-modal{position:fixed;inset:0;background:rgba(17,24,39,0.6);z-index:200;display:flex;align-items:center;justify-content:center;}
+.user-modal-box{background:var(--surface);border-radius:16px;padding:32px;width:100%;max-width:340px;text-align:center;box-shadow:var(--shadow-md);}
+.user-modal-title{font-size:18px;font-weight:600;color:var(--text1);margin-bottom:6px;}
+.user-modal-sub{font-size:13px;color:var(--text3);margin-bottom:24px;}
+.user-btn{width:100%;padding:14px;font-size:15px;font-weight:500;border-radius:var(--r-lg);border:2px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit;color:var(--text1);margin-bottom:10px;transition:all 0.15s;display:flex;align-items:center;gap:12px;}
+.user-btn:hover{border-color:var(--green);background:var(--green-l);}
+.user-btn-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
 </style>
 </head>
 <body>
 
-<!-- Topbar -->
+<!-- User selector (shown on first visit) -->
+<div class="user-modal" id="user-modal" style="display:none">
+  <div class="user-modal-box">
+    <div class="user-modal-title">Who are you?</div>
+    <div class="user-modal-sub">This identifies you for notes and activity tracking</div>
+    <button class="user-btn" onclick="setUser('alon','Alon')">
+      <div class="user-btn-av" style="background:#E8F8F2;color:#0F6E56">AL</div>
+      <span>Alon</span>
+    </button>
+    <button class="user-btn" onclick="setUser('niv','Niv')">
+      <div class="user-btn-av" style="background:#EFF6FF;color:#1E40AF">NV</div>
+      <span>Niv</span>
+    </button>
+  </div>
+</div>
+
 <header class="topbar">
   <div class="topbar-brand">
     <div class="brand-icon"><i class="ti ti-building"></i></div>
     <span class="brand-name">Maple Holdings</span>
     <span class="brand-sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-lbl">Connecting...</span></span>
   </div>
-  <nav class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
-    <button class="tab-btn" onclick="switchTab('brokers')" id="nav-brokers"><i class="ti ti-users"></i>Brokers</button>
-    <button class="tab-btn" onclick="switchTab('properties')" id="nav-properties"><i class="ti ti-building-estate"></i>Properties</button>
-    <button class="tab-btn" onclick="switchTab('reminders')" id="nav-reminders"><i class="ti ti-bell"></i>Reminders<span id="reminder-badge" class="tab-badge" style="display:none">0</span></button>
-  </nav>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span id="current-user-label" style="font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px"></span>
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('brokers')" id="nav-brokers"><i class="ti ti-users"></i>Brokers</button>
+      <button class="tab-btn" onclick="switchTab('properties')" id="nav-properties"><i class="ti ti-building-estate"></i>Properties</button>
+      <button class="tab-btn" onclick="switchTab('reminders')" id="nav-reminders"><i class="ti ti-bell"></i>Reminders<span id="reminder-badge" class="tab-badge" style="display:none">0</span></button>
+    </nav>
+  </div>
 </header>
 
 <!-- Dashboard -->
 <div class="tab-content active" id="tab-dashboard">
   <div class="page">
-    <div class="page-hd">
-      <div><div class="page-title">Dashboard</div><div class="page-sub">Your pipeline at a glance</div></div>
-    </div>
+    <div class="page-hd"><div><div class="page-title">Dashboard</div><div class="page-sub">Your pipeline at a glance</div></div></div>
     <div class="stats" id="stats-row"></div>
     <div class="dash-grid">
-      <div class="panel">
-        <div class="panel-hd"><i class="ti ti-bell-ringing"></i><span class="panel-hd-title">Upcoming Follow-ups</span></div>
-        <div class="panel-body" id="dash-reminders"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-hd"><i class="ti ti-clock"></i><span class="panel-hd-title">Recent Activity</span></div>
-        <div class="panel-body" id="dash-activity"></div>
-      </div>
+      <div class="panel"><div class="panel-hd"><i class="ti ti-bell-ringing"></i><span class="panel-hd-title">Upcoming Follow-ups</span></div><div class="panel-body" id="dash-reminders"></div></div>
+      <div class="panel"><div class="panel-hd"><i class="ti ti-clock"></i><span class="panel-hd-title">Recent Activity</span></div><div class="panel-body" id="dash-activity"></div></div>
     </div>
   </div>
 </div>
@@ -243,9 +245,7 @@ select{width:auto;cursor:pointer;}
 <!-- Reminders -->
 <div class="tab-content" id="tab-reminders">
   <div class="page">
-    <div class="page-hd">
-      <div><div class="page-title">Reminders</div><div class="page-sub">Scheduled follow-up calls</div></div>
-    </div>
+    <div class="page-hd"><div><div class="page-title">Reminders</div><div class="page-sub">Scheduled follow-up calls</div></div></div>
     <div id="reminders-list"></div>
   </div>
 </div>
@@ -263,9 +263,6 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">Area / Zone</label><input type="text" id="b-area" placeholder="Miami, Broward..." /></div>
       <div class="form-g"><label class="form-lbl">Status</label><select id="b-status" style="width:100%"><option value="active">Active</option><option value="waiting">Awaiting follow-up</option><option value="done">Closed</option></select></div>
     </div>
-    <div class="form-g"><label class="form-lbl">Added by</label><select id="b-added-by" style="width:100%"><option value="">— select —</option><option value="Alon">Alon</option><option value="Niv">Niv</option></select></div>
-    <div class="form-sep"><i class="ti ti-notes"></i>Call Notes</div>
-    <div class="form-g"><label class="form-lbl">Notes</label><textarea id="b-notes" placeholder="What did we discuss? What properties did they show?..."></textarea></div>
     <div class="form-sep"><i class="ti ti-bell"></i>Follow-up Reminder</div>
     <div class="form-row">
       <div class="form-g"><label class="form-lbl">Reminder date</label><input type="date" id="b-reminder" style="width:100%" /></div>
@@ -317,39 +314,129 @@ select{width:auto;cursor:pointer;}
 <script>
 firebase.initializeApp({databaseURL:"https://maple-holdings-group-default-rtdb.firebaseio.com/"});
 const db=firebase.database();
-let state={brokers:{},properties:{}},editingBrokerId=null,editingPropertyId=null;
+
+// ── Current user (persisted in localStorage)
+let currentUser={id:'',name:''};
+function initUser(){
+  const saved=localStorage.getItem('crm_user');
+  if(saved){currentUser=JSON.parse(saved);updateUserLabel();}
+  else{document.getElementById('user-modal').style.display='flex';}
+}
+function setUser(id,name){
+  currentUser={id,name};
+  localStorage.setItem('crm_user',JSON.stringify(currentUser));
+  document.getElementById('user-modal').style.display='none';
+  updateUserLabel();
+  renderAll();
+}
+function updateUserLabel(){
+  const el=document.getElementById('current-user-label');
+  if(currentUser.name) el.innerHTML=`<i class="ti ti-user-circle" style="font-size:15px"></i>${currentUser.name} <button onclick="switchUser()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);padding:0;font-family:inherit">(switch)</button>`;
+}
+function switchUser(){localStorage.removeItem('crm_user');document.getElementById('user-modal').style.display='flex';}
+
+// ── State
+let state={brokers:{},properties:{},notes:{}};
+let editingBrokerId=null,editingPropertyId=null,openNotesPanels=new Set();
 
 function showToast(m,d=2500){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',d);}
 function setSyncStatus(s){const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-lbl');if(s==='ok'){dot.className='sync-dot ok';lbl.textContent='Live';}else if(s==='err'){dot.className='sync-dot err';lbl.textContent='Offline';}else{dot.className='sync-dot';lbl.textContent='Connecting...';}}
 
+// ── Firebase listeners
 db.ref('brokers').on('value',snap=>{state.brokers=snap.val()||{};setSyncStatus('ok');renderAll();},()=>setSyncStatus('err'));
 db.ref('properties').on('value',snap=>{state.properties=snap.val()||{};renderAll();});
+db.ref('notes').on('value',snap=>{state.notes=snap.val()||{};renderAll();});
 
+// ── Helpers
 function fmtDate(d){if(!d)return'';return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmtDateTime(ts){if(!ts)return'';return new Date(ts).toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 function fmtMoney(n){if(!n)return'';const v=Number(n);if(v>=1000000)return'$'+(v/1000000).toFixed(2)+'M';if(v>=1000)return'$'+Math.round(v/1000)+'K';return'$'+v.toLocaleString();}
 function daysUntil(d){if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const r=new Date(d);r.setHours(0,0,0,0);return Math.round((r-t)/86400000);}
 function rStatus(b){if(!b.reminder)return null;const d=daysUntil(b.reminder);return d<0?'overdue':d===0?'today':'upcoming';}
 function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
 function bArr(){return Object.entries(state.brokers).map(([id,v])=>({id,...v}));}
 function pArr(){return Object.entries(state.properties).map(([id,v])=>({id,...v}));}
+function calcDOM(ts){if(!ts)return 0;return Math.floor((Date.now()-Number(ts))/86400000);}
+
+// ── Notes helpers
+function notesForBroker(brokerId){
+  return Object.entries(state.notes)
+    .filter(([,n])=>n.brokerId===brokerId)
+    .map(([id,n])=>({id,...n}))
+    .sort((a,b)=>b.createdAt-a.createdAt);
+}
+function unreadCount(brokerId){
+  if(!currentUser.id)return 0;
+  return notesForBroker(brokerId).filter(n=>!(n.readBy&&n.readBy[currentUser.id])).length;
+}
+function markNotesRead(brokerId){
+  if(!currentUser.id)return;
+  const notes=notesForBroker(brokerId);
+  notes.forEach(n=>{
+    if(!(n.readBy&&n.readBy[currentUser.id])){
+      db.ref(`notes/${n.id}/readBy/${currentUser.id}`).set(true);
+    }
+  });
+}
+function addNote(brokerId){
+  if(!currentUser.id){showToast('⚠ Please select a user first');return;}
+  const ta=document.getElementById(`note-input-${brokerId}`);
+  const text=(ta?.value||'').trim();
+  if(!text){showToast('⚠ Note cannot be empty');return;}
+  const noteId=db.ref('notes').push().key;
+  const note={
+    id:noteId,brokerId,text,
+    createdBy:currentUser.name,
+    createdById:currentUser.id,
+    createdAt:Date.now(),
+    readBy:{[currentUser.id]:true}
+  };
+  db.ref(`notes/${noteId}`).set(note).then(()=>{
+    ta.value='';
+    showToast('✓ Note added');
+  });
+}
+function deleteNote(noteId){
+  if(!confirm('Delete this note?'))return;
+  db.ref(`notes/${noteId}`).remove().then(()=>showToast('Note deleted'));
+}
+function toggleNotes(brokerId){
+  const panel=document.getElementById(`notes-panel-${brokerId}`);
+  const toggle=document.getElementById(`notes-toggle-${brokerId}`);
+  if(!panel||!toggle)return;
+  const isOpen=openNotesPanels.has(brokerId);
+  if(isOpen){
+    openNotesPanels.delete(brokerId);
+    panel.classList.remove('open');
+    toggle.classList.remove('open');
+  }else{
+    openNotesPanels.add(brokerId);
+    panel.classList.add('open');
+    toggle.classList.add('open');
+    markNotesRead(brokerId);
+    // re-render unread badge
+    const badge=document.getElementById(`unread-badge-${brokerId}`);
+    if(badge)badge.style.display='none';
+  }
+}
 
 const bSLbl={active:'Active',waiting:'Follow-up',done:'Closed'};
 const pSLbl={active:'Active',pending:'Pending',uc:'UC',offer_sent:'Offer Sent',rejected:'Rejected',follow_up:'In Follow Up'};
 const bSCls={active:'bg-green',waiting:'bg-amber',done:'bg-gray'};
 const pSCls={active:'bg-green',pending:'bg-amber',uc:'bg-blue',offer_sent:'bg-purple',rejected:'bg-red',follow_up:'bg-teal'};
 const tIcon={SFR:'ti-home',MFR:'ti-building',commercial:'ti-briefcase',land:'ti-map'};
+const userColors={alon:{bg:'#E8F8F2',color:'#0F6E56'},niv:{bg:'#EFF6FF',color:'#1E40AF'}};
 
-function calcDOM(ts){if(!ts)return 0;return Math.floor((Date.now()-Number(ts))/86400000);}
 function renderAll(){renderStats();renderDashboard();renderBrokers();renderProperties();renderReminders();updateBadge();}
 
 function renderStats(){
   const br=bArr(),pr=pArr();
   const ov=br.filter(b=>rStatus(b)==='overdue').length,td=br.filter(b=>rStatus(b)==='today').length;
   document.getElementById('stats-row').innerHTML=`
-    <div class="stat"><div class="stat-icon si-green"><i class="ti ti-users"></i></div><div class="stat-body"><div class="stat-val">${br.length}</div><div class="stat-lbl">Brokers</div><div class="stat-sub">${br.filter(b=>b.status==='active').length} active</div></div></div>
-    <div class="stat"><div class="stat-icon si-blue"><i class="ti ti-building-estate"></i></div><div class="stat-body"><div class="stat-val">${pr.length}</div><div class="stat-lbl">Properties</div><div class="stat-sub">${pr.filter(p=>p.status==='active').length} active</div></div></div>
-    <div class="stat"><div class="stat-icon si-amber"><i class="ti ti-bell"></i></div><div class="stat-body"><div class="stat-val" style="color:${td>0?'var(--green)':'inherit'}">${td}</div><div class="stat-lbl">Today's calls</div><div class="stat-sub">due today</div></div></div>
-    <div class="stat"><div class="stat-icon si-red"><i class="ti ti-alert-circle"></i></div><div class="stat-body"><div class="stat-val" style="color:${ov>0?'#EF4444':'inherit'}">${ov}</div><div class="stat-lbl">Overdue</div><div class="stat-sub">missed follow-ups</div></div></div>
+    <div class="stat"><div class="stat-icon si-green"><i class="ti ti-users"></i></div><div><div class="stat-val">${br.length}</div><div class="stat-lbl">Brokers</div><div class="stat-sub">${br.filter(b=>b.status==='active').length} active</div></div></div>
+    <div class="stat"><div class="stat-icon si-blue"><i class="ti ti-building-estate"></i></div><div><div class="stat-val">${pr.length}</div><div class="stat-lbl">Properties</div><div class="stat-sub">${pr.filter(p=>p.status==='active').length} active</div></div></div>
+    <div class="stat"><div class="stat-icon si-amber"><i class="ti ti-bell"></i></div><div><div class="stat-val" style="color:${td>0?'var(--green)':'inherit'}">${td}</div><div class="stat-lbl">Today's calls</div><div class="stat-sub">due today</div></div></div>
+    <div class="stat"><div class="stat-icon si-red"><i class="ti ti-alert-circle"></i></div><div><div class="stat-val" style="color:${ov>0?'#EF4444':'inherit'}">${ov}</div><div class="stat-lbl">Overdue</div><div class="stat-sub">missed follow-ups</div></div></div>
   `;
 }
 
@@ -364,12 +451,12 @@ function renderDashboard(){
     const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
     return`<div class="act-row" style="cursor:pointer" onclick="switchTab('reminders')">
       <div class="av" style="width:32px;height:32px;font-size:11px">${initials(b.name)}</div>
-      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${b.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
-      ${b.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${b.reminderNote}</div>`:''}
-      ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${b.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
+        ${b.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${b.reminderNote}</div>`:''}
+        ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
       </div></div>`;
   }).join('');
-
   const acts=[...bArr().map(b=>({...b,_t:'broker'})),...pArr().map(p=>({...p,_t:'property'}))].filter(x=>x.createdAt).sort((a,b)=>b.createdAt-a.createdAt).slice(0,6);
   const ra=document.getElementById('dash-activity');
   if(!acts.length){ra.innerHTML='<div class="empty" style="padding:20px"><i class="ti ti-activity"></i><p>No activity yet</p></div>';return;}
@@ -390,29 +477,68 @@ function renderBrokers(){
     const cc=s==='overdue'?'chip-red':s==='today'?'chip-green':'chip-amber';
     const cl=s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Follow-up today!':s?`In ${d} days`:'';
     const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
-    return`<div class="card"><div class="card-grid">
-      <div class="av">${initials(b.name)}</div>
-      <div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:14px;font-weight:600">${b.name}</span>
-          <span class="badge ${bSCls[b.status]||'bg-gray'}">${bSLbl[b.status]||b.status}</span>
-          ${s?`<span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span>`:''}
+    const notes=notesForBroker(b.id);
+    const unread=unreadCount(b.id);
+    const isOpen=openNotesPanels.has(b.id);
+
+    return`<div class="card">
+      <div class="card-top">
+        <div class="av">${initials(b.name)}</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:600">${b.name}</span>
+            <span class="badge ${bSCls[b.status]||'bg-gray'}">${bSLbl[b.status]||b.status}</span>
+            ${s?`<span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span>`:''}
+            ${b.addedBy?`<span style="font-size:10px;font-weight:500;color:var(--text3);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-user-check" style="font-size:11px"></i>${b.addedBy}</span>`:''}
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap">
+            ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span>`:''}
+            ${b.area?`<span><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px"></i>${b.area}</span>`:''}
+            ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i>${fmtDate(b.reminder)}</span>`:''}
+          </div>
+          ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
+          ${b.reminderNote&&s?`<div style="font-size:11px;color:#92400E;margin-top:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-message" style="font-size:12px"></i>${b.reminderNote}</div>`:''}
         </div>
-        <div style="font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap">
-          ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span>`:''}
-          ${b.area?`<span><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px"></i>${b.area}</span>`:''}
-          ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i>${fmtDate(b.reminder)}</span>`:''}
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-del btn-sm" onclick="deleteBroker('${b.id}')"><i class="ti ti-trash"></i></button>
         </div>
-        ${b.notes?`<div class="note-box">${b.notes.slice(0,160)}${b.notes.length>160?'...':''}</div>`:''}
-        ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
-        ${b.reminderNote&&s?`<div style="font-size:11px;color:#92400E;margin-top:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-message" style="font-size:12px"></i>${b.reminderNote}</div>`:''}
-        ${b.addedBy?`<div style="margin-top:8px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--text3);background:var(--surface2);padding:3px 8px;border-radius:6px;border:1px solid var(--border)"><i class="ti ti-user-check" style="font-size:12px"></i>Added by ${b.addedBy}</div>`:''}
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i></button>
-        <button class="btn btn-del btn-sm" onclick="deleteBroker('${b.id}')"><i class="ti ti-trash"></i></button>
+
+      <button class="notes-toggle ${isOpen?'open':''}" id="notes-toggle-${b.id}" onclick="toggleNotes('${b.id}')">
+        <span style="display:flex;align-items:center;gap:6px">
+          <i class="ti ti-notes" style="font-size:15px"></i>
+          Notes
+          <span style="color:var(--text3);font-weight:400">(${notes.length})</span>
+          ${unread>0?`<span class="unread-badge" id="unread-badge-${b.id}">${unread} unread</span>`:`<span id="unread-badge-${b.id}" style="display:none"></span>`}
+        </span>
+        <i class="ti ti-chevron-down chevron"></i>
+      </button>
+
+      <div class="notes-panel ${isOpen?'open':''}" id="notes-panel-${b.id}">
+        <div class="notes-list">
+          ${notes.length===0?`<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:13px">No notes yet — add the first one below</div>`:
+          notes.map(n=>{
+            const isUnread=currentUser.id&&!(n.readBy&&n.readBy[currentUser.id]);
+            const uc=userColors[n.createdById]||{bg:'#F3F4F6',color:'#374151'};
+            return`<div class="note-item ${isUnread?'unread':''}">
+              <div class="note-meta">
+                <div class="note-avatar" style="background:${uc.bg};color:${uc.color}">${initials(n.createdBy)}</div>
+                <span class="note-author">${n.createdBy}</span>
+                <span class="note-time">${fmtDateTime(n.createdAt)}</span>
+                ${isUnread?`<div class="note-unread-dot" title="Unread"></div>`:''}
+                ${currentUser.id===n.createdById?`<button onclick="deleteNote('${n.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px" title="Delete note"><i class="ti ti-trash"></i></button>`:''}
+              </div>
+              <div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="add-note-area">
+          <textarea id="note-input-${b.id}" placeholder="Add a note..." rows="2" onkeydown="if(event.key==='Enter'&&(event.metaKey||event.ctrlKey)){addNote('${b.id}');event.preventDefault()}"></textarea>
+          <button class="btn btn-primary btn-sm" onclick="addNote('${b.id}')"><i class="ti ti-send"></i>Add</button>
+        </div>
       </div>
-    </div></div>`;
+    </div>`;
   }).join('');
 }
 
@@ -426,7 +552,7 @@ function renderProperties(){
   el.innerHTML=list.map(p=>{
     const broker=p.brokerId?state.brokers[p.brokerId]:null;
     const hp=p.listPrice||p.askingPrice||p.arv||p.renoCost;
-    return`<div class="card"><div class="card-grid">
+    return`<div class="card"><div class="card-top">
       <div class="prop-icon"><i class="ti ${tIcon[p.type]||'ti-building'}"></i></div>
       <div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -480,16 +606,18 @@ function rCard(b){
   const s=rStatus(b),d=daysUntil(b.reminder);
   const lbl=s==='overdue'?`${Math.abs(d)} days overdue`:s==='today'?'Today':`In ${d} days`;
   const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
+  const notes=notesForBroker(b.id);
+  const lastNote=notes[0];
   return`<div class="r-card ${s||'upcoming'}">
     <div>
       <div class="r-name">${b.name}${b.phone?` · <span style="font-weight:400;color:var(--text2)">${b.phone}</span>`:''}</div>
       <div class="r-date"><i class="ti ti-calendar" style="font-size:12px"></i>${fmtDate(b.reminder)} · ${lbl}</div>
       ${b.reminderNote?`<div class="r-note">${b.reminderNote}</div>`:''}
-      ${b.notes?`<div class="r-note" style="margin-top:5px"><i class="ti ti-notes" style="font-size:12px;margin-right:3px;vertical-align:-2px"></i>${b.notes.slice(0,120)}${b.notes.length>120?'...':''}</div>`:''}
+      ${lastNote?`<div class="r-note" style="margin-top:5px"><i class="ti ti-notes" style="font-size:12px;margin-right:3px;vertical-align:-2px"></i><strong>${lastNote.createdBy}:</strong> ${lastNote.text.slice(0,100)}${lastNote.text.length>100?'...':''}</div>`:''}
       ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
     </div>
     <div style="display:flex;flex-direction:column;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i>Edit</button>
+      <button class="btn btn-ghost btn-sm" onclick="switchTab('brokers')" style="white-space:nowrap"><i class="ti ti-notes"></i>View Notes</button>
       <button class="btn btn-sm" style="background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0" onclick="clearReminder('${b.id}')"><i class="ti ti-check"></i>Done</button>
     </div>
   </div>`;
@@ -509,19 +637,24 @@ function populatePropertySelect(sel){document.getElementById('b-linked-property'
 
 function openBrokerModal(id){
   editingBrokerId=id||null;populatePropertySelect('');
-  if(id){const b=state.brokers[id];document.getElementById('broker-modal-title').textContent='Edit Broker';document.getElementById('b-name').value=b.name||'';document.getElementById('b-phone').value=b.phone||'';document.getElementById('b-area').value=b.area||'';document.getElementById('b-status').value=b.status||'active';document.getElementById('b-added-by').value=b.addedBy||'';document.getElementById('b-notes').value=b.notes||'';document.getElementById('b-reminder').value=b.reminder||'';document.getElementById('b-reminder-note').value=b.reminderNote||'';populatePropertySelect(b.linkedProperty||'');}
-  else{document.getElementById('broker-modal-title').textContent='Add Broker';['b-name','b-phone','b-area','b-notes','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-status').value='active';document.getElementById('b-added-by').value='';}
+  if(id){const b=state.brokers[id];document.getElementById('broker-modal-title').textContent='Edit Broker';document.getElementById('b-name').value=b.name||'';document.getElementById('b-phone').value=b.phone||'';document.getElementById('b-area').value=b.area||'';document.getElementById('b-status').value=b.status||'active';document.getElementById('b-reminder').value=b.reminder||'';document.getElementById('b-reminder-note').value=b.reminderNote||'';populatePropertySelect(b.linkedProperty||'');}
+  else{document.getElementById('broker-modal-title').textContent='Add Broker';['b-name','b-phone','b-area','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-status').value='active';}
   document.getElementById('broker-modal').classList.add('open');
 }
 function closeBrokerModal(){document.getElementById('broker-modal').classList.remove('open');}
 function saveBroker(){
   const name=document.getElementById('b-name').value.trim();if(!name){showToast('⚠ Name is required');return;}
-  const data={name,phone:document.getElementById('b-phone').value,area:document.getElementById('b-area').value,status:document.getElementById('b-status').value,notes:document.getElementById('b-notes').value,reminder:document.getElementById('b-reminder').value,reminderNote:document.getElementById('b-reminder-note').value,linkedProperty:document.getElementById('b-linked-property').value,addedBy:document.getElementById('b-added-by').value,createdAt:editingBrokerId?(state.brokers[editingBrokerId]?.createdAt||Date.now()):Date.now()};
+  const data={name,phone:document.getElementById('b-phone').value,area:document.getElementById('b-area').value,status:document.getElementById('b-status').value,reminder:document.getElementById('b-reminder').value,reminderNote:document.getElementById('b-reminder-note').value,linkedProperty:document.getElementById('b-linked-property').value,addedBy:currentUser.name||'',createdAt:editingBrokerId?(state.brokers[editingBrokerId]?.createdAt||Date.now()):Date.now()};
   const id=editingBrokerId||db.ref('brokers').push().key;
   db.ref('brokers/'+id).set(data).then(()=>showToast(editingBrokerId?'✓ Broker updated':'✓ Broker added'));
   closeBrokerModal();
 }
-function deleteBroker(id){if(!confirm('Delete this broker?'))return;db.ref('brokers/'+id).remove().then(()=>showToast('Broker deleted'));}
+function deleteBroker(id){
+  if(!confirm('Delete this broker and all their notes?'))return;
+  db.ref('brokers/'+id).remove();
+  Object.entries(state.notes).filter(([,n])=>n.brokerId===id).forEach(([nid])=>db.ref('notes/'+nid).remove());
+  showToast('Broker deleted');
+}
 function clearReminder(id){db.ref('brokers/'+id).update({reminder:'',reminderNote:''}).then(()=>showToast('✓ Marked as done'));}
 
 function openPropertyModal(id){
@@ -542,6 +675,8 @@ function deleteProperty(id){if(!confirm('Delete this property?'))return;db.ref('
 
 document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBrokerModal();});
 document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
+
+initUser();
 </script>
 </body>
 </html>
