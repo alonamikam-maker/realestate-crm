@@ -151,9 +151,9 @@ select{width:auto;cursor:pointer;}
 .empty i{font-size:42px;margin-bottom:12px;display:block;color:var(--border2);}
 .empty p{font-size:14px;color:var(--text2);}
 .empty small{font-size:12px;margin-top:4px;display:block;}
-.reminder-popover{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px;width:260px;box-shadow:var(--shadow-md);z-index:60;}
+.reminder-popover{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px;margin-top:8px;width:100%;}
 .reminder-popover input{margin-bottom:8px;}
-.bell-wrap{position:relative;display:inline-block;}
+.bell-wrap{display:inline-block;}
 @keyframes highlightProp{0%{background:#EFF6FF;border-color:#93C5FD;}70%{background:#EFF6FF;border-color:#93C5FD;}100%{background:var(--surface);border-color:var(--border);}}
 .prop-highlight{animation:highlightProp 30s ease forwards !important;}
 #toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text1);color:#fff;border-radius:10px;padding:10px 22px;font-size:13px;z-index:300;white-space:nowrap;box-shadow:var(--shadow-md);}
@@ -686,30 +686,36 @@ function renderProperties(){
             <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;text-align:center;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">Days on<br>market</div>
           </div>`:''}
           <div style="display:flex;gap:6px;align-items:center">
-            <div class="bell-wrap">
-              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleReminderPopover('${p.id}')" title="Set reminder" style="${p.reminder?'color:var(--green);border-color:var(--green-m);background:var(--green-l)':''}">
-                <i class="ti ti-bell${p.reminder?'-ringing':''}"></i>
-                ${p.reminder&&pReminderStatus(p)==='overdue'?'<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#EF4444;border-radius:50%;border:2px solid var(--surface)"></span>':''}
-                ${p.reminder&&pReminderStatus(p)==='today'?'<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--green);border-radius:50%;border:2px solid var(--surface)"></span>':''}
-              </button>
-              <div class="reminder-popover" id="rp-${p.id}" style="display:none">
-                <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-bell" style="color:var(--green)"></i>Follow-up Reminder</div>
-                <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Date</label>
-                <input type="date" id="rp-date-${p.id}" style="margin-bottom:8px;width:100%" />
-                <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Note</label>
-                <input type="text" id="rp-note-${p.id}" placeholder="Check on offer status..." style="margin-bottom:10px;width:100%" />
-                <div style="display:flex;gap:6px">
-                  <button class="btn btn-primary btn-sm" style="flex:1" onclick="savePropertyReminder('${p.id}')"><i class="ti ti-check"></i>Save</button>
-                  ${p.reminder?`<button class="btn btn-ghost btn-sm" onclick="clearPropertyReminder('${p.id}')"><i class="ti ti-x"></i></button>`:''}
-                </div>
-              </div>
-            </div>
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleReminderPopover('${p.id}')" title="Set reminder" style="position:relative;${p.reminder?'color:var(--green);border-color:var(--green-m);background:var(--green-l)':''}">
+              <i class="ti ti-bell${p.reminder?'-ringing':''}"></i>
+              ${p.reminder&&pReminderStatus(p)==='overdue'?'<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#EF4444;border-radius:50%;border:2px solid var(--surface)"></span>':''}
+              ${p.reminder&&pReminderStatus(p)==='today'?'<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--green);border-radius:50%;border:2px solid var(--surface)"></span>':''}
+            </button>
             <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
             <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
           </div>
         </div>
       </div>
 
+      <div class="reminder-popover" id="rp-${p.id}" style="display:none;border-radius:0;border-left:none;border-right:none;border-top:1px solid var(--border2);border-bottom:none;background:var(--surface2);">
+        <div style="max-width:340px">
+          <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-bell" style="color:var(--green)"></i>Follow-up Reminder</div>
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+            <div style="flex:1;min-width:130px">
+              <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Date</label>
+              <input type="date" id="rp-date-${p.id}" style="width:100%" />
+            </div>
+            <div style="flex:2;min-width:160px">
+              <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Note</label>
+              <input type="text" id="rp-note-${p.id}" placeholder="Check on offer status..." style="width:100%" />
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;padding-bottom:1px">
+              <button class="btn btn-primary btn-sm" onclick="savePropertyReminder('${p.id}')"><i class="ti ti-check"></i>Save</button>
+              ${p.reminder?`<button class="btn btn-ghost btn-sm" onclick="clearPropertyReminder('${p.id}')"><i class="ti ti-x"></i>Clear</button>`:''}
+            </div>
+          </div>
+        </div>
+      </div>
       <button class="notes-toggle ${pIsOpen?'open':''}" id="pnotes-toggle-${p.id}" onclick="togglePropertyNotes('${p.id}')">
         <span style="display:flex;align-items:center;gap:6px">
           <i class="ti ti-notes" style="font-size:15px"></i>
