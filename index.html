@@ -174,6 +174,148 @@ select{width:auto;cursor:pointer;}
 .user-btn{width:100%;padding:14px;font-size:15px;font-weight:500;border-radius:var(--r-lg);border:2px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit;color:var(--text1);margin-bottom:10px;transition:all 0.15s;display:flex;align-items:center;gap:12px;}
 .user-btn:hover{border-color:var(--green);background:var(--green-l);}
 .user-btn-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   MOBILE STYLES
+═══════════════════════════════════════ */
+@media(max-width:768px){
+  /* Hide desktop topbar nav on mobile */
+  .nav-tabs{display:none;}
+  #current-user-label{display:none !important;}
+
+  /* Compact topbar */
+  .topbar{padding:0 16px;}
+  .topbar-brand{padding:12px 0;}
+  .brand-name{font-size:14px;}
+
+  /* Bottom navigation bar */
+  .mobile-nav{display:flex !important;}
+
+  /* Page padding */
+  .page{padding:16px 14px 90px;}
+  .page-hd{margin-bottom:16px;}
+  .page-title{font-size:18px;}
+
+  /* Stats 2x2 grid */
+  .stats{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;}
+  .stat{padding:14px;}
+  .stat-val{font-size:22px;}
+  .stat-icon{width:34px;height:34px;}
+  .stat-icon i{font-size:17px;}
+
+  /* Dashboard panels stack */
+  .dash-grid{grid-template-columns:1fr;gap:14px;}
+
+  /* Cards */
+  .card{padding:14px;}
+  .card-top{grid-template-columns:36px 1fr auto;gap:10px;}
+  .av{width:36px;height:36px;font-size:12px;}
+
+  /* Broker meta wrap nicely */
+  .broker-meta{gap:8px;}
+
+  /* Property card */
+  .prop-icon{width:38px;height:38px;font-size:17px;}
+
+  /* Prices horizontal scroll */
+  .prices{gap:12px;overflow-x:auto;padding-bottom:4px;flex-wrap:nowrap;}
+  .price-item{flex-shrink:0;}
+
+  /* Notes toggle bigger tap target */
+  .notes-toggle{padding:13px 16px;font-size:13px;}
+
+  /* Add note area */
+  .add-note-area{padding:12px 14px;gap:8px;}
+  .add-note-area textarea{min-height:44px;font-size:14px;}
+  .add-note-area .btn{padding:8px 12px;}
+
+  /* Filter bar */
+  .filter-bar{gap:8px;}
+  .filter-bar select{font-size:13px;padding:8px 10px;}
+  .search-box input{font-size:14px;padding:10px 10px 10px 34px;}
+
+  /* Buttons bigger on mobile */
+  .btn-primary{padding:10px 16px;font-size:14px;}
+  .btn-sm{padding:7px 12px;font-size:13px;}
+
+  /* Modal full screen on mobile */
+  .overlay{padding:0;align-items:flex-end;}
+  .modal{border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:20px 16px 32px;}
+  .modal-hd{font-size:16px;margin-bottom:18px;}
+
+  /* Form rows stack on mobile */
+  .form-row,.form-row3{grid-template-columns:1fr !important;}
+  .form-g{margin-bottom:12px;}
+  input,textarea,select{font-size:16px !important;padding:11px 12px;}
+
+  /* Status select */
+  .status-select{font-size:12px !important;padding:4px 22px 4px 9px !important;}
+
+  /* DOM badge smaller */
+  .dom-val{font-size:18px !important;}
+
+  /* Reminder popover full width on mobile */
+  .reminder-popover{width:calc(100vw - 28px) !important;left:14px !important;right:14px !important;}
+
+  /* Reminder cards */
+  .r-card{grid-template-columns:1fr;gap:10px;}
+  .r-card > div:last-child{display:flex;flex-direction:row;gap:8px;}
+  .r-card .btn{flex:1;justify-content:center;}
+
+  /* Section heads */
+  .sec-head{font-size:12px;}
+
+  /* ZIP dividers */
+  .zip-head{font-size:11px;}
+
+  /* Note items */
+  .note-item{padding:12px 0;}
+  .note-meta{flex-wrap:wrap;gap:4px;}
+  .note-time{font-size:10px;}
+  .note-text{font-size:13px;}
+
+  /* Hide some desktop-only elements */
+  .page-sub{display:none;}
+}
+
+/* Bottom navigation bar */
+.mobile-nav{
+  display:none;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  z-index:100;
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+  gap:0;
+}
+.mobile-nav-item{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  padding:6px 4px;
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  color:var(--text3);
+  font-family:inherit;
+  font-size:10px;
+  font-weight:500;
+  transition:color 0.15s;
+  position:relative;
+}
+.mobile-nav-item i{font-size:22px;}
+.mobile-nav-item.active{color:var(--green);}
+.mobile-nav-item.active i{color:var(--green);}
+.mobile-nav-badge{
+  position:absolute;top:4px;right:calc(50% - 14px);
+  background:#EF4444;color:#fff;
+  font-size:9px;font-weight:700;
+  padding:1px 5px;border-radius:100px;
+  line-height:1.4;
+}
 </style>
 </head>
 <body>
@@ -194,6 +336,21 @@ select{width:auto;cursor:pointer;}
   </div>
 </div>
 
+<nav class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-item active" id="mnav-dashboard" onclick="switchTab('dashboard')">
+    <i class="ti ti-layout-dashboard"></i>Home
+  </button>
+  <button class="mobile-nav-item" id="mnav-brokers" onclick="switchTab('brokers')">
+    <i class="ti ti-users"></i>Brokers
+  </button>
+  <button class="mobile-nav-item" id="mnav-properties" onclick="switchTab('properties')">
+    <i class="ti ti-building-estate"></i>Properties
+  </button>
+  <button class="mobile-nav-item" id="mnav-reminders" onclick="switchTab('reminders')">
+    <i class="ti ti-bell"></i>Reminders
+    <span id="mobile-reminder-badge" class="mobile-nav-badge" style="display:none"></span>
+  </button>
+</nav>
 <header class="topbar">
   <div class="topbar-brand">
     <div class="brand-icon"><i class="ti ti-building"></i></div>
@@ -882,12 +1039,14 @@ function rCard(b){
   </div>`;
 }
 
-function updateBadge(){const nb=bArr().filter(b=>rStatus(b)==='overdue'||rStatus(b)==='today').length;const np=pArr().filter(p=>pReminderStatus(p)==='overdue'||pReminderStatus(p)==='today').length;const n=nb+np;const el=document.getElementById('reminder-badge');el.textContent=n;el.style.display=n>0?'inline':'none';}
+function updateBadge(){const nb=bArr().filter(b=>rStatus(b)==='overdue'||rStatus(b)==='today').length;const np=pArr().filter(p=>pReminderStatus(p)==='overdue'||pReminderStatus(p)==='today').length;const n=nb+np;const el=document.getElementById('reminder-badge');el.textContent=n;el.style.display=n>0?'inline':'none';const mel=document.getElementById('mobile-reminder-badge');if(mel){mel.textContent=n;mel.style.display=n>0?'inline':'none';}}
 
 function switchTab(tab){
   ['dashboard','brokers','properties','reminders'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('nav-'+t).classList.toggle('active',t===tab);
+    const mn=document.getElementById('mnav-'+t);
+    if(mn)mn.classList.toggle('active',t===tab);
   });
 }
 
