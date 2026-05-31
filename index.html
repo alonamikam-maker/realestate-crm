@@ -315,6 +315,12 @@ select { width: auto; }
         <input type="number" id="p-arv" placeholder="420000" />
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Renovation Cost ($)</label>
+        <input type="number" id="p-reno-cost" placeholder="45000" />
+      </div>
+    </div>
     <div class="form-section">Details</div>
     <div class="form-row-3">
       <div class="form-group">
@@ -557,7 +563,7 @@ function renderProperties() {
   if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-building-off"></i><p>No properties found</p><small>Click "Add Property" to get started</small></div>'; return; }
   el.innerHTML = list.map(p => {
     const broker = p.brokerId ? state.brokers[p.brokerId] : null;
-    const hasAnyPrice = p.listPrice || p.askingPrice || p.arv;
+    const hasAnyPrice = p.listPrice || p.askingPrice || p.arv || p.renoCost;
     return `<div class="card">
       <div class="property-card">
         <div class="prop-icon"><i class="ti ${propTypeIcon(p.type)}"></i></div>
@@ -577,6 +583,7 @@ function renderProperties() {
             ${p.listPrice?`<div class="price-chip">List<span>${formatMoney(p.listPrice)}</span></div>`:''}
             ${p.askingPrice?`<div class="price-chip">Asking<span>${formatMoney(p.askingPrice)}</span></div>`:''}
             ${p.arv?`<div class="price-chip" style="color:var(--c-accent)">ARV<span style="color:var(--c-accent)">${formatMoney(p.arv)}</span></div>`:''}
+            ${p.renoCost?`<div class="price-chip" style="color:#854F0B">Reno Cost<span style="color:#854F0B">${formatMoney(p.renoCost)}</span></div>`:''}
           </div>` : ''}
           ${p.notes?`<div class="notes-preview">${p.notes.slice(0,120)}${p.notes.length>120?'...':''}</div>`:''}
         </div>
@@ -710,6 +717,7 @@ function openPropertyModal(id) {
     document.getElementById('p-list-price').value = p.listPrice||'';
     document.getElementById('p-asking-price').value = p.askingPrice||'';
     document.getElementById('p-arv').value = p.arv||'';
+    document.getElementById('p-reno-cost').value = p.renoCost||'';
     document.getElementById('p-rooms').value = p.rooms||'';
     document.getElementById('p-baths').value = p.baths||'';
     document.getElementById('p-size').value = p.size||'';
@@ -717,7 +725,7 @@ function openPropertyModal(id) {
     populateBrokerSelect(p.brokerId||'');
   } else {
     document.getElementById('prop-modal-title').textContent = 'Add Property';
-    ['p-address','p-list-price','p-asking-price','p-arv','p-rooms','p-baths','p-size','p-notes'].forEach(id => document.getElementById(id).value = '');
+    ['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('p-type').value = 'SFR';
     document.getElementById('p-status').value = 'active';
   }
@@ -736,6 +744,7 @@ function saveProperty() {
     listPrice: document.getElementById('p-list-price').value,
     askingPrice: document.getElementById('p-asking-price').value,
     arv: document.getElementById('p-arv').value,
+    renoCost: document.getElementById('p-reno-cost').value,
     rooms: document.getElementById('p-rooms').value,
     baths: document.getElementById('p-baths').value,
     size: document.getElementById('p-size').value,
