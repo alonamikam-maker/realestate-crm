@@ -151,6 +151,11 @@ select{width:auto;cursor:pointer;}
 .empty i{font-size:42px;margin-bottom:12px;display:block;color:var(--border2);}
 .empty p{font-size:14px;color:var(--text2);}
 .empty small{font-size:12px;margin-top:4px;display:block;}
+.reminder-popover{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px;width:260px;box-shadow:var(--shadow-md);z-index:60;}
+.reminder-popover input{margin-bottom:8px;}
+.bell-wrap{position:relative;display:inline-block;}
+@keyframes highlightProp{0%{background:#EFF6FF;border-color:#93C5FD;}70%{background:#EFF6FF;border-color:#93C5FD;}100%{background:var(--surface);border-color:var(--border);}}
+.prop-highlight{animation:highlightProp 30s ease forwards !important;}
 #toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text1);color:#fff;border-radius:10px;padding:10px 22px;font-size:13px;z-index:300;white-space:nowrap;box-shadow:var(--shadow-md);}
 .tab-content{display:none;}.tab-content.active{display:block;}
 
@@ -305,11 +310,6 @@ select{width:auto;cursor:pointer;}
     <div class="form-g"><label class="form-lbl">Days on Market (current)</label><input type="number" id="p-dom" placeholder="e.g. 30" min="0" /></div>
     <div class="form-g"><label class="form-lbl">Notes</label><textarea id="p-notes" placeholder="Condition, repairs needed, pros, cons..."></textarea></div>
     <div class="form-g"><label class="form-lbl">Property Link (Zillow, Redfin, MLS...)</label><input type="url" id="p-url" placeholder="https://www.zillow.com/..." /></div>
-    <div class="form-sep"><i class="ti ti-bell"></i>Follow-up Reminder</div>
-    <div class="form-row">
-      <div class="form-g"><label class="form-lbl">Reminder date</label><input type="date" id="p-reminder" style="width:100%" /></div>
-      <div class="form-g"><label class="form-lbl">Reminder note</label><input type="text" id="p-reminder-note" placeholder="Check on offer status..." /></div>
-    </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closePropertyModal()">Cancel</button><button class="btn btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i>Save</button></div>
   </div>
 </div>
@@ -360,6 +360,46 @@ function fmtDateTime(ts){if(!ts)return'';return new Date(ts).toLocaleDateString(
 function fmtMoney(n){if(!n)return'';const v=Number(n);if(v>=1000000)return'$'+(v/1000000).toFixed(2)+'M';if(v>=1000)return'$'+Math.round(v/1000)+'K';return'$'+v.toLocaleString();}
 function daysUntil(d){if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const r=new Date(d);r.setHours(0,0,0,0);return Math.round((r-t)/86400000);}
 function rStatus(b){if(!b.reminder)return null;const d=daysUntil(b.reminder);return d<0?'overdue':d===0?'today':'upcoming';}
+function pReminderStatus(p){
+  if(!p||!p.reminder)return null;
+  const d=daysUntil(p.reminder);
+  return d<0?'overdue':d===0?'today':'upcoming';
+}
+let openReminderPopover=null;
+function toggleReminderPopover(propId){
+  if(openReminderPopover&&openReminderPopover!==propId){closeReminderPopover();}
+  const el=document.getElementById('rp-'+propId);
+  if(!el)return;
+  const isOpen=el.style.display==='block';
+  if(isOpen){closeReminderPopover();}
+  else{
+    el.style.display='block';
+    openReminderPopover=propId;
+    const p=state.properties[propId]||{};
+    const dateEl=document.getElementById('rp-date-'+propId);
+    const noteEl=document.getElementById('rp-note-'+propId);
+    if(dateEl)dateEl.value=p.reminder||'';
+    if(noteEl)noteEl.value=p.reminderNote||'';
+  }
+}
+function closeReminderPopover(){
+  if(openReminderPopover){
+    const el=document.getElementById('rp-'+openReminderPopover);
+    if(el)el.style.display='none';
+    openReminderPopover=null;
+  }
+}
+function savePropertyReminder(propId){
+  const date=document.getElementById('rp-date-'+propId)?.value||'';
+  const note=document.getElementById('rp-note-'+propId)?.value||'';
+  db.ref('properties/'+propId).update({reminder:date,reminderNote:note}).then(()=>{
+    showToast(date?'✓ Reminder set':'Reminder cleared');
+    closeReminderPopover();
+  });
+}
+function clearPropertyReminder(propId){
+  db.ref('properties/'+propId).update({reminder:'',reminderNote:''}).then(()=>{showToast('Reminder cleared');closeReminderPopover();});
+}
 function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
 function bArr(){return Object.entries(state.brokers).map(([id,v])=>({id,...v}));}
 function pArr(){return Object.entries(state.properties).map(([id,v])=>({id,...v}));}
@@ -482,21 +522,37 @@ function renderStats(){
 }
 
 function renderDashboard(){
-  const rem=bArr().filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder)).slice(0,5);
+  const allRem=[
+    ...bArr().filter(b=>b.reminder).map(b=>({...b,_kind:'broker'})),
+    ...pArr().filter(p=>p.reminder).map(p=>({...p,_kind:'property'}))
+  ].sort((a,b)=>new Date(a.reminder)-new Date(b.reminder)).slice(0,6);
   const dr=document.getElementById('dash-reminders');
-  if(!rem.length){dr.innerHTML='<div class="empty" style="padding:20px"><i class="ti ti-bell-off"></i><p>No upcoming reminders</p></div>';}
-  else dr.innerHTML=rem.map(b=>{
-    const d=daysUntil(b.reminder),s=rStatus(b);
+  if(!allRem.length){dr.innerHTML='<div class="empty" style="padding:20px"><i class="ti ti-bell-off"></i><p>No upcoming reminders</p></div>';}
+  else dr.innerHTML=allRem.map(item=>{
+    const isBroker=item._kind==='broker';
+    const d=daysUntil(item.reminder);
+    const s=isBroker?rStatus(item):pReminderStatus(item);
     const cc=s==='overdue'?'chip-red':s==='today'?'chip-green':'chip-amber';
     const cl=s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Today':`In ${d}d`;
-    const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
-    return`<div class="act-row" style="cursor:pointer" onclick="switchTab('reminders')">
-      <div class="av" style="width:32px;height:32px;font-size:11px">${initials(b.name)}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${b.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
-        ${b.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${b.reminderNote}</div>`:''}
-        ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
-      </div></div>`;
+    if(isBroker){
+      const prop=item.linkedProperty?state.properties[item.linkedProperty]:null;
+      return`<div class="act-row" style="cursor:pointer" onclick="switchTab('reminders')">
+        <div class="av" style="width:32px;height:32px;font-size:11px">${initials(item.name)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
+          ${item.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${item.reminderNote}</div>`:''}
+          ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
+        </div></div>`;
+    } else {
+      const broker=item.brokerId?state.brokers[item.brokerId]:null;
+      return`<div class="act-row" style="cursor:pointer" onclick="switchTab('reminders')">
+        <div class="act-dot" style="width:32px;height:32px"><i class="ti ti-building" style="font-size:14px"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.address}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
+          ${item.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${item.reminderNote}</div>`:''}
+          ${broker?`<div class="linked"><i class="ti ti-user" style="font-size:11px"></i>${broker.name}</div>`:''}
+        </div></div>`;
+    }
   }).join('');
   const acts=[...bArr().map(b=>({...b,_t:'broker'})),...pArr().map(p=>({...p,_t:'property'}))].filter(x=>x.createdAt).sort((a,b)=>b.createdAt-a.createdAt).slice(0,6);
   const ra=document.getElementById('dash-activity');
@@ -596,7 +652,7 @@ function renderProperties(){
     const pNotes=notesForProperty(p.id);
     const pUnread=unreadCountProperty(p.id);
     const pIsOpen=openNotesPanels.has('p_'+p.id);
-    return`<div class="card">
+    return`<div class="card" id="prop-card-${p.id}">
       <div class="card-top">
         <div class="prop-icon"><i class="ti ${tIcon[p.type]||'ti-building'}"></i></div>
         <div>
@@ -629,7 +685,25 @@ function renderProperties(){
             <div style="font-size:22px;font-weight:700;line-height:1;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">${calcDOM(p.domStart)}</div>
             <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;text-align:center;${calcDOM(p.domStart)>60?'color:#991B1B;':calcDOM(p.domStart)>30?'color:#92400E;':'color:#065F46;'}">Days on<br>market</div>
           </div>`:''}
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <div class="bell-wrap">
+              <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleReminderPopover('${p.id}')" title="Set reminder" style="${p.reminder?'color:var(--green);border-color:var(--green-m);background:var(--green-l)':''}">
+                <i class="ti ti-bell${p.reminder?'-ringing':''}"></i>
+                ${p.reminder&&pReminderStatus(p)==='overdue'?'<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#EF4444;border-radius:50%;border:2px solid var(--surface)"></span>':''}
+                ${p.reminder&&pReminderStatus(p)==='today'?'<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--green);border-radius:50%;border:2px solid var(--surface)"></span>':''}
+              </button>
+              <div class="reminder-popover" id="rp-${p.id}" style="display:none">
+                <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-bell" style="color:var(--green)"></i>Follow-up Reminder</div>
+                <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Date</label>
+                <input type="date" id="rp-date-${p.id}" style="margin-bottom:8px;width:100%" />
+                <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Note</label>
+                <input type="text" id="rp-note-${p.id}" placeholder="Check on offer status..." style="margin-bottom:10px;width:100%" />
+                <div style="display:flex;gap:6px">
+                  <button class="btn btn-primary btn-sm" style="flex:1" onclick="savePropertyReminder('${p.id}')"><i class="ti ti-check"></i>Save</button>
+                  ${p.reminder?`<button class="btn btn-ghost btn-sm" onclick="clearPropertyReminder('${p.id}')"><i class="ti ti-x"></i></button>`:''}
+                </div>
+              </div>
+            </div>
             <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
             <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
           </div>
@@ -674,15 +748,42 @@ function renderProperties(){
 }
 
 function renderReminders(){
-  const withR=bArr().filter(b=>b.reminder).sort((a,b)=>new Date(a.reminder)-new Date(b.reminder));
+  const brokerR=bArr().filter(b=>b.reminder);
+  const propR=pArr().filter(p=>p.reminder);
+  const all=[
+    ...brokerR.map(b=>({...b,_kind:'broker'})),
+    ...propR.map(p=>({...p,_kind:'property'}))
+  ].sort((a,b)=>new Date(a.reminder)-new Date(b.reminder));
   const el=document.getElementById('reminders-list');
-  if(!withR.length){el.innerHTML='<div class="empty"><i class="ti ti-bell-off"></i><p>No reminders set</p><small>Set a follow-up date when editing a broker</small></div>';return;}
-  const ov=withR.filter(b=>rStatus(b)==='overdue'),td=withR.filter(b=>rStatus(b)==='today'),up=withR.filter(b=>rStatus(b)==='upcoming');
+  if(!all.length){el.innerHTML='<div class="empty"><i class="ti ti-bell-off"></i><p>No reminders set</p><small>Set reminders on brokers or properties</small></div>';return;}
+  const getS=item=>item._kind==='broker'?rStatus(item):pReminderStatus(item);
+  const ov=all.filter(x=>getS(x)==='overdue');
+  const td=all.filter(x=>getS(x)==='today');
+  const up=all.filter(x=>getS(x)==='upcoming');
+  const makeCard=item=>item._kind==='broker'?rCard(item):pReminderCard(item);
   let html='';
-  if(ov.length)html+=`<div class="sec-head" style="color:#EF4444"><i class="ti ti-alert-circle"></i>Overdue (${ov.length})</div>`+ov.map(rCard).join('');
-  if(td.length)html+=`<div class="sec-head" style="color:var(--green)"><i class="ti ti-star"></i>Today (${td.length})</div>`+td.map(rCard).join('');
-  if(up.length)html+=`<div class="sec-head"><i class="ti ti-calendar"></i>Upcoming (${up.length})</div>`+up.map(rCard).join('');
+  if(ov.length)html+=`<div class="sec-head" style="color:#EF4444"><i class="ti ti-alert-circle"></i>Overdue (${ov.length})</div>`+ov.map(makeCard).join('');
+  if(td.length)html+=`<div class="sec-head" style="color:var(--green)"><i class="ti ti-star"></i>Today (${td.length})</div>`+td.map(makeCard).join('');
+  if(up.length)html+=`<div class="sec-head"><i class="ti ti-calendar"></i>Upcoming (${up.length})</div>`+up.map(makeCard).join('');
   el.innerHTML=html;
+}
+function pReminderCard(p){
+  const s=pReminderStatus(p),d=daysUntil(p.reminder);
+  const lbl=s==='overdue'?`${Math.abs(d)} days overdue`:s==='today'?'Today':`In ${d} days`;
+  const broker=p.brokerId?state.brokers[p.brokerId]:null;
+  return`<div class="r-card ${s||'upcoming'}">
+    <div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><i class="ti ti-building" style="font-size:13px;color:var(--green)"></i><span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Property</span></div>
+      <div class="r-name">${p.address}</div>
+      <div class="r-date"><i class="ti ti-calendar" style="font-size:12px"></i>${fmtDate(p.reminder)} · ${lbl}</div>
+      ${p.reminderNote?`<div class="r-note">${p.reminderNote}</div>`:''}
+      ${broker?`<div class="linked" style="margin-top:5px"><i class="ti ti-user" style="font-size:11px"></i>${broker.name}${broker.phone?' · '+broker.phone:''}</div>`:''}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <button class="btn btn-ghost btn-sm" onclick="scrollToProperty('${p.id}')"><i class="ti ti-arrow-right"></i>View</button>
+      <button class="btn btn-sm" style="background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0" onclick="clearPropertyReminder('${p.id}')"><i class="ti ti-check"></i>Done</button>
+    </div>
+  </div>`;
 }
 
 function rCard(b){
@@ -706,7 +807,7 @@ function rCard(b){
   </div>`;
 }
 
-function updateBadge(){const n=bArr().filter(b=>rStatus(b)==='overdue'||rStatus(b)==='today').length;const el=document.getElementById('reminder-badge');el.textContent=n;el.style.display=n>0?'inline':'none';}
+function updateBadge(){const nb=bArr().filter(b=>rStatus(b)==='overdue'||rStatus(b)==='today').length;const np=pArr().filter(p=>pReminderStatus(p)==='overdue'||pReminderStatus(p)==='today').length;const n=nb+np;const el=document.getElementById('reminder-badge');el.textContent=n;el.style.display=n>0?'inline':'none';}
 
 function switchTab(tab){
   ['dashboard','brokers','properties','reminders'].forEach(t=>{
@@ -724,6 +825,17 @@ function openBrokerModal(id){
   else{document.getElementById('broker-modal-title').textContent='Add Broker';['b-name','b-phone','b-area','b-reminder','b-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-status').value='active';renderBrokerLinkedProps(null);}
   document.getElementById('broker-modal').classList.add('open');
 }
+function scrollToProperty(propId){
+  closeBrokerModal();
+  switchTab('properties');
+  setTimeout(()=>{
+    const el=document.getElementById('prop-card-'+propId);
+    if(!el)return;
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.classList.add('prop-highlight');
+    setTimeout(()=>el.classList.remove('prop-highlight'),30000);
+  },120);
+}
 function renderBrokerLinkedProps(brokerId){
   const el=document.getElementById('broker-linked-props');
   if(!el)return;
@@ -740,7 +852,7 @@ function renderBrokerLinkedProps(brokerId){
           ${p.askingPrice?`<span style="font-size:11px;color:var(--text2)">${'$'+Math.round(Number(p.askingPrice)/1000)+'K'}</span>`:''}
         </div>
       </div>
-      <button onclick="closeBrokerModal();switchTab('properties');setTimeout(()=>openPropertyModal('${p.id}'),100)" class="btn btn-ghost btn-sm" style="white-space:nowrap;flex-shrink:0">View <i class="ti ti-arrow-right" style="font-size:13px"></i></button>
+      <button onclick="scrollToProperty('${p.id}')" class="btn btn-ghost btn-sm" style="white-space:nowrap;flex-shrink:0">View <i class="ti ti-arrow-right" style="font-size:13px"></i></button>
     </div>`).join('');
 }
 function closeBrokerModal(){document.getElementById('broker-modal').classList.remove('open');}
@@ -761,8 +873,8 @@ function clearReminder(id){db.ref('brokers/'+id).update({reminder:'',reminderNot
 
 function openPropertyModal(id){
   editingPropertyId=id||null;populateBrokerSelect('');
-  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';document.getElementById('p-reminder').value=p.reminder||'';document.getElementById('p-reminder-note').value=p.reminderNote||'';populateBrokerSelect(p.brokerId||'');}
-  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom','p-reminder','p-reminder-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
+  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';populateBrokerSelect(p.brokerId||'');}
+  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-list-price','p-asking-price','p-arv','p-reno-cost','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';}
   document.getElementById('property-modal').classList.add('open');
 }
 function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
@@ -776,6 +888,7 @@ function saveProperty(){
 function deleteProperty(id){if(!confirm('Delete this property?'))return;db.ref('properties/'+id).remove().then(()=>showToast('Property deleted'));}
 
 document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBrokerModal();});
+document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();});
 document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
 
 initUser();
