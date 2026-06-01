@@ -167,8 +167,8 @@ module.exports = async (req, res) => {
 
     const brokers = await firebaseRequest('GET', '/brokers') || {};
 
-    // ── contact.created — ongoing sync
-    if (type === 'contact.created') {
+    // ── contact.updated — ongoing sync (also fires on create)
+    if (type === 'contact.updated') {
       const name = data.name || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : null);
       const phone = data.phoneNumbers?.[0]?.phoneNumber || '';
       if (!name || !phone) return res.status(200).json({ success: true, skipped: true, reason: 'No name or phone' });
