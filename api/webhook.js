@@ -91,6 +91,8 @@ async function runQuoImport() {
       console.log('Fetching:', url);
       const res = await quoRequest(url);
       console.log('Response keys:', Object.keys(res));
+      console.log('Full response:', JSON.stringify(res));
+      if(res.message||res.errors){console.log('API ERROR:',res.message||JSON.stringify(res.errors));return {imported:0,skipped:0,error:res.message};}
       console.log('Data length:', res.data?.length, 'Total:', res.total);
       const contacts = res.data || [];
       page = res.nextPageToken || null;
