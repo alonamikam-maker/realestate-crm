@@ -425,9 +425,9 @@ select{width:auto;cursor:pointer;}
   <div style="display:flex;align-items:center;gap:12px">
     <span id="current-user-label" style="font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px"></span>
     <div style="position:relative">
-      <button class="btn btn-ghost btn-sm" onclick="toggleCalDropdown()" id="cal-dropdown-btn" style="gap:5px;position:relative">
-        <i class="ti ti-calendar" style="font-size:17px"></i>
-        <span id="cal-badge" style="display:none;position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#EF4444;border-radius:50%;border:2px solid var(--surface)"></span>
+      <button class="tab-btn" onclick="toggleCalDropdown()" id="cal-dropdown-btn" style="gap:5px;position:relative">
+        <i class="ti ti-calendar" style="font-size:17px"></i>Calendar
+        <span id="cal-badge" style="display:none;position:absolute;top:4px;right:6px;width:7px;height:7px;background:#EF4444;border-radius:50%"></span>
       </button>
     </div>
     <nav class="nav-tabs">
@@ -452,16 +452,16 @@ select{width:auto;cursor:pointer;}
     </div>
     <div style="margin-top:18px" class="panel">
       <div class="panel-hd" style="justify-content:space-between">
-        <span class="panel-hd-title"><i class="ti ti-calendar"></i> This Month</span>
+        <span class="panel-hd-title"><i class="ti ti-calendar"></i> <span id="dash-cal-title"></span></span>
         <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn btn-ghost btn-sm" onclick="dashCalPrev()" style="padding:3px 7px"><i class="ti ti-chevron-left"></i></button>
-          <span id="dash-cal-title" style="font-size:12px;font-weight:600;color:var(--text2)"></span>
-          <button class="btn btn-ghost btn-sm" onclick="dashCalNext()" style="padding:3px 7px"><i class="ti ti-chevron-right"></i></button>
-          <button class="btn btn-primary btn-sm" onclick="openMeetingModal()" style="margin-left:4px"><i class="ti ti-plus"></i>Add</button>
+          <button class="btn btn-ghost btn-sm" onclick="dashCalPrev()" style="padding:4px 9px"><i class="ti ti-chevron-left"></i></button>
+          <button class="btn btn-ghost btn-sm" onclick="dashCalNext()" style="padding:4px 9px"><i class="ti ti-chevron-right"></i></button>
+          <button class="btn btn-ghost btn-sm" onclick="dashCalToday()">Today</button>
+          <button class="btn btn-primary btn-sm" onclick="openMeetingModal()"><i class="ti ti-plus"></i>Add Meeting</button>
         </div>
       </div>
-      <div style="padding:12px 16px">
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;" id="dash-cal-grid"></div>
+      <div style="padding:0 0 12px">
+        <div id="dash-cal-grid"></div>
       </div>
     </div>
   </div>
@@ -1589,6 +1589,7 @@ function dropCalNext(){dropCalMonth++;if(dropCalMonth>11){dropCalMonth=0;dropCal
 
 function dashCalPrev(){dashCalMonth--;if(dashCalMonth<0){dashCalMonth=11;dashCalYear--;}renderDashCalendar();}
 function dashCalNext(){dashCalMonth++;if(dashCalMonth>11){dashCalMonth=0;dashCalYear++;}renderDashCalendar();}
+function dashCalToday(){dashCalYear=new Date().getFullYear();dashCalMonth=new Date().getMonth();renderDashCalendar();}
 function renderDashCalendar(){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const el=document.getElementById('dash-cal-title');if(el)el.textContent=months[dashCalMonth]+' '+dashCalYear;
@@ -1597,21 +1598,35 @@ function renderDashCalendar(){
   const lastDay=new Date(dashCalYear,dashCalMonth+1,0);
   const startDow=firstDay.getDay();
   const events=getCalEvents();
-  const eventDates=new Set(events.map(e=>e.date));
-  const dows=['S','M','T','W','T','F','S'];
-  let html=dows.map(d=>`<div class="cal-mini-dow" style="font-size:10px">${d}</div>`).join('');
+  const grid=document.getElementById('dash-cal-grid');
+  if(!grid)return;
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)">';
+  html+=dows.map(d=>`<div style="background:var(--surface2);padding:10px 4px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2)">${d}</div>`).join('');
   const prevLastDay=new Date(dashCalYear,dashCalMonth,0);
-  for(let i=startDow-1;i>=0;i--){html+=`<div class="cal-mini-day other-month" style="font-size:11px">${prevLastDay.getDate()-i}</div>`;}
+  for(let i=startDow-1;i>=0;i--){
+    html+=`<div style="background:var(--surface2);min-height:90px;padding:6px"><span style="font-size:13px;color:var(--text3)">${prevLastDay.getDate()-i}</span></div>`;
+  }
   for(let d=1;d<=lastDay.getDate();d++){
     const dateStr=`${dashCalYear}-${String(dashCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dayDate=new Date(dashCalYear,dashCalMonth,d);dayDate.setHours(0,0,0,0);
     const isToday=dayDate.getTime()===today.getTime();
-    const hasDot=eventDates.has(dateStr);
-    html+=`<div class="cal-mini-day${isToday?' today':''}${hasDot?' has-dot':''}" style="font-size:11px" onclick="openDayModal('${dateStr}')">${d}</div>`;
+    const dayEvents=events.filter(e=>e.date===dateStr).sort((a,b)=>({overdue:0,today:1,meeting:2,broker:3,property:4}[a.type]??5)-({overdue:0,today:1,meeting:2,broker:3,property:4}[b.type]??5));
+    const numStyle=isToday?`background:var(--green);color:#fff;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:13px`:`font-size:13px;font-weight:500;color:var(--text1)`;
+    const maxShow=3;
+    const evHTML=dayEvents.slice(0,maxShow).map(e=>`<div class="cal-event ev-${e.type}" onclick="event.stopPropagation();openEventDetail('${e.id}')" style="margin-bottom:2px">${e.time?e.time+' ':''} ${e.title}</div>`).join('');
+    const moreHTML=dayEvents.length>maxShow?`<div style="font-size:10px;color:var(--text3)">+${dayEvents.length-maxShow} more</div>`:'';
+    html+=`<div style="background:${isToday?'var(--green-l)':'var(--surface)'};min-height:90px;padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:3px" onclick="openDayModal('${dateStr}')">
+      <span style="${numStyle}">${d}</span>
+      ${evHTML}${moreHTML}
+    </div>`;
   }
   const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
-  for(let d=1;d<=totalCells-(startDow+lastDay.getDate());d++){html+=`<div class="cal-mini-day other-month" style="font-size:11px">${d}</div>`;}
-  const grid=document.getElementById('dash-cal-grid');if(grid)grid.innerHTML=html;
+  for(let d=1;d<=totalCells-(startDow+lastDay.getDate());d++){
+    html+=`<div style="background:var(--surface2);min-height:90px;padding:6px"><span style="font-size:13px;color:var(--text3)">${d}</span></div>`;
+  }
+  html+='</div>';
+  grid.innerHTML=html;
 }
 function renderDropCalendar(){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
