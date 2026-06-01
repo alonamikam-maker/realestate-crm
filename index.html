@@ -353,6 +353,28 @@ select{width:auto;cursor:pointer;}
   .cal-event{display:none;}
   .cal-day.has-events::after{content:'•';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);color:var(--green);font-size:14px;}
 }
+
+/* Calendar Dropdown */
+.cal-dropdown{position:fixed;top:60px;right:16px;width:360px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-md);z-index:150;overflow:hidden;transform-origin:top right;transition:transform 0.2s ease,opacity 0.2s ease;transform:scale(0.95);opacity:0;pointer-events:none;}
+.cal-dropdown.open{transform:scale(1);opacity:1;pointer-events:all;}
+.cal-dropdown-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cal-dropdown-title{font-size:13px;font-weight:600;color:var(--text1);}
+.cal-mini-grid{padding:10px 12px;}
+.cal-mini-dow{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);text-align:center;padding:4px 2px;}
+.cal-mini-day{text-align:center;padding:3px 2px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--text2);position:relative;}
+.cal-mini-day:hover{background:var(--surface2);}
+.cal-mini-day.today{background:var(--green);color:#fff;font-weight:600;border-radius:50%;}
+.cal-mini-day.other-month{color:var(--text3);}
+.cal-mini-day.has-dot::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--green);}
+.cal-mini-day.today.has-dot::after{background:#fff;}
+.cal-upcoming{padding:8px 14px 12px;border-top:1px solid var(--border);}
+.cal-upcoming-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:8px;}
+.cal-upcoming-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);}
+.cal-upcoming-item:last-child{border-bottom:none;}
+.cal-upcoming-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.cal-upcoming-text{font-size:12px;font-weight:500;color:var(--text1);}
+.cal-upcoming-sub{font-size:11px;color:var(--text3);}
+@media(max-width:400px){.cal-dropdown{width:calc(100vw - 24px);right:12px;}}
 </style>
 </head>
 <body>
@@ -402,6 +424,12 @@ select{width:auto;cursor:pointer;}
   </div>
   <div style="display:flex;align-items:center;gap:12px">
     <span id="current-user-label" style="font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px"></span>
+    <div style="position:relative">
+      <button class="btn btn-ghost btn-sm" onclick="toggleCalDropdown()" id="cal-dropdown-btn" style="gap:5px;position:relative">
+        <i class="ti ti-calendar" style="font-size:17px"></i>
+        <span id="cal-badge" style="display:none;position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#EF4444;border-radius:50%;border:2px solid var(--surface)"></span>
+      </button>
+    </div>
     <nav class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
       <button class="tab-btn" onclick="switchTab('brokers')" id="nav-brokers"><i class="ti ti-users"></i>Brokers</button>
@@ -421,6 +449,20 @@ select{width:auto;cursor:pointer;}
     <div class="dash-grid">
       <div class="panel"><div class="panel-hd"><i class="ti ti-bell-ringing"></i><span class="panel-hd-title">Upcoming Follow-ups</span></div><div class="panel-body" id="dash-reminders"></div></div>
       <div class="panel"><div class="panel-hd"><i class="ti ti-clock"></i><span class="panel-hd-title">Recent Activity</span></div><div class="panel-body" id="dash-activity"></div></div>
+    </div>
+    <div style="margin-top:18px" class="panel">
+      <div class="panel-hd" style="justify-content:space-between">
+        <span class="panel-hd-title"><i class="ti ti-calendar"></i> This Month</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-ghost btn-sm" onclick="dashCalPrev()" style="padding:3px 7px"><i class="ti ti-chevron-left"></i></button>
+          <span id="dash-cal-title" style="font-size:12px;font-weight:600;color:var(--text2)"></span>
+          <button class="btn btn-ghost btn-sm" onclick="dashCalNext()" style="padding:3px 7px"><i class="ti ti-chevron-right"></i></button>
+          <button class="btn btn-primary btn-sm" onclick="openMeetingModal()" style="margin-left:4px"><i class="ti ti-plus"></i>Add</button>
+        </div>
+      </div>
+      <div style="padding:12px 16px">
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;" id="dash-cal-grid"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -536,6 +578,28 @@ select{width:auto;cursor:pointer;}
         MAO = (ARV × (1 − Soft Costs%)) − Rehab Cost
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Calendar Dropdown -->
+<div class="cal-dropdown" id="cal-dropdown">
+  <div class="cal-dropdown-header">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="dropCalPrev()" style="padding:3px 7px"><i class="ti ti-chevron-left"></i></button>
+      <span class="cal-dropdown-title" id="drop-cal-title"></span>
+      <button class="btn btn-ghost btn-sm" onclick="dropCalNext()" style="padding:3px 7px"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn btn-primary btn-sm" onclick="closeCalDropdown();switchTab('calendar')" style="font-size:11px">Open Calendar</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeCalDropdown()" style="padding:3px 7px"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+  <div class="cal-mini-grid">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;" id="drop-cal-grid"></div>
+  </div>
+  <div class="cal-upcoming" id="drop-upcoming"></div>
+  <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px">
+    <button class="btn btn-primary btn-sm" style="flex:1" onclick="closeCalDropdown();openMeetingModal()"><i class="ti ti-plus"></i>Add Meeting</button>
   </div>
 </div>
 
@@ -1010,11 +1074,19 @@ function renderStats(){
   `;
 }
 
-function renderDashboard(){
+function renderDashboard(){renderDashCalendar();
+  const today2=new Date();today2.setHours(0,0,0,0);
+  const in2days=new Date(today2.getTime()+2*86400000);
+  const upcomingMeetings=Object.entries(state.meetings||{}).map(([id,m])=>({id,...m,_kind:'meeting'})).filter(m=>{
+    if(!m.date)return false;
+    const d=new Date(m.date);d.setHours(0,0,0,0);
+    return d>=today2&&d<=in2days;
+  });
   const allRem=[
     ...bArr().filter(b=>b.reminder).map(b=>({...b,_kind:'broker'})),
-    ...pArr().filter(p=>p.reminder).map(p=>({...p,_kind:'property'}))
-  ].sort((a,b)=>new Date(a.reminder)-new Date(b.reminder)).slice(0,6);
+    ...pArr().filter(p=>p.reminder).map(p=>({...p,_kind:'property'})),
+    ...upcomingMeetings
+  ].sort((a,b)=>new Date(a.reminder||a.date)-new Date(b.reminder||b.date)).slice(0,6);
   const dr=document.getElementById('dash-reminders');
   if(!allRem.length){dr.innerHTML='<div class="empty" style="padding:20px"><i class="ti ti-bell-off"></i><p>No upcoming reminders</p></div>';}
   else dr.innerHTML=allRem.map(item=>{
@@ -1023,6 +1095,14 @@ function renderDashboard(){
     const s=isBroker?rStatus(item):pReminderStatus(item);
     const cc=s==='overdue'?'chip-red':s==='today'?'chip-green':'chip-amber';
     const cl=s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Today':`In ${d}d`;
+    if(item._kind==='meeting'){
+      return`<div class="act-row" style="cursor:pointer" onclick="closeCalDropdown();openDayModal('${item.date}')">
+        <div class="act-dot" style="background:#F5F3FF"><i class="ti ti-calendar-event" style="font-size:14px;color:#7C3AED"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.title}</span><span class="chip chip-green" style="background:#F5F3FF;color:#7C3AED;border-color:#DDD6FE"><i class="ti ti-calendar" style="font-size:10px"></i>Meeting</span></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDate(item.date)}${item.time?' · '+item.time:''}</div>
+        </div><i class="ti ti-chevron-right" style="font-size:14px;color:var(--text3);flex-shrink:0"></i></div>`;
+    }
     if(isBroker){
       const prop=item.linkedProperty?state.properties[item.linkedProperty]:null;
       return`<div class="act-row" style="cursor:pointer" onclick="switchTab('brokers');setTimeout(()=>openBrokerModal('${item.id}'),120)">
@@ -1487,6 +1567,112 @@ document.getElementById('day-modal').addEventListener('click',e=>{if(e.target===
 document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();if(openBrokerReminderPopover&&!e.target.closest('.broker-bell-wrap'))closeBrokerReminderPopover();});
 document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
 
+
+
+// ── Calendar Dropdown ────────────────────────
+let dropCalYear=new Date().getFullYear(), dropCalMonth=new Date().getMonth();
+let dashCalYear=new Date().getFullYear(), dashCalMonth=new Date().getMonth();
+let calDropOpen=false;
+
+function toggleCalDropdown(){
+  calDropOpen=!calDropOpen;
+  const el=document.getElementById('cal-dropdown');
+  if(calDropOpen){el.classList.add('open');renderDropCalendar();}
+  else{el.classList.remove('open');}
+}
+function closeCalDropdown(){
+  calDropOpen=false;
+  document.getElementById('cal-dropdown').classList.remove('open');
+}
+function dropCalPrev(){dropCalMonth--;if(dropCalMonth<0){dropCalMonth=11;dropCalYear--;}renderDropCalendar();}
+function dropCalNext(){dropCalMonth++;if(dropCalMonth>11){dropCalMonth=0;dropCalYear++;}renderDropCalendar();}
+
+function dashCalPrev(){dashCalMonth--;if(dashCalMonth<0){dashCalMonth=11;dashCalYear--;}renderDashCalendar();}
+function dashCalNext(){dashCalMonth++;if(dashCalMonth>11){dashCalMonth=0;dashCalYear++;}renderDashCalendar();}
+function renderDashCalendar(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const el=document.getElementById('dash-cal-title');if(el)el.textContent=months[dashCalMonth]+' '+dashCalYear;
+  const today=new Date();today.setHours(0,0,0,0);
+  const firstDay=new Date(dashCalYear,dashCalMonth,1);
+  const lastDay=new Date(dashCalYear,dashCalMonth+1,0);
+  const startDow=firstDay.getDay();
+  const events=getCalEvents();
+  const eventDates=new Set(events.map(e=>e.date));
+  const dows=['S','M','T','W','T','F','S'];
+  let html=dows.map(d=>`<div class="cal-mini-dow" style="font-size:10px">${d}</div>`).join('');
+  const prevLastDay=new Date(dashCalYear,dashCalMonth,0);
+  for(let i=startDow-1;i>=0;i--){html+=`<div class="cal-mini-day other-month" style="font-size:11px">${prevLastDay.getDate()-i}</div>`;}
+  for(let d=1;d<=lastDay.getDate();d++){
+    const dateStr=`${dashCalYear}-${String(dashCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayDate=new Date(dashCalYear,dashCalMonth,d);dayDate.setHours(0,0,0,0);
+    const isToday=dayDate.getTime()===today.getTime();
+    const hasDot=eventDates.has(dateStr);
+    html+=`<div class="cal-mini-day${isToday?' today':''}${hasDot?' has-dot':''}" style="font-size:11px" onclick="openDayModal('${dateStr}')">${d}</div>`;
+  }
+  const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
+  for(let d=1;d<=totalCells-(startDow+lastDay.getDate());d++){html+=`<div class="cal-mini-day other-month" style="font-size:11px">${d}</div>`;}
+  const grid=document.getElementById('dash-cal-grid');if(grid)grid.innerHTML=html;
+}
+function renderDropCalendar(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('drop-cal-title').textContent=months[dropCalMonth]+' '+dropCalYear;
+  const today=new Date();today.setHours(0,0,0,0);
+  const firstDay=new Date(dropCalYear,dropCalMonth,1);
+  const lastDay=new Date(dropCalYear,dropCalMonth+1,0);
+  const startDow=firstDay.getDay();
+  const events=getCalEvents();
+  const eventDates=new Set(events.map(e=>e.date));
+  const dows=['S','M','T','W','T','F','S'];
+  let html=dows.map(d=>`<div class="cal-mini-dow">${d}</div>`).join('');
+  const prevLastDay=new Date(dropCalYear,dropCalMonth,0);
+  for(let i=startDow-1;i>=0;i--){
+    html+=`<div class="cal-mini-day other-month">${prevLastDay.getDate()-i}</div>`;
+  }
+  for(let d=1;d<=lastDay.getDate();d++){
+    const dateStr=`${dropCalYear}-${String(dropCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayDate=new Date(dropCalYear,dropCalMonth,d);dayDate.setHours(0,0,0,0);
+    const isToday=dayDate.getTime()===today.getTime();
+    const hasDot=eventDates.has(dateStr);
+    html+=`<div class="cal-mini-day${isToday?' today':''}${hasDot?' has-dot':''}" onclick="closeCalDropdown();openDayModal('${dateStr}')">${d}</div>`;
+  }
+  const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
+  for(let d=1;d<=totalCells-(startDow+lastDay.getDate());d++){
+    html+=`<div class="cal-mini-day other-month">${d}</div>`;
+  }
+  document.getElementById('drop-cal-grid').innerHTML=html;
+  // Upcoming events (next 5 days)
+  renderDropUpcoming();
+  // Update badge
+  const todayStr=today.toISOString().slice(0,10);
+  const urgentCount=events.filter(e=>e.date<=todayStr&&e.type!=='meeting'||e.date===todayStr).length;
+  const badge=document.getElementById('cal-badge');
+  if(badge){const overdue=events.filter(e=>e.type==='overdue').length;badge.style.display=overdue>0?'block':'none';}
+}
+
+function renderDropUpcoming(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const in5=new Date(today.getTime()+5*86400000);
+  const events=getCalEvents().filter(e=>{
+    const d=new Date(e.date);d.setHours(0,0,0,0);
+    return d>=today&&d<=in5;
+  }).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  const el=document.getElementById('drop-upcoming');
+  if(!events.length){el.innerHTML='<div class="cal-upcoming-title">Next 5 days</div><div style="font-size:12px;color:var(--text3);padding:4px 0">No upcoming events</div>';return;}
+  el.innerHTML='<div class="cal-upcoming-title">Next 5 days</div>'+events.map(e=>{
+    const dotColor=e.type==='overdue'?'#EF4444':e.type==='broker'?'#2563EB':e.type==='property'?'var(--green)':'#7C3AED';
+    const d=new Date(e.date+'T12:00:00');
+    const dayLbl=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    return`<div class="cal-upcoming-item">
+      <div class="cal-upcoming-dot" style="background:${dotColor}"></div>
+      <div><div class="cal-upcoming-text">${e.title}</div><div class="cal-upcoming-sub">${dayLbl}${e.time?' · '+e.time:''}</div></div>
+    </div>`;
+  }).join('');
+}
+
+document.addEventListener('click',e=>{
+  if(calDropOpen&&!e.target.closest('#cal-dropdown')&&!e.target.closest('#cal-dropdown-btn'))closeCalDropdown();
+});
+// ── End Calendar Dropdown ────────────────────
 
 // ── Calendar ──────────────────────────────────
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
