@@ -93,22 +93,26 @@ module.exports = async (req, res) => {
     // ── call.completed
     if (type === 'call.completed') {
       const from = data.from;
-      const to = data.to;
+      const to = Array.isArray(data.to) ? data.to[0] : data.to;
       const direction = data.direction;
-      const duration = data.duration;
       const callId = data.id;
+      // Calculate duration from answeredAt and completedAt
+      let durationSeconds = data.duration || 0;
+      if (!durationSeconds && data.answeredAt && data.completedAt) {
+        durationSeconds = Math.round((new Date(data.completedAt) - new Date(data.answeredAt)) / 1000);
+      }
       const lookupPhone = direction === 'incoming' ? from : to;
       const broker = matchBrokerByPhone(brokers, lookupPhone);
       if (broker) {
         note = {
           id: generateId(), callId, brokerId: broker.id,
           type: 'call', direction,
-          duration: formatDuration(duration),
-          durationSeconds: duration || 0,
+          duration: formatDuration(durationSeconds),
+          durationSeconds,
           phone: from,
           text: direction === 'incoming'
-            ? `Incoming call · ${formatDuration(duration) || 'no duration'}`
-            : `Outgoing call · ${formatDuration(duration) || 'no duration'}`,
+            ? `Incoming call · ${formatDuration(durationSeconds) || 'no duration'}`
+            : `Outgoing call · ${formatDuration(durationSeconds) || 'no duration'}`,
           createdBy: 'OpenPhone', createdById: 'openphone',
           createdAt: Date.now(), readBy: {}
         };
@@ -134,7 +138,7 @@ module.exports = async (req, res) => {
     // ── message.received / message.delivered
     if (type === 'message.received' || type === 'message.delivered') {
       const from = data.from;
-      const to = data.to?.[0];
+      const to = Array.isArray(data.to) ? data.to[0] : data.to;
       const body = data.body || '';
       const direction = type === 'message.received' ? 'incoming' : 'outgoing';
       const lookupPhone = direction === 'incoming' ? from : to;
