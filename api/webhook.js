@@ -60,11 +60,11 @@ function cleanPhone(phone) {
 function matchBrokerByPhone(brokers, phoneNumber) {
   if (!brokers || !phoneNumber) return null;
   const clean = cleanPhone(phoneNumber);
-  if (clean.length < 7) return null;
+  if (clean.length !== 10) return null;
   for (const [id, broker] of Object.entries(brokers)) {
     if (!broker.phone) continue;
     const brokerClean = cleanPhone(broker.phone);
-    if (brokerClean.length < 7) continue;
+    if (brokerClean.length !== 10) continue;
     if (brokerClean === clean) return { id, ...broker };
   }
   return null;
@@ -94,6 +94,7 @@ async function runQuoImport() {
       console.log('Full response:', JSON.stringify(res));
       if(res.message||res.errors){console.log('API ERROR:',res.message||JSON.stringify(res.errors));return {imported:0,skipped:0,error:res.message};}
       console.log('Data length:', res.data?.length, 'Total:', res.total);
+      if(res.data?.[0])console.log('FIRST CONTACT:', JSON.stringify({name:res.data[0].name,firstName:res.data[0].firstName,defaultFields:res.data[0].defaultFields,phoneNumbers:res.data[0].phoneNumbers?.slice(0,1)}));
       const contacts = res.data || [];
       page = res.nextPageToken || null;
 
