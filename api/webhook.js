@@ -98,12 +98,12 @@ async function runQuoImport() {
       page = res.nextPageToken || null;
 
       for (const contact of contacts) {
-        const name = contact.name || (contact.firstName ? `${contact.firstName} ${contact.lastName || ''}`.trim() : null);
+        const name = contact.defaultFields?.firstName ? `${contact.defaultFields.firstName} ${contact.defaultFields.lastName||''}`.trim() : (contact.name || (contact.firstName ? `${contact.firstName} ${contact.lastName||''}`.trim() : null));
         if (!name) { skipped++; continue; }
 
         // Get first phone number
         const phoneObj = contact.phoneNumbers?.[0];
-        const phone = phoneObj?.phoneNumber || '';
+        const phone = phoneObj?.value || phoneObj?.phoneNumber || '';
         if (!phone) { skipped++; continue; }
 
         // Check if broker already exists by phone
@@ -180,8 +180,8 @@ module.exports = async (req, res) => {
 
     // ── contact.updated — ongoing sync (also fires on create)
     if (type === 'contact.updated') {
-      const name = data.name || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : null);
-      const phone = data.phoneNumbers?.[0]?.phoneNumber || '';
+      const name = data.defaultFields?.firstName ? `${data.defaultFields.firstName} ${data.defaultFields.lastName||''}`.trim() : (data.name || (data.firstName ? `${data.firstName} ${data.lastName||''}`.trim() : null));
+      const phone = data.phoneNumbers?.[0]?.value || data.phoneNumbers?.[0]?.phoneNumber || '';
       if (!name || !phone) return res.status(200).json({ success: true, skipped: true, reason: 'No name or phone' });
 
       // Check for duplicate
