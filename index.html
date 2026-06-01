@@ -1672,7 +1672,7 @@ function renderDropCalendar(){
     const numStyle=isToday?'background:var(--green);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px':'font-size:11px;font-weight:500;color:var(--text1)';
     const evHTML=dayEvents.slice(0,2).map(e=>'<div class="cal-event ev-'+e.type+'" style="font-size:9px;padding:1px 4px;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.title+'</div>').join('');
     const moreHTML=dayEvents.length>2?'<div style="font-size:9px;color:var(--text3)">+'+(dayEvents.length-2)+'</div>':'';
-    html+='<div style="background:'+(isToday?'var(--green-l)':'var(--surface)')+';min-height:56px;padding:4px;cursor:pointer;display:flex;flex-direction:column;gap:2px" onclick="closeCalDropdown();openDayModal(''+dateStr+'')">';
+    html+='<div style="background:'+(isToday?'var(--green-l)':'var(--surface)')+';min-height:56px;padding:4px;cursor:pointer;display:flex;flex-direction:column;gap:2px" onclick="closeCalDropdown();openDayModal(\"'+dateStr+'\")">'; 
     html+='<span style="'+numStyle+'">'+d+'</span>'+evHTML+moreHTML+'</div>';
   }
   const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
