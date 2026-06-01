@@ -829,16 +829,16 @@ function togglePCallNote(noteId){
     if(ta)setTimeout(()=>ta.focus(),50);
   }
 }
-function addPropCallNote(noteId, propertyId){
+function addPropCallNote(noteId, propertyId, btn){
   if(!currentUser.id){showToast('⚠ Please select a user first');return;}
-  const ta=document.getElementById('pp-call-note-input-'+noteId);
+  const ta=btn?btn.previousElementSibling:document.getElementById('pp-call-note-input-'+noteId);
   const text=(ta?.value||'').trim();
   if(!text){showToast('⚠ Note cannot be empty');return;}
   const newNoteId=db.ref('notes').push().key;
   const prop=state.properties[propertyId]||{};
   const noteData={id:newNoteId,parentNoteId:noteId,propertyId,text,createdBy:currentUser.name,createdById:currentUser.id,createdAt:Date.now(),readBy:{[currentUser.id]:true}};
   if(prop.brokerId)noteData.brokerId=prop.brokerId;
-  db.ref('notes/'+newNoteId).set(noteData).then(()=>{ta.value='';document.getElementById('pp-call-note-'+noteId).style.display='none';showToast('✓ Note added');});
+  db.ref('notes/'+newNoteId).set(noteData).then(()=>{ta.value='';showToast('✓ Note added');});
 }
 function addCallNote(noteId, brokerId){
   if(!currentUser.id){showToast('⚠ Please select a user first');return;}
@@ -1209,7 +1209,7 @@ function renderProperties(){
                 ${pChildNotes.map(cn=>`<div style="margin-bottom:5px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2);line-height:1.5">${cn.text.replace(/\n/g,'<br>')}<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span style="font-size:10px;color:var(--text3)">${cn.createdBy} · ${fmtDateTime(cn.createdAt)}</span>${currentUser.id===cn.createdById?`<div style="display:flex;gap:4px"><button onclick="startEditPropCallNote('${cn.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);padding:1px 4px;border-radius:4px"><i class=\"ti ti-edit\" style=\"font-size:11px\"></i></button><button onclick="deleteNote('${cn.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:#DC2626;padding:1px 4px;border-radius:4px"><i class=\"ti ti-trash\" style=\"font-size:11px\"></i></button></div>`:''}</div></div><div id="pcn-edit-${cn.id}" style="display:none;margin-bottom:5px;gap:6px;align-items:flex-end"><textarea id="pcn-edit-input-${cn.id}" style="flex:1;font-size:12px;min-height:40px;resize:vertical">${cn.text}</textarea><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="savePropCallNote('${cn.id}')"><i class=\"ti ti-check\"></i></button><button class="btn btn-ghost btn-sm" onclick="cancelPropCallNote('${cn.id}')"><i class=\"ti ti-x\"></i></button></div></div>`).join('')}
                 <div style="margin-top:6px;display:flex;gap:8px;align-items:flex-end">
                   <textarea id="pp-call-note-input-${n.id}" placeholder="Add a note about this call..." rows="1" style="flex:1;font-size:12px;min-height:36px;resize:vertical;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-family:inherit;color:var(--text1)"></textarea>
-                  <button class="btn btn-primary btn-sm" onclick="addPropCallNote('${n.id}','${p.id}')"><i class="ti ti-check"></i></button>
+                  <button class="btn btn-primary btn-sm" onclick="addPropCallNote('${n.id}','${p.id}',this)"><i class="ti ti-check"></i></button>
                 </div>
               </div>`:''}
             </div>`;
