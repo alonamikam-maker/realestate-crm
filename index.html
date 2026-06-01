@@ -452,16 +452,23 @@ select{width:auto;cursor:pointer;}
     </div>
     <div style="margin-top:18px" class="panel">
       <div class="panel-hd" style="justify-content:space-between">
-        <span class="panel-hd-title"><i class="ti ti-calendar"></i> <span id="dash-cal-title"></span></span>
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px">
           <button class="btn btn-ghost btn-sm" onclick="dashCalPrev()" style="padding:4px 9px"><i class="ti ti-chevron-left"></i></button>
+          <span class="panel-hd-title" id="dash-cal-title" style="min-width:140px;text-align:center"></span>
           <button class="btn btn-ghost btn-sm" onclick="dashCalNext()" style="padding:4px 9px"><i class="ti ti-chevron-right"></i></button>
           <button class="btn btn-ghost btn-sm" onclick="dashCalToday()">Today</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="openQuickReminderModal()"><i class="ti ti-bell-plus"></i>Add Reminder</button>
           <button class="btn btn-primary btn-sm" onclick="openMeetingModal()"><i class="ti ti-plus"></i>Add Meeting</button>
         </div>
       </div>
-      <div style="padding:0 0 12px">
+      <div style="padding:0">
         <div id="dash-cal-grid"></div>
+      </div>
+      <div style="padding:14px 20px;border-top:1px solid var(--border)" id="dash-upcoming-section">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:10px">Next 5 Days</div>
+        <div id="dash-upcoming-list"></div>
       </div>
     </div>
   </div>
@@ -609,7 +616,10 @@ select{width:auto;cursor:pointer;}
   <div class="page">
     <div class="page-hd">
       <div><div class="page-title">Calendar</div><div class="page-sub">Meetings, follow-ups and reminders</div></div>
-      <button class="btn btn-primary" onclick="openMeetingModal()"><i class="ti ti-plus"></i>Add Meeting</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="openQuickReminderModal()"><i class="ti ti-bell-plus"></i>Add Reminder</button>
+        <button class="btn btn-primary" onclick="openMeetingModal()"><i class="ti ti-plus"></i>Add Meeting</button>
+      </div>
     </div>
     <div class="cal-wrap">
       <div class="cal-header">
@@ -1094,7 +1104,7 @@ function renderStats(){
   `;
 }
 
-function renderDashboard(){renderDashCalendar();
+function renderDashboard(){renderDashCalendar();renderDashUpcoming();
   const today2=new Date();today2.setHours(0,0,0,0);
   const in2days=new Date(today2.getTime()+2*86400000);
   const upcomingMeetings=Object.entries(state.meetings||{}).map(([id,m])=>({id,...m,_kind:'meeting'})).filter(m=>{
@@ -1608,6 +1618,32 @@ function closeCalDropdown(){
 function dropCalPrev(){dropCalMonth--;if(dropCalMonth<0){dropCalMonth=11;dropCalYear--;}renderDropCalendar();}
 function dropCalNext(){dropCalMonth++;if(dropCalMonth>11){dropCalMonth=0;dropCalYear++;}renderDropCalendar();}
 
+function renderDashUpcoming(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const in5=new Date(today.getTime()+5*86400000);
+  const events=getCalEvents().filter(e=>{
+    const d=new Date(e.date);d.setHours(0,0,0,0);
+    return d>=today&&d<=in5;
+  }).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,8);
+  const el=document.getElementById('dash-upcoming-list');
+  if(!el)return;
+  if(!events.length){el.innerHTML='<div style="font-size:13px;color:var(--text3)">No upcoming events in the next 5 days</div>';return;}
+  el.innerHTML=events.map(e=>{
+    const dotColor=e.type==='overdue'?'#EF4444':e.type==='broker'?'#2563EB':e.type==='property'?'var(--green)':'#7C3AED';
+    const d=new Date(e.date+'T12:00:00');
+    const dayLbl=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const broker=e.brokerId?state.brokers[e.brokerId]:null;
+    const prop=e.propertyId?state.properties[e.propertyId]:null;
+    return`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="${e.kind==='meeting'?'openDayModal(''+e.date+'')':e.kind==='broker'?'switchTab('brokers');setTimeout(()=>openBrokerModal(''+e.brokerId+''),120)':'scrollToProperty(''+e.propertyId+'')'}">
+      <div style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;background:${dotColor}"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text1)">${e.title}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${dayLbl}${e.time?' · '+e.time:''}${broker?' · '+broker.name:''}${prop?' · '+prop.address:''}</div>
+      </div>
+      <i class="ti ti-chevron-right" style="font-size:13px;color:var(--text3);flex-shrink:0;margin-top:3px"></i>
+    </div>`;
+  }).join('');
+}
 function dashCalPrev(){dashCalMonth--;if(dashCalMonth<0){dashCalMonth=11;dashCalYear--;}renderDashCalendar();}
 function dashCalNext(){dashCalMonth++;if(dashCalMonth>11){dashCalMonth=0;dashCalYear++;}renderDashCalendar();}
 function dashCalToday(){dashCalYear=new Date().getFullYear();dashCalMonth=new Date().getMonth();renderDashCalendar();}
