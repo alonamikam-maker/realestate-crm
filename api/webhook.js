@@ -155,8 +155,17 @@ module.exports = async (req, res) => {
     }
 
     if (note) {
+      // Find all properties linked to this broker
+      const properties = await firebaseRequest('GET', '/properties');
+      const linkedPropertyIds = [];
+      if (properties) {
+        for (const [pid, prop] of Object.entries(properties)) {
+          if (prop.brokerId === note.brokerId) linkedPropertyIds.push(pid);
+        }
+      }
+      if (linkedPropertyIds.length > 0) note.propertyIds = linkedPropertyIds;
       await firebaseRequest('PUT', `/notes/${note.id}`, note);
-      return res.status(200).json({ success: true, noteId: note.id, brokerId: note.brokerId });
+      return res.status(200).json({ success: true, noteId: note.id, brokerId: note.brokerId, propertyIds: linkedPropertyIds });
     }
 
     return res.status(200).json({ success: true, skipped: true, reason: 'No matching broker or unhandled event' });
