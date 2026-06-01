@@ -14,10 +14,31 @@ function firebaseRequest(method, path, data) {
     const req = https.request(options, (res) => {
       let d = '';
       res.on('data', chunk => d += chunk);
-      res.on('end', () => resolve(JSON.parse(d || 'null')));
+      res.on('end', () => { try { resolve(JSON.parse(d || 'null')); } catch(e) { resolve(null); } });
     });
     req.on('error', reject);
     if (body) req.write(body);
+    req.end();
+  });
+}
+
+function quoRequest(path) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.openphone.com',
+      path,
+      method: 'GET',
+      headers: {
+        'Authorization': process.env.OPENPHONE_API_KEY,
+        'Content-Type': 'application/json'
+      }
+    };
+    const req = https.request(options, (res) => {
+      let d = '';
+      res.on('data', chunk => d += chunk);
+      res.on('end', () => { try { resolve(JSON.parse(d || '{}')); } catch(e) { resolve({}); } });
+    });
+    req.on('error', reject);
     req.end();
   });
 }
@@ -31,9 +52,7 @@ function formatDuration(seconds) {
 
 function cleanPhone(phone) {
   if (!phone) return '';
-  // Remove all non-digits
   const digits = phone.replace(/\D/g, '');
-  // Strip leading country code (1 for US) if 11 digits
   if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);
   return digits;
 }
@@ -41,11 +60,11 @@ function cleanPhone(phone) {
 function matchBrokerByPhone(brokers, phoneNumber) {
   if (!brokers || !phoneNumber) return null;
   const clean = cleanPhone(phoneNumber);
-  if (clean.length < 7) return null; // too short to match reliably
+  if (clean.length < 7) return null;
   for (const [id, broker] of Object.entries(brokers)) {
     if (!broker.phone) continue;
     const brokerClean = cleanPhone(broker.phone);
-    if (brokerClean.length < 7) continue; // skip clearly invalid numbers
+    if (brokerClean.length < 7) continue;
     if (brokerClean === clean) return { id, ...broker };
   }
   return null;
@@ -55,7 +74,88 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
+// ── One-time import of all Quo contacts ──────────────────────
+async function runQuoImport() {
+  try {
+    console.log('Starting Quo contacts import...');
+    // Set flag immediately to prevent duplicate runs
+    await firebaseRequest('PUT', '/meta/quo_import_done', true);
+
+    const brokers = await firebaseRequest('GET', '/brokers') || {};
+    let page = null;
+    let imported = 0;
+    let skipped = 0;
+
+    do {
+      const url = '/v1/contacts?maxResults=100' + (page ? `&pageToken=${page}` : '');
+      const res = await quoRequest(url);
+      const contacts = res.data || [];
+      page = res.nextPageToken || null;
+
+      for (const contact of contacts) {
+        const name = contact.name || (contact.firstName ? `${contact.firstName} ${contact.lastName || ''}`.trim() : null);
+        if (!name) { skipped++; continue; }
+
+        // Get first phone number
+        const phoneObj = contact.phoneNumbers?.[0];
+        const phone = phoneObj?.phoneNumber || '';
+        if (!phone) { skipped++; continue; }
+
+        // Check if broker already exists by phone
+        const existing = matchBrokerByPhone(brokers, phone);
+        if (existing) { skipped++; continue; }
+
+        // Create broker card
+        const brokerId = generateId();
+        const brokerData = {
+          name,
+          phone,
+          area: '',
+          status: 'active',
+          addedBy: 'Quo Import',
+          createdAt: Date.now()
+        };
+        await firebaseRequest('PUT', `/brokers/${brokerId}`, brokerData);
+        brokers[brokerId] = brokerData;
+
+        // Import notes if any
+        if (contact.notes) {
+          const noteId = generateId();
+          await firebaseRequest('PUT', `/notes/${noteId}`, {
+            id: noteId,
+            brokerId,
+            text: contact.notes,
+            createdBy: 'Quo Import',
+            createdById: 'openphone',
+            createdAt: Date.now(),
+            readBy: {}
+          });
+        }
+        imported++;
+      }
+    } while (page);
+
+    console.log(`Import done: ${imported} imported, ${skipped} skipped`);
+    return { imported, skipped };
+  } catch (err) {
+    console.error('Import error:', err);
+    // Reset flag so it can retry
+    await firebaseRequest('PUT', '/meta/quo_import_done', false);
+    throw err;
+  }
+}
+
 module.exports = async (req, res) => {
+  // ── Manual import trigger (GET request)
+  if (req.method === 'GET' && req.query?.action === 'import') {
+    try {
+      const result = await runQuoImport();
+      return res.status(200).json({ success: true, ...result });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
@@ -65,11 +165,35 @@ module.exports = async (req, res) => {
 
     if (!type || !data) return res.status(400).json({ error: 'Invalid payload' });
 
-    // Debug logging
-    console.log('EVENT TYPE:', type);
-    console.log('EVENT DATA:', JSON.stringify(data, null, 2));
+    const brokers = await firebaseRequest('GET', '/brokers') || {};
 
-    const brokers = await firebaseRequest('GET', '/brokers');
+    // ── contact.created — ongoing sync
+    if (type === 'contact.created') {
+      const name = data.name || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : null);
+      const phone = data.phoneNumbers?.[0]?.phoneNumber || '';
+      if (!name || !phone) return res.status(200).json({ success: true, skipped: true, reason: 'No name or phone' });
+
+      // Check for duplicate
+      const existing = matchBrokerByPhone(brokers, phone);
+      if (existing) return res.status(200).json({ success: true, skipped: true, reason: 'Already exists' });
+
+      const brokerId = generateId();
+      const brokerData = {
+        name, phone, area: '', status: 'active',
+        addedBy: 'Quo', createdAt: Date.now()
+      };
+      await firebaseRequest('PUT', `/brokers/${brokerId}`, brokerData);
+
+      if (data.notes) {
+        const noteId = generateId();
+        await firebaseRequest('PUT', `/notes/${noteId}`, {
+          id: noteId, brokerId, text: data.notes,
+          createdBy: 'Quo', createdById: 'openphone',
+          createdAt: Date.now(), readBy: {}
+        });
+      }
+      return res.status(200).json({ success: true, brokerId, action: 'created' });
+    }
 
     // ── call.summary.completed
     if (type === 'call.summary.completed') {
@@ -85,7 +209,7 @@ module.exports = async (req, res) => {
           }
         }
       }
-      return res.status(200).json({ success: true, skipped: true, reason: 'No matching call note' });
+      return res.status(200).json({ success: true, skipped: true });
     }
 
     let note = null;
@@ -96,7 +220,6 @@ module.exports = async (req, res) => {
       const to = Array.isArray(data.to) ? data.to[0] : data.to;
       const direction = data.direction;
       const callId = data.id;
-      // Calculate duration from answeredAt and completedAt
       let durationSeconds = data.duration || 0;
       if (!durationSeconds && data.answeredAt && data.completedAt) {
         durationSeconds = Math.round((new Date(data.completedAt) - new Date(data.answeredAt)) / 1000);
@@ -155,7 +278,6 @@ module.exports = async (req, res) => {
     }
 
     if (note) {
-      // Find all properties linked to this broker
       const properties = await firebaseRequest('GET', '/properties');
       const linkedPropertyIds = [];
       if (properties) {
@@ -165,7 +287,7 @@ module.exports = async (req, res) => {
       }
       if (linkedPropertyIds.length > 0) note.propertyIds = linkedPropertyIds;
       await firebaseRequest('PUT', `/notes/${note.id}`, note);
-      return res.status(200).json({ success: true, noteId: note.id, brokerId: note.brokerId, propertyIds: linkedPropertyIds });
+      return res.status(200).json({ success: true, noteId: note.id, brokerId: note.brokerId });
     }
 
     return res.status(200).json({ success: true, skipped: true, reason: 'No matching broker or unhandled event' });
