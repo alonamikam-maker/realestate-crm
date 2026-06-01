@@ -1968,6 +1968,17 @@ setInterval(checkUpcomingMeetings, 60000);
 initUser();
 const _savedTab=sessionStorage.getItem('crm_tab');
 if(_savedTab)switchTab(_savedTab);
+
+// One-time Quo contacts import
+db.ref('meta/quo_import_done').once('value', snap => {
+  if(!snap.val()){
+    console.log('Running one-time Quo import...');
+    fetch('https://realestate-crm-nine.vercel.app/api/webhook?action=import')
+      .then(r=>r.json())
+      .then(d=>{ if(d.imported>0) showToast('✓ '+d.imported+' Quo contacts imported'); })
+      .catch(e=>console.error('Import failed:',e));
+  }
+});
 </script>
 </body>
 </html>
