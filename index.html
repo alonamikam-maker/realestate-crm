@@ -821,8 +821,13 @@ function savePropCallNote(cnId){
 }
 function togglePCallNote(noteId){
   const el=document.getElementById('pcall-note-'+noteId);
-  if(!el)return;
-  el.style.display=el.style.display==='none'?'flex':'none';
+  if(!el){console.log('pcall-note-'+noteId+' not found');return;}
+  const isHidden=el.style.display==='none'||el.style.display==='';
+  el.style.display=isHidden?'flex':'none';
+  if(isHidden){
+    const ta=document.getElementById('pcall-note-input-'+noteId);
+    if(ta)ta.focus();
+  }
 }
 function addPropCallNote(noteId, propertyId){
   if(!currentUser.id){showToast('⚠ Please select a user first');return;}
