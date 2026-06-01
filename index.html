@@ -723,6 +723,22 @@ function markNotesRead(brokerId){
     }
   });
 }
+function addCallNote(noteId, brokerId){
+  if(!currentUser.id){showToast('⚠ Please select a user first');return;}
+  const ta=document.getElementById('call-note-input-'+noteId);
+  const text=(ta?.value||'').trim();
+  if(!text){showToast('⚠ Note cannot be empty');return;}
+  const newNoteId=db.ref('notes').push().key;
+  db.ref('notes/'+newNoteId).set({
+    id:newNoteId, brokerId, parentNoteId:noteId,
+    text, createdBy:currentUser.name, createdById:currentUser.id,
+    createdAt:Date.now(), readBy:{[currentUser.id]:true}
+  }).then(()=>{
+    ta.value='';
+    document.getElementById('call-note-'+noteId).style.display='none';
+    showToast('✓ Note added');
+  });
+}
 function addNote(brokerId){
   if(!currentUser.id){showToast('⚠ Please select a user first');return;}
   const ta=document.getElementById(`note-input-${brokerId}`);
@@ -899,15 +915,16 @@ function renderBrokers(){
             const isSms=n.type==='sms';
             const isAutoLogged=n.createdById==='openphone';
             let noteIconBg='#F5F3FF',noteIconColor='#4C1D95',noteIcon='ti-notes';
-            if(n.type==='call'&&n.direction==='incoming'){noteIconBg='#ECFDF5';noteIconColor='#065F46';noteIcon='ti-phone-incoming';}
-            else if(n.type==='call'&&n.direction==='outgoing'){noteIconBg='#EFF6FF';noteIconColor='#1E40AF';noteIcon='ti-phone-outgoing';}
-            else if(n.type==='call_missed'){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';}
-            else if(n.type==='sms'&&n.direction==='incoming'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message';}
-            else if(n.type==='sms'&&n.direction==='outgoing'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message-share';}
+            let callLabel=n.createdBy;
+            if(n.type==='call'&&n.direction==='incoming'){noteIconBg='#ECFDF5';noteIconColor='#065F46';noteIcon='ti-phone-incoming';callLabel='Incoming call';}
+            else if(n.type==='call'&&n.direction==='outgoing'){noteIconBg='#EFF6FF';noteIconColor='#1E40AF';noteIcon='ti-phone-outgoing';callLabel='Outgoing call';}
+            else if(n.type==='call_missed'){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';callLabel='Missed call';}
+            else if(n.type==='sms'&&n.direction==='incoming'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message';callLabel='SMS received';}
+            else if(n.type==='sms'&&n.direction==='outgoing'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message-share';callLabel='SMS sent';}
             return`<div class="note-item ${isUnread?'unread':''}">
               <div class="note-meta">
                 <div class="note-avatar" style="background:${noteIconBg};color:${noteIconColor}"><i class="ti ${noteIcon}" style="font-size:12px"></i></div>
-                <span class="note-author">${isAutoLogged?'OpenPhone':n.createdBy}</span>
+                <span class="note-author">${callLabel}</span>
                 ${isAutoLogged?`<span style="font-size:10px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:100px;font-weight:500">auto-logged</span>`:''}
                 ${n.duration?`<span style="font-size:11px;color:var(--text2)">${n.duration}</span>`:''}
                 <span class="note-time">${fmtDateTime(n.createdAt)}</span>
@@ -916,6 +933,13 @@ function renderBrokers(){
               </div>
               ${isSms&&n.smsBody?`<div class="note-text" style="font-style:italic;color:var(--text2)">"${n.smsBody.replace(/\n/g,'<br>')}"</div>`:(!isCall?`<div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>`:'')}
               ${n.summary?`<div class="note-text" style="margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2)"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:3px">AI Summary</span>${n.summary}</div>`:''}
+              ${isAutoLogged?`<div>
+                <button onclick="(function(){const el=document.getElementById('call-note-${n.id}');el.style.display=el.style.display==='none'?'flex':'none';})()" style="margin-top:6px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);display:inline-flex;align-items:center;gap:3px;padding:2px 0;font-family:inherit"><i class="ti ti-plus" style="font-size:12px"></i>Add note to this call</button>
+                <div id="call-note-${n.id}" style="display:none;margin-top:6px;gap:8px;align-items:flex-end">
+                  <textarea id="call-note-input-${n.id}" placeholder="What happened in this call..." rows="2" style="flex:1;font-size:12px;min-height:44px;resize:vertical"></textarea>
+                  <button class="btn btn-primary btn-sm" onclick="addCallNote('${n.id}','${b.id}')"><i class="ti ti-check"></i></button>
+                </div>
+              </div>`:''}
             </div>`;
           }).join('')}
         </div>
@@ -1042,14 +1066,16 @@ function renderProperties(){
             const pIsSms=n.type==='sms';
             const pIsAuto=n.createdById==='openphone';
             let pNIBg='#F5F3FF',pNIC='#4C1D95',pNII='ti-notes';
-            if(n.type==='call'&&n.direction==='incoming'){pNIBg='#ECFDF5';pNIC='#065F46';pNII='ti-phone-incoming';}
-            else if(n.type==='call'&&n.direction==='outgoing'){pNIBg='#EFF6FF';pNIC='#1E40AF';pNII='ti-phone-outgoing';}
-            else if(n.type==='call_missed'){pNIBg='#FEF2F2';pNIC='#991B1B';pNII='ti-phone-off';}
-            else if(n.type==='sms'){pNIBg='#FFFBEB';pNIC='#92400E';pNII='ti-message';}
+            let pCallLabel=n.createdBy;
+            if(n.type==='call'&&n.direction==='incoming'){pNIBg='#ECFDF5';pNIC='#065F46';pNII='ti-phone-incoming';pCallLabel='Incoming call';}
+            else if(n.type==='call'&&n.direction==='outgoing'){pNIBg='#EFF6FF';pNIC='#1E40AF';pNII='ti-phone-outgoing';pCallLabel='Outgoing call';}
+            else if(n.type==='call_missed'){pNIBg='#FEF2F2';pNIC='#991B1B';pNII='ti-phone-off';pCallLabel='Missed call';}
+            else if(n.type==='sms'&&n.direction==='incoming'){pNIBg='#FFFBEB';pNIC='#92400E';pNII='ti-message';pCallLabel='SMS received';}
+            else if(n.type==='sms'&&n.direction==='outgoing'){pNIBg='#FFFBEB';pNIC='#92400E';pNII='ti-message-share';pCallLabel='SMS sent';}
             return`<div class="note-item ${isUnread?'unread':''}">
               <div class="note-meta">
                 <div class="note-avatar" style="background:${pNIBg};color:${pNIC}"><i class="ti ${pNII}" style="font-size:12px"></i></div>
-                <span class="note-author">${pIsAuto?'OpenPhone':n.createdBy}</span>
+                <span class="note-author">${pCallLabel}</span>
                 ${pIsAuto?`<span style="font-size:10px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:100px;font-weight:500">auto-logged</span>`:''}
                 ${n.duration?`<span style="font-size:11px;color:var(--text2)">${n.duration}</span>`:''}
                 <span class="note-time">${fmtDateTime(n.createdAt)}</span>
