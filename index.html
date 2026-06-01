@@ -836,6 +836,7 @@ function renderBrokers(){
                 ${!isAutoLogged&&currentUser.id===n.createdById?`<button onclick="deleteNote('${n.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px" title="Delete note"><i class="ti ti-trash"></i></button>`:''}
               </div>
               ${isSms&&n.smsBody?`<div class="note-text" style="font-style:italic;color:var(--text2)">"${n.smsBody.replace(/\n/g,'<br>')}"</div>`:(!isCall?`<div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>`:'')}
+              ${n.summary?`<div class="note-text" style="margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2)"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:3px">AI Summary</span>${n.summary}</div>`:''}
             </div>`;
           }).join('')}
         </div>
@@ -893,7 +894,10 @@ function renderProperties(){
           </div>
           ${broker?`<div style="display:flex;align-items:center;gap:12px;margin-top:7px;flex-wrap:wrap">
             <span style="font-size:13px;font-weight:600;color:#111827;display:flex;align-items:center;gap:5px"><i class="ti ti-user" style="font-size:14px;color:var(--green)"></i>${broker.name}</span>
-            ${broker.phone?`<button onclick="navigator.clipboard.writeText('${broker.phone}').then(()=>showToast('✓ Phone copied'))" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;display:flex;align-items:center;gap:5px;padding:0;font-family:inherit" title="Click to copy"><i class="ti ti-phone" style="font-size:14px;color:var(--green)"></i>${broker.phone} <i class="ti ti-copy" style="font-size:12px;color:var(--text3)"></i></button>`:''}
+            ${broker.phone?`<div style="display:flex;align-items:center;gap:6px">
+              <button onclick="navigator.clipboard.writeText('${broker.phone}').then(()=>showToast('✓ Phone copied'))" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#111827;display:flex;align-items:center;gap:5px;padding:0;font-family:inherit" title="Click to copy"><i class="ti ti-phone" style="font-size:14px;color:var(--green)"></i>${broker.phone} <i class="ti ti-copy" style="font-size:12px;color:var(--text3)"></i></button>
+              <button onclick="(function(){const num='${broker.phone.replace(/\D/g,'')}';const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);if(isMobile){window.location.href='openphone://dial?number='+num+'&action=call';}else{window.location.href='tel:'+num;}})(  )" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Call via Quo"><i class="ti ti-phone-outgoing" style="font-size:12px"></i>Call</button>
+            </div>`:''}
           </div>`:''}
           <div class="prop-meta" style="margin-top:5px">
             ${p.rooms?`<span><i class="ti ti-door"></i>${p.rooms} bd</span>`:''}
@@ -974,6 +978,7 @@ function renderProperties(){
                 ${!pIsAuto&&currentUser.id===n.createdById?`<button onclick="deleteNote('${n.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px"><i class="ti ti-trash"></i></button>`:''}
               </div>
               ${pIsSms&&n.smsBody?`<div class="note-text" style="font-style:italic;color:var(--text2)">"${n.smsBody.replace(/\n/g,'<br>')}"</div>`:(!pIsCall?`<div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>`:'')}
+              ${n.summary?`<div class="note-text" style="margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2)"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:3px">AI Summary</span>${n.summary}</div>`:''}
             </div>`;
           }).join('')}
         </div>
