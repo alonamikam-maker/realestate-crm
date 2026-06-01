@@ -154,6 +154,7 @@ select{width:auto;cursor:pointer;}
 .reminder-popover{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px;width:280px;box-shadow:var(--shadow-md);z-index:200;}
 .reminder-popover input{margin-bottom:8px;}
 .bell-wrap{position:relative;display:inline-block;}
+.broker-bell-wrap{position:relative;display:inline-block;}
 .status-select{border:none;border-radius:100px;font-size:11px;font-weight:500;padding:3px 22px 3px 9px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B7280'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;outline:none;font-family:inherit;}
 .ss-green{background:#ECFDF5;color:#065F46;}
 .ss-amber{background:#FFFBEB;color:#92400E;}
@@ -620,6 +621,51 @@ function pReminderStatus(p){
   return d<0?'overdue':d===0?'today':'upcoming';
 }
 let openReminderPopover=null;
+let openBrokerReminderPopover=null;
+function toggleBrokerReminderPopover(brokerId){
+  if(openBrokerReminderPopover&&openBrokerReminderPopover!==brokerId){closeBrokerReminderPopover();}
+  const el=document.getElementById('brp-'+brokerId);
+  if(!el)return;
+  const isOpen=el.style.display==='block';
+  if(isOpen){closeBrokerReminderPopover();}
+  else{
+    const btn=document.getElementById('broker-bell-btn-'+brokerId);
+    if(btn){
+      const rect=btn.getBoundingClientRect();
+      const popW=280;
+      let left=rect.right-popW;
+      if(left<8)left=8;
+      el.style.top=(rect.bottom+6)+'px';
+      el.style.left=left+'px';
+      el.style.right='auto';
+    }
+    el.style.display='block';
+    openBrokerReminderPopover=brokerId;
+    const b=state.brokers[brokerId]||{};
+    const dateEl=document.getElementById('brp-date-'+brokerId);
+    const noteEl=document.getElementById('brp-note-'+brokerId);
+    if(dateEl)dateEl.value=b.reminder||'';
+    if(noteEl)noteEl.value=b.reminderNote||'';
+  }
+}
+function closeBrokerReminderPopover(){
+  if(openBrokerReminderPopover){
+    const el=document.getElementById('brp-'+openBrokerReminderPopover);
+    if(el)el.style.display='none';
+    openBrokerReminderPopover=null;
+  }
+}
+function saveBrokerReminder(brokerId){
+  const date=document.getElementById('brp-date-'+brokerId)?.value||'';
+  const note=document.getElementById('brp-note-'+brokerId)?.value||'';
+  db.ref('brokers/'+brokerId).update({reminder:date,reminderNote:note}).then(()=>{
+    showToast(date?'✓ Reminder set':'Reminder cleared');
+    closeBrokerReminderPopover();
+  });
+}
+function clearBrokerReminderPopover(brokerId){
+  db.ref('brokers/'+brokerId).update({reminder:'',reminderNote:''}).then(()=>{showToast('Reminder cleared');closeBrokerReminderPopover();});
+}
 function toggleReminderPopover(propId){
   if(openReminderPopover&&openReminderPopover!==propId){closeReminderPopover();}
   const el=document.getElementById('rp-'+propId);
@@ -728,6 +774,19 @@ function markNotesRead(brokerId){
       db.ref(`notes/${n.id}/readBy/${currentUser.id}`).set(true);
     }
   });
+}
+function startEditCallNote(cnId, brokerId){
+  document.getElementById('child-note-view-'+cnId).style.display='none';
+  document.getElementById('child-note-edit-'+cnId).style.display='flex';
+}
+function cancelEditCallNote(cnId){
+  document.getElementById('child-note-view-'+cnId).style.display='block';
+  document.getElementById('child-note-edit-'+cnId).style.display='none';
+}
+function saveEditCallNote(cnId){
+  const text=document.getElementById('child-note-edit-input-'+cnId)?.value.trim();
+  if(!text){showToast('⚠ Cannot be empty');return;}
+  db.ref('notes/'+cnId).update({text}).then(()=>{showToast('✓ Note updated');});
 }
 function addCallNote(noteId, brokerId){
   if(!currentUser.id){showToast('⚠ Please select a user first');return;}
@@ -942,7 +1001,7 @@ function renderBrokers(){
               ${isSms&&n.smsBody?`<div class="note-text" style="font-style:italic;color:var(--text2)">"${n.smsBody.replace(/\n/g,'<br>')}"</div>`:(!isCall?`<div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>`:'')}
               ${n.summary?`<div class="note-text" style="margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2)"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:3px">AI Summary</span>${n.summary}</div>`:''}
               ${isAutoLogged?`<div style="margin-top:6px">
-                ${childNotes.map(cn=>`<div style="margin-bottom:5px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2);line-height:1.5">${cn.text.replace(/\n/g,'<br>')}<span style="display:block;font-size:10px;color:var(--text3);margin-top:3px">${cn.createdBy} · ${fmtDateTime(cn.createdAt)}</span></div>`).join('')}
+                ${childNotes.map(cn=>`<div style="margin-bottom:5px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2);line-height:1.5" id="child-note-view-${cn.id}">${cn.text.replace(/\n/g,'<br>')}<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span style="font-size:10px;color:var(--text3)">${cn.createdBy} · ${fmtDateTime(cn.createdAt)}</span>${currentUser.id===cn.createdById?`<div style="display:flex;gap:4px"><button onclick="startEditCallNote('${cn.id}','${b.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);padding:1px 4px;border-radius:4px;font-family:inherit"><i class=\"ti ti-edit\" style=\"font-size:11px\"></i></button><button onclick="deleteNote('${cn.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:#DC2626;padding:1px 4px;border-radius:4px;font-family:inherit"><i class=\"ti ti-trash\" style=\"font-size:11px\"></i></button></div>`:''}</div></div><div id="child-note-edit-${cn.id}" style="display:none;margin-bottom:5px;gap:6px;align-items:flex-end"><textarea id="child-note-edit-input-${cn.id}" style="flex:1;font-size:12px;min-height:40px;resize:vertical">${cn.text}</textarea><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="saveEditCallNote('${cn.id}')"><i class=\"ti ti-check\"></i></button><button class="btn btn-ghost btn-sm" onclick="cancelEditCallNote('${cn.id}')"><i class=\"ti ti-x\"></i></button></div></div>`).join('')}
                 <button onclick="(function(){const el=document.getElementById('call-note-${n.id}');el.style.display=el.style.display==='none'?'flex':'none';})()" style="background:none;border:none;cursor:pointer;color:var(--text3);display:inline-flex;align-items:center;padding:2px 0;font-family:inherit" title="Add note to this call"><i class="ti ti-plus" style="font-size:15px;font-weight:700"></i></button>
                 <div id="call-note-${n.id}" style="display:none;margin-top:6px;gap:8px;align-items:flex-end">
                   <textarea id="call-note-input-${n.id}" placeholder="What happened in this call..." rows="2" style="flex:1;font-size:12px;min-height:44px;resize:vertical"></textarea>
@@ -1269,7 +1328,7 @@ function saveProperty(){
 function deleteProperty(id){if(!confirm('Delete this property?'))return;db.ref('properties/'+id).remove().then(()=>showToast('Property deleted'));}
 
 document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBrokerModal();});
-document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();});
+document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();if(openBrokerReminderPopover&&!e.target.closest('.broker-bell-wrap'))closeBrokerReminderPopover();});
 document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
 
 initUser();
