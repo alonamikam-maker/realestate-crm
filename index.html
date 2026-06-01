@@ -358,6 +358,9 @@ select{width:auto;cursor:pointer;}
     <i class="ti ti-bell"></i>Reminders
     <span id="mobile-reminder-badge" class="mobile-nav-badge" style="display:none"></span>
   </button>
+  <button class="mobile-nav-item" id="mnav-calculator" onclick="switchTab('calculator')">
+    <i class="ti ti-calculator"></i>Calc
+  </button>
 </nav>
 <header class="topbar">
   <div class="topbar-brand">
@@ -372,6 +375,7 @@ select{width:auto;cursor:pointer;}
       <button class="tab-btn" onclick="switchTab('brokers')" id="nav-brokers"><i class="ti ti-users"></i>Brokers</button>
       <button class="tab-btn" onclick="switchTab('properties')" id="nav-properties"><i class="ti ti-building-estate"></i>Properties</button>
       <button class="tab-btn" onclick="switchTab('reminders')" id="nav-reminders"><i class="ti ti-bell"></i>Reminders<span id="reminder-badge" class="tab-badge" style="display:none">0</span></button>
+      <button class="tab-btn" onclick="switchTab('calculator')" id="nav-calculator"><i class="ti ti-calculator"></i>Calculator</button>
     </nav>
   </div>
 </header>
@@ -424,6 +428,81 @@ select{width:auto;cursor:pointer;}
   <div class="page">
     <div class="page-hd"><div><div class="page-title">Reminders</div><div class="page-sub">Scheduled follow-up calls</div></div></div>
     <div id="reminders-list"></div>
+  </div>
+</div>
+
+<!-- Calculator Tab -->
+<div class="tab-content" id="tab-calculator">
+  <div class="page">
+    <div class="page-hd">
+      <div><div class="page-title">Fix &amp; Flip Calculator</div><div class="page-sub">Max Allowable Offer formula</div></div>
+    </div>
+    <div style="max-width:560px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)">
+
+        <!-- Input rows -->
+        <div style="padding:0 20px">
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)">
+            <div style="font-size:13px;font-weight:500;color:var(--text2)">Sqft of House</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" id="calc-sqft" value="1500" min="0" oninput="calcMAO()" style="width:100%;text-align:right;font-size:15px;font-weight:500;border:none;background:transparent;color:var(--text1);outline:none;padding:4px 0" />
+              <span style="font-size:13px;color:var(--text3);white-space:nowrap">sqft</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)">
+            <div style="font-size:13px;font-weight:500;color:var(--text2)">ARV Sale Price</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="font-size:14px;color:var(--text3)">$</span>
+              <input type="number" id="calc-arv" value="" placeholder="0" min="0" oninput="calcMAO()" style="width:100%;text-align:right;font-size:15px;font-weight:500;border:none;background:transparent;color:var(--text1);outline:none;padding:4px 0" />
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:16px 0;border-bottom:1px solid var(--border);background:var(--green-l);margin:0 -20px;padding-left:20px;padding-right:20px">
+            <div style="font-size:13px;font-weight:500;color:var(--green-d)">ARV Price / Sqft</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="font-size:14px;color:var(--green-d)">$</span>
+              <span id="calc-arv-sqft" style="flex:1;text-align:right;font-size:15px;font-weight:600;color:var(--green-d)">0</span>
+              <span style="font-size:13px;color:var(--green-d);white-space:nowrap">/sqft</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)">
+            <div style="font-size:13px;font-weight:500;color:var(--text2)">Soft Costs / Profit</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" id="calc-soft" value="30" min="0" max="100" oninput="calcMAO()" style="width:100%;text-align:right;font-size:15px;font-weight:500;border:none;background:transparent;color:var(--text1);outline:none;padding:4px 0" />
+              <span style="font-size:13px;color:var(--text3)">%</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:16px 0">
+            <div style="font-size:13px;font-weight:500;color:var(--text2)">Rehab Cost</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="font-size:14px;color:var(--text3)">$</span>
+              <input type="number" id="calc-rehab" value="" placeholder="0" min="0" oninput="calcMAO()" style="width:100%;text-align:right;font-size:15px;font-weight:500;border:none;background:transparent;color:var(--text1);outline:none;padding:4px 0" />
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Result -->
+        <div style="background:var(--green-l);border-top:2px solid var(--green-m);padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;align-items:center">
+          <div style="font-size:14px;font-weight:600;color:var(--green-d)">Max Allowable Offer</div>
+          <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">
+            <span style="font-size:14px;font-weight:600;color:var(--green-d)">$</span>
+            <span id="calc-mao" style="font-size:24px;font-weight:700;color:var(--green-d)">0</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Formula explanation -->
+      <div style="margin-top:16px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);font-size:12px;color:var(--text2);line-height:1.7">
+        <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:6px">Formula</span>
+        MAO = (ARV × (1 − Soft Costs%)) − Rehab Cost
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1055,13 +1134,14 @@ function rCard(b){
 function updateBadge(){const nb=bArr().filter(b=>rStatus(b)==='overdue'||rStatus(b)==='today').length;const np=pArr().filter(p=>pReminderStatus(p)==='overdue'||pReminderStatus(p)==='today').length;const n=nb+np;const el=document.getElementById('reminder-badge');el.textContent=n;el.style.display=n>0?'inline':'none';const mel=document.getElementById('mobile-reminder-badge');if(mel){mel.textContent=n;mel.style.display=n>0?'inline':'none';}}
 
 function switchTab(tab){
-  ['dashboard','brokers','properties','reminders'].forEach(t=>{
+  ['dashboard','brokers','properties','reminders','calculator'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('nav-'+t).classList.toggle('active',t===tab);
     const mn=document.getElementById('mnav-'+t);
     if(mn)mn.classList.toggle('active',t===tab);
   });
 }
+
 
 function populateBrokerSelect(sel){document.getElementById('p-broker').innerHTML='<option value="">None</option>'+bArr().map(b=>`<option value="${b.id}" ${b.id===sel?'selected':''}>${b.name}</option>`).join('');}
 function populatePropertySelect(sel){document.getElementById('b-linked-property').innerHTML='<option value="">None</option>'+pArr().map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${p.address}</option>`).join('');}
@@ -1118,6 +1198,22 @@ function deleteBroker(id){
 }
 function clearReminder(id){db.ref('brokers/'+id).update({reminder:'',reminderNote:''}).then(()=>showToast('✓ Marked as done'));}
 
+function calcMAO(){
+  const sqft = parseFloat(document.getElementById('calc-sqft')?.value) || 0;
+  const arv = parseFloat(document.getElementById('calc-arv')?.value) || 0;
+  const soft = parseFloat(document.getElementById('calc-soft')?.value) || 30;
+  const rehab = parseFloat(document.getElementById('calc-rehab')?.value) || 0;
+  const arvPerSqft = sqft > 0 ? arv / sqft : 0;
+  const mao = (arv * (1 - soft / 100)) - rehab;
+  const maoEl = document.getElementById('calc-mao');
+  const arvSqftEl = document.getElementById('calc-arv-sqft');
+  if(arvSqftEl) arvSqftEl.textContent = '$' + Math.round(arvPerSqft).toLocaleString();
+  if(maoEl){
+    maoEl.textContent = (mao < 0 ? '-$' : '$') + Math.abs(Math.round(mao)).toLocaleString();
+    maoEl.style.color = mao < 0 ? '#EF4444' : 'var(--green-d)';
+    document.getElementById('calc-mao').previousElementSibling.style.color = mao < 0 ? '#EF4444' : 'var(--green-d)';
+  }
+}
 function updatePropertyStatus(propId, newStatus){
   db.ref('properties/'+propId).update({status:newStatus}).then(()=>showToast('✓ Status updated'));
 }
