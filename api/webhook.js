@@ -65,6 +65,10 @@ module.exports = async (req, res) => {
 
     if (!type || !data) return res.status(400).json({ error: 'Invalid payload' });
 
+    // Debug logging
+    console.log('EVENT TYPE:', type);
+    console.log('EVENT DATA:', JSON.stringify(data, null, 2));
+
     const brokers = await firebaseRequest('GET', '/brokers');
 
     // ── call.summary.completed
