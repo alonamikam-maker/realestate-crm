@@ -670,6 +670,12 @@ function pArr(){return Object.entries(state.properties).map(([id,v])=>({id,...v}
 function calcDOM(ts){if(!ts)return 0;return Math.floor((Date.now()-Number(ts))/86400000);}
 
 // ── Notes helpers
+function allNotesForBroker(brokerId){
+  return Object.entries(state.notes)
+    .filter(([,n])=>n.brokerId===brokerId)
+    .map(([id,n])=>({id,...n}))
+    .sort((a,b)=>a.createdAt-b.createdAt);
+}
 function notesForBroker(brokerId){
   return Object.entries(state.notes)
     .filter(([,n])=>n.brokerId===brokerId&&!n.parentNoteId)
@@ -911,15 +917,16 @@ function renderBrokers(){
           notes.map(n=>{
             const isUnread=currentUser.id&&!(n.readBy&&n.readBy[currentUser.id]);
             const uc=userColors[n.createdById]||{bg:'#F3F4F6',color:'#374151'};
-            const childNotes=notesForBroker(b.id).filter(cn=>cn.parentNoteId===n.id);
+            const childNotes=allNotesForBroker(b.id).filter(cn=>cn.parentNoteId===n.id);
             const isCall=n.type==='call'||n.type==='call_missed';
             const isSms=n.type==='sms';
             const isAutoLogged=n.createdById==='openphone';
             let noteIconBg='#F5F3FF',noteIconColor='#4C1D95',noteIcon='ti-notes';
             let callLabel=n.createdBy;
-            if(n.type==='call'&&n.direction==='incoming'){noteIconBg='#ECFDF5';noteIconColor='#065F46';noteIcon='ti-phone-incoming';callLabel='Incoming call';}
+            if(n.type==='call'&&n.direction==='incoming'&&n.durationSeconds>0){noteIconBg='#ECFDF5';noteIconColor='#065F46';noteIcon='ti-phone-incoming';callLabel='Incoming call';}
+            else if(n.type==='call'&&n.direction==='incoming'&&!n.durationSeconds){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';callLabel='Missed call';}
             else if(n.type==='call'&&n.direction==='outgoing'){noteIconBg='#EFF6FF';noteIconColor='#1E40AF';noteIcon='ti-phone-outgoing';callLabel='Outgoing call';}
-            else if(n.type==='call_missed'||( n.type==='call'&&n.status==='no-answer')){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';callLabel='Missed call';}
+            else if(n.type==='call_missed'){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';callLabel='Missed call';}
             else if(n.type==='sms'&&n.direction==='incoming'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message';callLabel='SMS received';}
             else if(n.type==='sms'&&n.direction==='outgoing'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message-share';callLabel='SMS sent';}
             return`<div class="note-item ${isUnread?'unread':''}">
