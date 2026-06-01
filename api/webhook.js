@@ -103,7 +103,7 @@ async function runQuoImport() {
         if (!name) { skipped++; continue; }
 
         // Get first phone number
-        const phoneObj = contact.phoneNumbers?.[0];
+        const phoneObj = contact.defaultFields?.phoneNumbers?.[0] || contact.phoneNumbers?.[0];
         const phone = phoneObj?.value || phoneObj?.phoneNumber || '';
         if (!phone) { skipped++; continue; }
 
