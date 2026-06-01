@@ -355,7 +355,7 @@ select{width:auto;cursor:pointer;}
 }
 
 /* Calendar Dropdown */
-.cal-dropdown{position:fixed;top:60px;right:16px;width:360px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-md);z-index:150;overflow:hidden;transform-origin:top right;transition:transform 0.2s ease,opacity 0.2s ease;transform:scale(0.95);opacity:0;pointer-events:none;}
+.cal-dropdown{position:fixed;top:60px;right:16px;width:680px;max-width:calc(100vw - 32px);background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-md);z-index:150;overflow:hidden;transform-origin:top right;transition:transform 0.2s ease,opacity 0.2s ease;transform:scale(0.95);opacity:0;pointer-events:none;}
 .cal-dropdown.open{transform:scale(1);opacity:1;pointer-events:all;}
 .cal-dropdown-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .cal-dropdown-title{font-size:13px;font-weight:600;color:var(--text1);}
@@ -436,7 +436,7 @@ select{width:auto;cursor:pointer;}
       <button class="tab-btn" onclick="switchTab('properties')" id="nav-properties"><i class="ti ti-building-estate"></i>Properties</button>
       <button class="tab-btn" onclick="switchTab('reminders')" id="nav-reminders"><i class="ti ti-bell"></i>Reminders<span id="reminder-badge" class="tab-badge" style="display:none">0</span></button>
       <button class="tab-btn" onclick="switchTab('calculator')" id="nav-calculator"><i class="ti ti-calculator"></i>Calculator</button>
-      <button class="tab-btn" onclick="switchTab('calendar')" id="nav-calendar"><i class="ti ti-calendar"></i>Calendar</button>
+      
     </nav>
   </div>
 </header>
@@ -594,12 +594,13 @@ select{width:auto;cursor:pointer;}
       <button class="btn btn-ghost btn-sm" onclick="closeCalDropdown()" style="padding:3px 7px"><i class="ti ti-x"></i></button>
     </div>
   </div>
-  <div class="cal-mini-grid">
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;" id="drop-cal-grid"></div>
+  <div style="padding:0 0 8px" id="drop-cal-grid-wrap">
+    <div id="drop-cal-grid"></div>
   </div>
   <div class="cal-upcoming" id="drop-upcoming"></div>
   <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px">
-    <button class="btn btn-primary btn-sm" style="flex:1" onclick="closeCalDropdown();openMeetingModal()"><i class="ti ti-plus"></i>Add Meeting</button>
+    <button class="btn btn-primary btn-sm" style="flex:1" onclick="closeCalDropdown();openMeetingModal()"><i class="ti ti-calendar-event"></i>Add Meeting</button>
+    <button class="btn btn-ghost btn-sm" style="flex:1" onclick="closeCalDropdown();openQuickReminderModal()"><i class="ti ti-bell-plus"></i>Add Reminder</button>
   </div>
 </div>
 
@@ -620,6 +621,25 @@ select{width:auto;cursor:pointer;}
         <button class="btn btn-ghost btn-sm" onclick="calGoToday()">Today</button>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Reminder Modal -->
+<div class="overlay" id="quick-reminder-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hd"><span>Add Reminder</span><button class="btn btn-ghost btn-sm" onclick="closeQuickReminderModal()"><i class="ti ti-x"></i></button></div>
+    <div class="form-sep"><i class="ti ti-bell"></i>Reminder Details</div>
+    <div class="form-g"><label class="form-lbl">Date *</label><input type="date" id="qr-date" style="width:100%" /></div>
+    <div class="form-g"><label class="form-lbl">Note</label><input type="text" id="qr-note" placeholder="What to do on this day..." /></div>
+    <div class="form-sep"><i class="ti ti-link"></i>Link to (optional)</div>
+    <div class="form-row">
+      <div class="form-g"><label class="form-lbl">Broker</label><select id="qr-broker" style="width:100%"><option value="">None</option></select></div>
+      <div class="form-g"><label class="form-lbl">Property</label><select id="qr-property" style="width:100%"><option value="">None</option></select></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeQuickReminderModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuickReminder()"><i class="ti ti-check"></i>Save</button>
     </div>
   </div>
 </div>
@@ -1563,6 +1583,7 @@ function deleteProperty(id){if(!confirm('Delete this property?'))return;db.ref('
 
 document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBrokerModal();});
 document.getElementById('meeting-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMeetingModal();});
+document.getElementById('quick-reminder-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeQuickReminderModal();});
 document.getElementById('day-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDayModal();});
 document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();if(openBrokerReminderPopover&&!e.target.closest('.broker-bell-wrap'))closeBrokerReminderPopover();});
 document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
@@ -1819,6 +1840,31 @@ function openEventDetail(eventId){
   }
 }
 
+function openQuickReminderModal(){
+  document.getElementById('qr-broker').innerHTML='<option value="">None</option>'+bArr().map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  document.getElementById('qr-property').innerHTML='<option value="">None</option>'+pArr().map(p=>`<option value="${p.id}">${p.address}</option>`).join('');
+  ['qr-date','qr-note'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('qr-broker').value='';
+  document.getElementById('qr-property').value='';
+  document.getElementById('quick-reminder-modal').classList.add('open');
+}
+function closeQuickReminderModal(){document.getElementById('quick-reminder-modal').classList.remove('open');}
+function saveQuickReminder(){
+  const date=document.getElementById('qr-date').value;
+  const note=document.getElementById('qr-note').value;
+  const brokerId=document.getElementById('qr-broker').value;
+  const propertyId=document.getElementById('qr-property').value;
+  if(!date){showToast('⚠ Date is required');return;}
+  if(brokerId){
+    db.ref('brokers/'+brokerId).update({reminder:date,reminderNote:note}).then(()=>{showToast('✓ Reminder set for broker');closeQuickReminderModal();});
+  } else if(propertyId){
+    db.ref('properties/'+propertyId).update({reminder:date,reminderNote:note}).then(()=>{showToast('✓ Reminder set for property');closeQuickReminderModal();});
+  } else {
+    // Save as standalone meeting reminder
+    const id=db.ref('meetings').push().key;
+    db.ref('meetings/'+id).set({title:note||'Reminder',date,createdAt:Date.now()}).then(()=>{showToast('✓ Reminder added');closeQuickReminderModal();});
+  }
+}
 function openMeetingModal(id){
   editingMeetingId=id||null;
   document.getElementById('m-broker').innerHTML='<option value="">None</option>'+bArr().map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
