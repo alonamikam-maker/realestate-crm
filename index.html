@@ -325,6 +325,34 @@ select{width:auto;cursor:pointer;}
   padding:1px 5px;border-radius:100px;
   line-height:1.4;
 }
+
+/* ── Calendar ── */
+.cal-wrap{max-width:900px;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.cal-title{font-size:18px;font-weight:600;color:var(--text1);}
+.cal-nav{display:flex;align-items:center;gap:8px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.cal-dow{background:var(--surface2);padding:10px 4px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);}
+.cal-day{background:var(--surface);min-height:90px;padding:6px;cursor:pointer;transition:background 0.1s;position:relative;display:flex;flex-direction:column;}
+.cal-day:hover{background:var(--surface2);}
+.cal-day.other-month{background:var(--surface2);}
+.cal-day.other-month .cal-day-num{color:var(--text3);}
+.cal-day.today{background:var(--green-l);}
+.cal-day.today .cal-day-num{background:var(--green);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-weight:600;}
+.cal-day-num{font-size:13px;font-weight:500;color:var(--text1);width:24px;height:24px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
+.cal-events{display:flex;flex-direction:column;gap:2px;flex:1;}
+.cal-event{font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.cal-event.ev-broker{background:#EFF6FF;color:#1E40AF;}
+.cal-event.ev-property{background:#E8F8F2;color:#0F6E56;}
+.cal-event.ev-meeting{background:#F5F3FF;color:#4C1D95;}
+.cal-event.ev-overdue{background:#FEF2F2;color:#991B1B;}
+.cal-event.ev-today{background:var(--green);color:#fff;}
+.cal-more{font-size:10px;color:var(--text3);padding:1px 4px;}
+@media(max-width:680px){
+  .cal-day{min-height:60px;}
+  .cal-event{display:none;}
+  .cal-day.has-events::after{content:'•';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);color:var(--green);font-size:14px;}
+}
 </style>
 </head>
 <body>
@@ -362,6 +390,9 @@ select{width:auto;cursor:pointer;}
   <button class="mobile-nav-item" id="mnav-calculator" onclick="switchTab('calculator')">
     <i class="ti ti-calculator"></i>Calc
   </button>
+  <button class="mobile-nav-item" id="mnav-calendar" onclick="switchTab('calendar')">
+    <i class="ti ti-calendar"></i>Calendar
+  </button>
 </nav>
 <header class="topbar">
   <div class="topbar-brand">
@@ -377,6 +408,7 @@ select{width:auto;cursor:pointer;}
       <button class="tab-btn" onclick="switchTab('properties')" id="nav-properties"><i class="ti ti-building-estate"></i>Properties</button>
       <button class="tab-btn" onclick="switchTab('reminders')" id="nav-reminders"><i class="ti ti-bell"></i>Reminders<span id="reminder-badge" class="tab-badge" style="display:none">0</span></button>
       <button class="tab-btn" onclick="switchTab('calculator')" id="nav-calculator"><i class="ti ti-calculator"></i>Calculator</button>
+      <button class="tab-btn" onclick="switchTab('calendar')" id="nav-calendar"><i class="ti ti-calendar"></i>Calendar</button>
     </nav>
   </div>
 </header>
@@ -503,6 +535,62 @@ select{width:auto;cursor:pointer;}
         <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:6px">Formula</span>
         MAO = (ARV × (1 − Soft Costs%)) − Rehab Cost
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Tab -->
+<div class="tab-content" id="tab-calendar">
+  <div class="page">
+    <div class="page-hd">
+      <div><div class="page-title">Calendar</div><div class="page-sub">Meetings, follow-ups and reminders</div></div>
+      <button class="btn btn-primary" onclick="openMeetingModal()"><i class="ti ti-plus"></i>Add Meeting</button>
+    </div>
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button class="btn btn-ghost btn-sm" onclick="calPrev()"><i class="ti ti-chevron-left"></i></button>
+          <span class="cal-title" id="cal-title"></span>
+          <button class="btn btn-ghost btn-sm" onclick="calNext()"><i class="ti ti-chevron-right"></i></button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="calGoToday()">Today</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Modal -->
+<div class="overlay" id="meeting-modal">
+  <div class="modal">
+    <div class="modal-hd"><span id="meeting-modal-title">Add Meeting</span><button class="btn btn-ghost btn-sm" onclick="closeMeetingModal()"><i class="ti ti-x"></i></button></div>
+    <div class="form-sep"><i class="ti ti-calendar-event"></i>Meeting Details</div>
+    <div class="form-g"><label class="form-lbl">Title *</label><input type="text" id="m-title" placeholder="Call with John, Property walkthrough..." /></div>
+    <div class="form-row">
+      <div class="form-g"><label class="form-lbl">Date *</label><input type="date" id="m-date" style="width:100%" /></div>
+      <div class="form-g"><label class="form-lbl">Time</label><input type="time" id="m-time" style="width:100%" /></div>
+    </div>
+    <div class="form-sep"><i class="ti ti-link"></i>Link to (optional)</div>
+    <div class="form-row">
+      <div class="form-g"><label class="form-lbl">Broker</label><select id="m-broker" style="width:100%"><option value="">None</option></select></div>
+      <div class="form-g"><label class="form-lbl">Property</label><select id="m-property" style="width:100%"><option value="">None</option></select></div>
+    </div>
+    <div class="form-g"><label class="form-lbl">Notes</label><textarea id="m-notes" placeholder="Meeting agenda, details..."></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeMeetingModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMeeting()"><i class="ti ti-check"></i>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Day Events Modal -->
+<div class="overlay" id="day-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hd"><span id="day-modal-title"></span><button class="btn btn-ghost btn-sm" onclick="closeDayModal()"><i class="ti ti-x"></i></button></div>
+    <div id="day-modal-events" style="max-height:400px;overflow-y:auto"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDayModal()">Close</button>
+      <button class="btn btn-primary" onclick="closeDayModal();openMeetingModal()"><i class="ti ti-plus"></i>Add Meeting</button>
     </div>
   </div>
 </div>
@@ -1293,7 +1381,8 @@ function updateBadge(){const nb=bArr().filter(b=>rStatus(b)==='overdue'||rStatus
 
 function switchTab(tab){
   sessionStorage.setItem('crm_tab',tab);
-  ['dashboard','brokers','properties','reminders','calculator'].forEach(t=>{
+  if(tab==='calendar')setTimeout(renderCalendar,50);
+  ['dashboard','brokers','properties','reminders','calculator','calendar'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('nav-'+t).classList.toggle('active',t===tab);
     const mn=document.getElementById('mnav-'+t);
@@ -1393,8 +1482,197 @@ function saveProperty(){
 function deleteProperty(id){if(!confirm('Delete this property?'))return;db.ref('properties/'+id).remove().then(()=>showToast('Property deleted'));}
 
 document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBrokerModal();});
+document.getElementById('meeting-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMeetingModal();});
+document.getElementById('day-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDayModal();});
 document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();if(openBrokerReminderPopover&&!e.target.closest('.broker-bell-wrap'))closeBrokerReminderPopover();});
 document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
+
+
+// ── Calendar ──────────────────────────────────
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+let editingMeetingId=null;
+
+function calGoToday(){calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+function getCalEvents(){
+  const events=[];
+  const today=new Date();today.setHours(0,0,0,0);
+  // Broker reminders
+  bArr().forEach(b=>{
+    if(!b.reminder)return;
+    const d=new Date(b.reminder);d.setHours(0,0,0,0);
+    const isOverdue=d<today, isToday=d.getTime()===today.getTime();
+    events.push({
+      id:'br-'+b.id, date:b.reminder, title:b.name,
+      subtitle:b.reminderNote||'Follow-up call',
+      type: isOverdue?'overdue': isToday?'today':'broker',
+      brokerId:b.id, kind:'broker'
+    });
+  });
+  // Property reminders
+  pArr().forEach(p=>{
+    if(!p.reminder)return;
+    const d=new Date(p.reminder);d.setHours(0,0,0,0);
+    const isOverdue=d<today, isToday=d.getTime()===today.getTime();
+    events.push({
+      id:'pr-'+p.id, date:p.reminder, title:p.address,
+      subtitle:p.reminderNote||'Property follow-up',
+      type: isOverdue?'overdue': isToday?'today':'property',
+      propertyId:p.id, kind:'property'
+    });
+  });
+  // Meetings
+  Object.entries(state.meetings||{}).forEach(([id,m])=>{
+    if(!m.date)return;
+    const d=new Date(m.date);d.setHours(0,0,0,0);
+    const isOverdue=d<today, isToday=d.getTime()===today.getTime();
+    events.push({
+      id, date:m.date, title:m.title,
+      subtitle:m.notes||'',
+      type: isOverdue?'overdue': isToday?'today':'meeting',
+      brokerId:m.brokerId, propertyId:m.propertyId,
+      time:m.time, kind:'meeting'
+    });
+  });
+  return events;
+}
+
+function renderCalendar(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
+  const today=new Date();today.setHours(0,0,0,0);
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0);
+  const startDow=firstDay.getDay();
+  const events=getCalEvents();
+  const grid=document.getElementById('cal-grid');
+  if(!grid)return;
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  // Prev month padding
+  const prevLastDay=new Date(calYear,calMonth,0);
+  for(let i=startDow-1;i>=0;i--){
+    const d=prevLastDay.getDate()-i;
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+  }
+  // Current month days
+  for(let d=1;d<=lastDay.getDate();d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayDate=new Date(calYear,calMonth,d);dayDate.setHours(0,0,0,0);
+    const isToday=dayDate.getTime()===today.getTime();
+    const dayEvents=events.filter(e=>e.date===dateStr).sort((a,b)=>{
+      const order={overdue:0,today:1,meeting:2,broker:3,property:4};
+      return (order[a.type]??5)-(order[b.type]??5);
+    });
+    const hasEvents=dayEvents.length>0;
+    const maxShow=3;
+    const evHTML=dayEvents.slice(0,maxShow).map(e=>`<div class="cal-event ev-${e.type}" onclick="event.stopPropagation();openEventDetail('${e.id}')" title="${e.title}">${e.time?'<span>'+e.time+'</span> ':''} ${e.title}</div>`).join('');
+    const moreHTML=dayEvents.length>maxShow?`<div class="cal-more">+${dayEvents.length-maxShow} more</div>`:'';
+    html+=`<div class="cal-day${isToday?' today':''}${hasEvents?' has-events':''}" onclick="openDayModal('${dateStr}')">
+      <div class="cal-day-num">${d}</div>
+      <div class="cal-events">${evHTML}${moreHTML}</div>
+    </div>`;
+  }
+  // Next month padding
+  const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
+  const nextDays=totalCells-(startDow+lastDay.getDate());
+  for(let d=1;d<=nextDays;d++){
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+  }
+  grid.innerHTML=html;
+}
+
+function openDayModal(dateStr){
+  const d=new Date(dateStr+'T12:00:00');
+  document.getElementById('day-modal-title').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const events=getCalEvents().filter(e=>e.date===dateStr);
+  const el=document.getElementById('day-modal-events');
+  if(!events.length){el.innerHTML='<div class="empty" style="padding:20px"><i class="ti ti-calendar-off"></i><p>No events this day</p></div>';}
+  else el.innerHTML=events.map(e=>{
+    const broker=e.brokerId?state.brokers[e.brokerId]:null;
+    const prop=e.propertyId?state.properties[e.propertyId]:null;
+    const typeLabel={broker:'Broker reminder',property:'Property reminder',meeting:'Meeting',overdue:'Overdue',today:'Today'}[e.type]||'';
+    return`<div style="padding:12px 0;border-bottom:0.5px solid var(--border);display:flex;gap:12px;align-items:start">
+      <div style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;background:${e.type==='overdue'?'#EF4444':e.type==='today'||e.type==='meeting'?'var(--green)':e.type==='broker'?'#2563EB':'var(--green)'}"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text1)">${e.time?`<span style="color:var(--text3);font-weight:400;font-size:12px">${e.time} · </span>`:''}${e.title}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${typeLabel}${broker?' · '+broker.name:''}${prop?' · '+prop.address:''}</div>
+        ${e.subtitle?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${e.subtitle}</div>`:''}
+      </div>
+      ${e.kind==='meeting'?`<button class="btn btn-ghost btn-sm" onclick="closeDayModal();openMeetingModal('${e.id}')"><i class="ti ti-edit"></i></button>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('day-modal').classList.add('open');
+}
+function closeDayModal(){document.getElementById('day-modal').classList.remove('open');}
+
+function openEventDetail(eventId){
+  if(eventId.startsWith('br-')){
+    const brokerId=eventId.slice(3);
+    closeDayModal();switchTab('brokers');setTimeout(()=>openBrokerModal(brokerId),120);
+  } else if(eventId.startsWith('pr-')){
+    const propId=eventId.slice(3);
+    closeDayModal();scrollToProperty(propId);
+  }
+}
+
+function openMeetingModal(id){
+  editingMeetingId=id||null;
+  document.getElementById('m-broker').innerHTML='<option value="">None</option>'+bArr().map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  document.getElementById('m-property').innerHTML='<option value="">None</option>'+pArr().map(p=>`<option value="${p.id}">${p.address}</option>`).join('');
+  if(id&&state.meetings?.[id]){
+    const m=state.meetings[id];
+    document.getElementById('meeting-modal-title').textContent='Edit Meeting';
+    document.getElementById('m-title').value=m.title||'';
+    document.getElementById('m-date').value=m.date||'';
+    document.getElementById('m-time').value=m.time||'';
+    document.getElementById('m-broker').value=m.brokerId||'';
+    document.getElementById('m-property').value=m.propertyId||'';
+    document.getElementById('m-notes').value=m.notes||'';
+  } else {
+    document.getElementById('meeting-modal-title').textContent='Add Meeting';
+    ['m-title','m-date','m-time','m-notes'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('m-broker').value='';
+    document.getElementById('m-property').value='';
+  }
+  document.getElementById('meeting-modal').classList.add('open');
+}
+function closeMeetingModal(){document.getElementById('meeting-modal').classList.remove('open');}
+function saveMeeting(){
+  const title=document.getElementById('m-title').value.trim();
+  const date=document.getElementById('m-date').value;
+  if(!title){showToast('⚠ Title is required');return;}
+  if(!date){showToast('⚠ Date is required');return;}
+  const data={title,date,time:document.getElementById('m-time').value,brokerId:document.getElementById('m-broker').value,propertyId:document.getElementById('m-property').value,notes:document.getElementById('m-notes').value,createdAt:editingMeetingId?(state.meetings?.[editingMeetingId]?.createdAt||Date.now()):Date.now()};
+  const id=editingMeetingId||db.ref('meetings').push().key;
+  db.ref('meetings/'+id).set(data).then(()=>{showToast(editingMeetingId?'✓ Meeting updated':'✓ Meeting added');renderCalendar();});
+  closeMeetingModal();
+}
+function deleteMeeting(id){if(!confirm('Delete this meeting?'))return;db.ref('meetings/'+id).remove().then(()=>{showToast('Meeting deleted');renderCalendar();});}
+
+// Listen for meetings in Firebase
+db.ref('meetings').on('value',snap=>{state.meetings=snap.val()||{};renderCalendar();});
+
+// Upcoming meeting alert
+function checkUpcomingMeetings(){
+  const now=new Date();
+  const in30=new Date(now.getTime()+30*60000);
+  Object.entries(state.meetings||{}).forEach(([id,m])=>{
+    if(!m.date||!m.time)return;
+    const meetingTime=new Date(m.date+'T'+m.time);
+    if(meetingTime>now&&meetingTime<=in30){
+      const alerted=sessionStorage.getItem('alerted-'+id);
+      if(!alerted){
+        showToast('📅 Meeting in 30 min: '+m.title, 6000);
+        sessionStorage.setItem('alerted-'+id,'1');
+      }
+    }
+  });
+}
+setInterval(checkUpcomingMeetings, 60000);
+// ── End Calendar ──────────────────────────────
 
 initUser();
 const _savedTab=sessionStorage.getItem('crm_tab');
