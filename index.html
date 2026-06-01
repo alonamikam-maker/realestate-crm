@@ -730,9 +730,24 @@ function notesForBroker(brokerId){
 }
 function notesForProperty(propertyId){
   return Object.entries(state.notes)
-    .filter(([,n])=>n.propertyId===propertyId)
+    .filter(([,n])=>{
+      if(n.parentNoteId)return false;
+      if(n.propertyId===propertyId)return true;
+      if(n.propertyIds&&n.propertyIds.includes(propertyId))return true;
+      return false;
+    })
     .map(([id,n])=>({id,...n}))
     .sort((a,b)=>b.createdAt-a.createdAt);
+}
+function allNotesForProperty(propertyId){
+  return Object.entries(state.notes)
+    .filter(([,n])=>{
+      if(n.propertyId===propertyId)return true;
+      if(n.propertyIds&&n.propertyIds.includes(propertyId))return true;
+      return false;
+    })
+    .map(([id,n])=>({id,...n}))
+    .sort((a,b)=>a.createdAt-b.createdAt);
 }
 function unreadCountProperty(propertyId){
   if(!currentUser.id)return 0;
@@ -752,7 +767,10 @@ function addPropertyNote(propertyId){
   const text=(ta?.value||'').trim();
   if(!text){showToast('⚠ Note cannot be empty');return;}
   const noteId=db.ref('notes').push().key;
-  db.ref(`notes/${noteId}`).set({id:noteId,propertyId,text,createdBy:currentUser.name,createdById:currentUser.id,createdAt:Date.now(),readBy:{[currentUser.id]:true}}).then(()=>{ta.value='';showToast('✓ Note added');});
+  const prop=state.properties[propertyId]||{};
+  const noteData={id:noteId,propertyId,text,createdBy:currentUser.name,createdById:currentUser.id,createdAt:Date.now(),readBy:{[currentUser.id]:true}};
+  if(prop.brokerId)noteData.brokerId=prop.brokerId;
+  db.ref(`notes/${noteId}`).set(noteData).then(()=>{ta.value='';showToast('✓ Note added');});
 }
 function togglePropertyNotes(propertyId){
   const panel=document.getElementById(`pnotes-panel-${propertyId}`);
@@ -787,6 +805,17 @@ function saveEditCallNote(cnId){
   const text=document.getElementById('child-note-edit-input-'+cnId)?.value.trim();
   if(!text){showToast('⚠ Cannot be empty');return;}
   db.ref('notes/'+cnId).update({text}).then(()=>{showToast('✓ Note updated');});
+}
+function addPropCallNote(noteId, propertyId){
+  if(!currentUser.id){showToast('⚠ Please select a user first');return;}
+  const ta=document.getElementById('pcall-note-input-'+noteId);
+  const text=(ta?.value||'').trim();
+  if(!text){showToast('⚠ Note cannot be empty');return;}
+  const newNoteId=db.ref('notes').push().key;
+  const prop=state.properties[propertyId]||{};
+  const noteData={id:newNoteId,parentNoteId:noteId,propertyId,text,createdBy:currentUser.name,createdById:currentUser.id,createdAt:Date.now(),readBy:{[currentUser.id]:true}};
+  if(prop.brokerId)noteData.brokerId=prop.brokerId;
+  db.ref('notes/'+newNoteId).set(noteData).then(()=>{ta.value='';document.getElementById('pcall-note-'+noteId).style.display='none';showToast('✓ Note added');});
 }
 function addCallNote(noteId, brokerId){
   if(!currentUser.id){showToast('⚠ Please select a user first');return;}
