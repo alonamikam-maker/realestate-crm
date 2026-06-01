@@ -672,7 +672,7 @@ function calcDOM(ts){if(!ts)return 0;return Math.floor((Date.now()-Number(ts))/8
 // ── Notes helpers
 function notesForBroker(brokerId){
   return Object.entries(state.notes)
-    .filter(([,n])=>n.brokerId===brokerId)
+    .filter(([,n])=>n.brokerId===brokerId&&!n.parentNoteId)
     .map(([id,n])=>({id,...n}))
     .sort((a,b)=>b.createdAt-a.createdAt);
 }
@@ -911,6 +911,7 @@ function renderBrokers(){
           notes.map(n=>{
             const isUnread=currentUser.id&&!(n.readBy&&n.readBy[currentUser.id]);
             const uc=userColors[n.createdById]||{bg:'#F3F4F6',color:'#374151'};
+            const childNotes=notesForBroker(b.id).filter(cn=>cn.parentNoteId===n.id);
             const isCall=n.type==='call'||n.type==='call_missed';
             const isSms=n.type==='sms';
             const isAutoLogged=n.createdById==='openphone';
@@ -918,13 +919,13 @@ function renderBrokers(){
             let callLabel=n.createdBy;
             if(n.type==='call'&&n.direction==='incoming'){noteIconBg='#ECFDF5';noteIconColor='#065F46';noteIcon='ti-phone-incoming';callLabel='Incoming call';}
             else if(n.type==='call'&&n.direction==='outgoing'){noteIconBg='#EFF6FF';noteIconColor='#1E40AF';noteIcon='ti-phone-outgoing';callLabel='Outgoing call';}
-            else if(n.type==='call_missed'){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';callLabel='Missed call';}
+            else if(n.type==='call_missed'||( n.type==='call'&&n.status==='no-answer')){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';callLabel='Missed call';}
             else if(n.type==='sms'&&n.direction==='incoming'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message';callLabel='SMS received';}
             else if(n.type==='sms'&&n.direction==='outgoing'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message-share';callLabel='SMS sent';}
             return`<div class="note-item ${isUnread?'unread':''}">
               <div class="note-meta">
                 <div class="note-avatar" style="background:${noteIconBg};color:${noteIconColor}"><i class="ti ${noteIcon}" style="font-size:12px"></i></div>
-                <span class="note-author">${callLabel}</span>
+                <span class="note-author" style="${n.type==='call_missed'?'color:#991B1B':''}"> ${callLabel}</span>
                 ${isAutoLogged?`<span style="font-size:10px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:100px;font-weight:500">auto-logged</span>`:''}
                 ${n.duration?`<span style="font-size:11px;color:var(--text2)">${n.duration}</span>`:''}
                 <span class="note-time">${fmtDateTime(n.createdAt)}</span>
@@ -933,8 +934,9 @@ function renderBrokers(){
               </div>
               ${isSms&&n.smsBody?`<div class="note-text" style="font-style:italic;color:var(--text2)">"${n.smsBody.replace(/\n/g,'<br>')}"</div>`:(!isCall?`<div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>`:'')}
               ${n.summary?`<div class="note-text" style="margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2)"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:3px">AI Summary</span>${n.summary}</div>`:''}
-              ${isAutoLogged?`<div>
-                <button onclick="(function(){const el=document.getElementById('call-note-${n.id}');el.style.display=el.style.display==='none'?'flex':'none';})()" style="margin-top:6px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);display:inline-flex;align-items:center;gap:3px;padding:2px 0;font-family:inherit"><i class="ti ti-plus" style="font-size:12px"></i>Add note to this call</button>
+              ${isAutoLogged?`<div style="margin-top:6px">
+                ${childNotes.map(cn=>`<div style="margin-bottom:5px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2);line-height:1.5">${cn.text.replace(/\n/g,'<br>')}<span style="display:block;font-size:10px;color:var(--text3);margin-top:3px">${cn.createdBy} · ${fmtDateTime(cn.createdAt)}</span></div>`).join('')}
+                <button onclick="(function(){const el=document.getElementById('call-note-${n.id}');el.style.display=el.style.display==='none'?'flex':'none';})()" style="background:none;border:none;cursor:pointer;color:var(--text3);display:inline-flex;align-items:center;padding:2px 0;font-family:inherit" title="Add note to this call"><i class="ti ti-plus" style="font-size:15px;font-weight:700"></i></button>
                 <div id="call-note-${n.id}" style="display:none;margin-top:6px;gap:8px;align-items:flex-end">
                   <textarea id="call-note-input-${n.id}" placeholder="What happened in this call..." rows="2" style="flex:1;font-size:12px;min-height:44px;resize:vertical"></textarea>
                   <button class="btn btn-primary btn-sm" onclick="addCallNote('${n.id}','${b.id}')"><i class="ti ti-check"></i></button>
