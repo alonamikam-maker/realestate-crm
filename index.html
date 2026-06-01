@@ -1493,9 +1493,11 @@ function switchTab(tab){
   sessionStorage.setItem('crm_tab',tab);
   if(tab==='calendar')setTimeout(renderCalendar,50);
   ['dashboard','brokers','properties','reminders','calculator','calendar'].forEach(t=>{
-    if(!document.getElementById('tab-'+t))return;
-    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
-    document.getElementById('nav-'+t).classList.toggle('active',t===tab);
+    const tabEl=document.getElementById('tab-'+t);
+    const navEl=document.getElementById('nav-'+t);
+    if(!tabEl)return;
+    tabEl.classList.toggle('active',t===tab);
+    if(navEl)navEl.classList.toggle('active',t===tab);
     const mn=document.getElementById('mnav-'+t);
     if(mn)mn.classList.toggle('active',t===tab);
   });
