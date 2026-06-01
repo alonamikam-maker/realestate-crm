@@ -1104,7 +1104,7 @@ function renderStats(){
   `;
 }
 
-function renderDashboard(){renderDashCalendar();renderDashUpcoming();
+function renderDashboard(){setTimeout(()=>{renderDashCalendar();renderDashUpcoming();},50);
   const today2=new Date();today2.setHours(0,0,0,0);
   const in2days=new Date(today2.getTime()+2*86400000);
   const upcomingMeetings=Object.entries(state.meetings||{}).map(([id,m])=>({id,...m,_kind:'meeting'})).filter(m=>{
@@ -1877,6 +1877,10 @@ function openEventDetail(eventId){
   } else if(eventId.startsWith('pr-')){
     const propId=eventId.slice(3);
     closeDayModal();scrollToProperty(propId);
+  } else {
+    // Meeting ID — open day modal
+    const meeting=state.meetings?.[eventId];
+    if(meeting)openDayModal(meeting.date);
   }
 }
 
