@@ -1,7 +1,6 @@
 const https = require('https');
 
 const FIREBASE_URL = 'maple-holdings-group-default-rtdb.firebaseio.com';
-const OPENPHONE_API_KEY = process.env.OPENPHONE_API_KEY;
 
 function firebaseRequest(method, path, data) {
   return new Promise((resolve, reject) => {
@@ -30,15 +29,24 @@ function formatDuration(seconds) {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
+function cleanPhone(phone) {
+  if (!phone) return '';
+  // Remove all non-digits
+  const digits = phone.replace(/\D/g, '');
+  // Strip leading country code (1 for US) if 11 digits
+  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);
+  return digits;
+}
+
 function matchBrokerByPhone(brokers, phoneNumber) {
   if (!brokers || !phoneNumber) return null;
-  const clean = phoneNumber.replace(/\D/g, '');
+  const clean = cleanPhone(phoneNumber);
+  if (clean.length < 7) return null; // too short to match reliably
   for (const [id, broker] of Object.entries(brokers)) {
     if (!broker.phone) continue;
-    const brokerClean = broker.phone.replace(/\D/g, '');
-    if (brokerClean === clean || brokerClean.endsWith(clean) || clean.endsWith(brokerClean)) {
-      return { id, ...broker };
-    }
+    const brokerClean = cleanPhone(broker.phone);
+    if (brokerClean.length < 7) continue; // skip clearly invalid numbers
+    if (brokerClean === clean) return { id, ...broker };
   }
   return null;
 }
@@ -59,76 +67,81 @@ module.exports = async (req, res) => {
 
     const brokers = await firebaseRequest('GET', '/brokers');
 
+    // ── call.summary.completed
+    if (type === 'call.summary.completed') {
+      const callId = data.callId || data.id;
+      const summary = data.summary || data.text || '';
+      if (!summary || !callId) return res.status(200).json({ success: true, skipped: true });
+      const notes = await firebaseRequest('GET', '/notes');
+      if (notes) {
+        for (const [noteId, note] of Object.entries(notes)) {
+          if (note.callId === callId) {
+            await firebaseRequest('PATCH', `/notes/${noteId}`, { summary });
+            return res.status(200).json({ success: true, updated: noteId });
+          }
+        }
+      }
+      return res.status(200).json({ success: true, skipped: true, reason: 'No matching call note' });
+    }
+
     let note = null;
 
-    // ── Inbound call completed
+    // ── call.completed
     if (type === 'call.completed') {
       const from = data.from;
+      const to = data.to;
       const direction = data.direction;
       const duration = data.duration;
-      const broker = matchBrokerByPhone(brokers, direction === 'incoming' ? from : data.to);
-
+      const callId = data.id;
+      const lookupPhone = direction === 'incoming' ? from : to;
+      const broker = matchBrokerByPhone(brokers, lookupPhone);
       if (broker) {
         note = {
-          id: generateId(),
-          brokerId: broker.id,
-          type: 'call',
-          direction,
+          id: generateId(), callId, brokerId: broker.id,
+          type: 'call', direction,
           duration: formatDuration(duration),
           durationSeconds: duration || 0,
           phone: from,
           text: direction === 'incoming'
             ? `Incoming call · ${formatDuration(duration) || 'no duration'}`
             : `Outgoing call · ${formatDuration(duration) || 'no duration'}`,
-          createdBy: 'OpenPhone',
-          createdById: 'openphone',
-          createdAt: Date.now(),
-          readBy: {}
+          createdBy: 'OpenPhone', createdById: 'openphone',
+          createdAt: Date.now(), readBy: {}
         };
       }
     }
 
-    // ── Missed call
+    // ── call.missed
     if (type === 'call.missed') {
       const from = data.from;
+      const callId = data.id;
       const broker = matchBrokerByPhone(brokers, from);
       if (broker) {
         note = {
-          id: generateId(),
-          brokerId: broker.id,
-          type: 'call_missed',
-          direction: 'incoming',
-          phone: from,
-          text: 'Missed call',
-          createdBy: 'OpenPhone',
-          createdById: 'openphone',
-          createdAt: Date.now(),
-          readBy: {}
+          id: generateId(), callId, brokerId: broker.id,
+          type: 'call_missed', direction: 'incoming',
+          phone: from, text: 'Missed call',
+          createdBy: 'OpenPhone', createdById: 'openphone',
+          createdAt: Date.now(), readBy: {}
         };
       }
     }
 
-    // ── SMS received or sent
+    // ── message.received / message.delivered
     if (type === 'message.received' || type === 'message.delivered') {
       const from = data.from;
       const to = data.to?.[0];
       const body = data.body || '';
       const direction = type === 'message.received' ? 'incoming' : 'outgoing';
-      const broker = matchBrokerByPhone(brokers, direction === 'incoming' ? from : to);
-
+      const lookupPhone = direction === 'incoming' ? from : to;
+      const broker = matchBrokerByPhone(brokers, lookupPhone);
       if (broker) {
         note = {
-          id: generateId(),
-          brokerId: broker.id,
-          type: 'sms',
-          direction,
-          phone: direction === 'incoming' ? from : to,
-          text: body,
-          smsBody: body,
-          createdBy: 'OpenPhone',
-          createdById: 'openphone',
-          createdAt: Date.now(),
-          readBy: {}
+          id: generateId(), brokerId: broker.id,
+          type: 'sms', direction,
+          phone: lookupPhone, text: body, smsBody: body,
+          createdBy: 'OpenPhone', createdById: 'openphone',
+          createdAt: Date.now(), readBy: {}
         };
       }
     }
