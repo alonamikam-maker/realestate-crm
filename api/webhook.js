@@ -88,7 +88,10 @@ async function runQuoImport() {
 
     do {
       const url = '/v1/contacts?maxResults=100' + (page ? `&pageToken=${page}` : '');
+      console.log('Fetching:', url);
       const res = await quoRequest(url);
+      console.log('Response keys:', Object.keys(res));
+      console.log('Data length:', res.data?.length, 'Total:', res.total);
       const contacts = res.data || [];
       page = res.nextPageToken || null;
 
