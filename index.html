@@ -1764,7 +1764,7 @@ function renderCalGrid(year, month, gridId, opts){
     const numSz=compact?'20px':'24px'; const fSz=compact?'11px':'13px';
     const numStyle=isToday?`background:var(--green);color:#fff;border-radius:50%;width:${numSz};height:${numSz};display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:${fSz}`:`font-size:${fSz};font-weight:500;color:var(--text1)`;
     const evSz=compact?'9px':'10px'; const evPad=compact?'1px 4px':'2px 6px';
-    const evHTML=dayEvents.slice(0,maxEvents).map(e=>`<div class="cal-event ev-${e.type}" onclick="event.stopPropagation();${onDayClick?'':'openEventDetail(''+e.id+'')'}" style="font-size:${evSz};padding:${evPad};margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"${onDayClick?'':' title="'+e.title+'"'}>${compact?'':( e.time?e.time+' ':'')} ${e.title}</div>`).join('');
+    const evHTML=dayEvents.slice(0,maxEvents).map(e=>{const eid=e.id;return`<div class="cal-event ev-${e.type}" onclick="event.stopPropagation();openEventDetail('${eid}')" style="font-size:${evSz};padding:${evPad};margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${e.title}">${compact?'':( e.time?e.time+' ':'')} ${e.title}</div>`;}).join('');
     const moreHTML=dayEvents.length>maxEvents?`<div style="font-size:${evSz};color:var(--text3)">+${dayEvents.length-maxEvents} more</div>`:'';
     const clickFn=onDayClick?onDayClick.replace('__DATE__',ds):`openDayModal('${ds}')`;
     html+=`<div style="background:${isToday?'var(--green-l)':'var(--surface)'};min-height:${cellHeight}px;padding:${compact?4:6}px;cursor:pointer;display:flex;flex-direction:column;gap:${compact?2:3}px" onclick="${clickFn}">`;
