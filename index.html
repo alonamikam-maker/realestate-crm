@@ -498,6 +498,7 @@ select{width:auto;cursor:pointer;}
     </div>
     <div class="filter-bar">
       <div class="search-box"><i class="ti ti-search"></i><input type="text" id="prop-search" placeholder="Search address..." oninput="renderProperties()" /></div>
+      <div class="search-box" style="max-width:160px"><i class="ti ti-map-pin" style="color:var(--green)"></i><input type="text" id="prop-zip-filter" placeholder="Filter by zip..." oninput="renderProperties()" style="width:100%" /></div>
       <select id="prop-type-filter" onchange="renderProperties()"><option value="">All types</option><option value="SFR">SFR</option><option value="MFR">MFR</option><option value="commercial">Commercial</option><option value="land">Land</option></select>
       <select id="prop-filter" onchange="renderProperties()"><option value="">All statuses</option><option value="active">Active</option><option value="pending">Pending</option><option value="uc">UC</option><option value="offer_sent">Offer Sent</option><option value="rejected">Rejected</option><option value="follow_up">In Follow Up</option></select>
     </div>
@@ -1289,8 +1290,9 @@ function renderBrokers(){
 function renderProperties(){
   const search=(document.getElementById('prop-search')||{}).value?.toLowerCase()||'';
   const filter=(document.getElementById('prop-filter')||{}).value||'';
+  const zipFilter=(document.getElementById('prop-zip-filter')||{}).value?.trim()||'';
   const tf=(document.getElementById('prop-type-filter')||{}).value||'';
-  const list=pArr().filter(p=>p.address.toLowerCase().includes(search)&&(!filter||p.status===filter)&&(!tf||p.type===tf))
+  const list=pArr().filter(p=>p.address.toLowerCase().includes(search)&&(!filter||p.status===filter)&&(!tf||p.type===tf)&&(!zipFilter||( p.zip||'').includes(zipFilter)))
     .sort((a,b)=>{
       const za=(a.zip||'zzzzz').toLowerCase(), zb=(b.zip||'zzzzz').toLowerCase();
       if(za!==zb)return za.localeCompare(zb);
@@ -1303,7 +1305,7 @@ function renderProperties(){
   list.forEach(p=>{const z=p.zip||'';if(!groups[z])groups[z]=[];groups[z].push(p);});
   const sortedZips=Object.keys(groups).sort((a,b)=>{if(!a)return 1;if(!b)return -1;return a.localeCompare(b);});
   el.innerHTML=sortedZips.map(zip=>{
-    const header=zip?`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin:${zip===sortedZips[0]?'0':'20px'} 0 8px;display:flex;align-items:center;gap:6px"><i class="ti ti-map-pin" style="font-size:13px"></i>Zip ${zip} <span style="font-weight:400">(${groups[zip].length})</span></div>`:'';
+    const header=zip?`<div style="font-size:13px;font-weight:700;color:var(--text1);margin:${zip===sortedZips[0]?'0':'24px'} 0 10px;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);border-left:3px solid var(--green)"><i class="ti ti-map-pin" style="font-size:15px;color:var(--green)"></i>${zip} <span style="font-size:12px;font-weight:400;color:var(--text2)">&nbsp;·&nbsp;${groups[zip].length} propert${groups[zip].length===1?'y':'ies'}</span></div>`:'';
     return header+groups[zip].map(p=>{
     const broker=p.brokerId?state.brokers[p.brokerId]:null;
     const hp=p.listPrice||p.askingPrice||p.arv||p.renoCost;
