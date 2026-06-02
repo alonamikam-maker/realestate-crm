@@ -498,7 +498,7 @@ select{width:auto;cursor:pointer;}
     </div>
     <div class="filter-bar">
       <div class="search-box"><i class="ti ti-search"></i><input type="text" id="prop-search" placeholder="Search address..." oninput="renderProperties()" /></div>
-      <div class="search-box" style="max-width:160px"><i class="ti ti-map-pin" style="color:var(--green)"></i><input type="text" id="prop-zip-filter" placeholder="Filter by zip..." oninput="renderProperties()" style="width:100%" /></div>
+      <div class="search-box" style="max-width:180px;position:relative"><i class="ti ti-map-pin" style="color:var(--green)"></i><input type="text" id="prop-zip-filter" placeholder="Filter by zip..." oninput="renderProperties();document.getElementById('zip-clear-btn').style.display=this.value?'flex':'none'" style="width:100%;padding-right:24px" /><button id="zip-clear-btn" onclick="document.getElementById('prop-zip-filter').value='';document.getElementById('zip-clear-btn').style.display='none';renderProperties()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);padding:0;font-size:14px;align-items:center"><i class="ti ti-x"></i></button></div>
       <select id="prop-type-filter" onchange="renderProperties()"><option value="">All types</option><option value="SFR">SFR</option><option value="MFR">MFR</option><option value="commercial">Commercial</option><option value="land">Land</option></select>
       <select id="prop-filter" onchange="renderProperties()"><option value="">All statuses</option><option value="active">Active</option><option value="pending">Pending</option><option value="uc">UC</option><option value="offer_sent">Offer Sent</option><option value="rejected">Rejected</option><option value="follow_up">In Follow Up</option></select>
     </div>
@@ -1635,7 +1635,15 @@ function saveProperty(){
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
 }
-function deleteProperty(id){if(!confirm('Delete this property?'))return;db.ref('properties/'+id).remove().then(()=>showToast('Property deleted'));}
+function deleteProperty(id){
+  const p=state.properties[id];
+  const name=p?.address||'this property';
+  if(!window.confirm('Delete '+name+'?'))return;
+  db.ref('properties/'+id).remove();
+  // Also remove linked notes
+  Object.entries(state.notes).forEach(([nid,n])=>{if(n.propertyId===id||( n.propertyIds&&n.propertyIds.includes(id)))db.ref('notes/'+nid).remove();});
+  showToast('Property deleted');
+}
 
 document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBrokerModal();});
 document.getElementById('meeting-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMeetingModal();});
