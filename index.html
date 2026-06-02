@@ -1738,7 +1738,6 @@ document.addEventListener('click',e=>{
 
 // ── Shared calendar grid renderer ──────────────────────────
 function renderCalGrid(year, month, gridId, opts){
-  // opts: { cellHeight, maxEvents, onDayClick, compact }
   const {cellHeight=90, maxEvents=3, onDayClick, compact=false} = opts||{};
   const grid = document.getElementById(gridId);
   if(!grid) return;
@@ -1750,29 +1749,37 @@ function renderCalGrid(year, month, gridId, opts){
   const events=getCalEvents();
   const dows=compact?['S','M','T','W','T','F','S']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const fs=compact?'font-size:10px':'font-size:11px;text-transform:uppercase;letter-spacing:0.05em';
-  let html=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)${compact?';border:1px solid var(--border);border-radius:8px;overflow:hidden':''}">`;
-  html+=dows.map(d=>`<div style="background:var(--surface2);padding:${compact?'7px':'10px'} 2px;text-align:center;${fs};font-weight:600;color:var(--text2)">${d}</div>`).join('');
+  const pad=compact?4:6;
+  let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)'+(compact?';border:1px solid var(--border);border-radius:8px;overflow:hidden':'')+'">';
+  html+=dows.map(d=>'<div style="background:var(--surface2);padding:'+(compact?7:10)+'px 2px;text-align:center;'+fs+';font-weight:600;color:var(--text2)">'+d+'</div>').join('');
   const prevLastDay=new Date(year,month,0);
   for(let i=startDow-1;i>=0;i--){
-    html+=`<div style="background:var(--surface2);min-height:${cellHeight}px;padding:${compact?4:6}px"><span style="${compact?'font-size:11px':'font-size:13px'};color:var(--text3)">${prevLastDay.getDate()-i}</span></div>`;
+    html+='<div style="background:var(--surface2);min-height:'+cellHeight+'px;padding:'+pad+'px"><span style="font-size:'+(compact?11:13)+'px;color:var(--text3)">'+(prevLastDay.getDate()-i)+'</span></div>';
   }
   for(let d=1;d<=lastDay.getDate();d++){
     const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const dayDate=new Date(year,month,d); dayDate.setHours(0,0,0,0);
     const isToday=dayDate.getTime()===today.getTime();
-    const dayEvents=events.filter(e=>e.date===ds).sort((a,b)=>({'overdue':0,'today':1,'meeting':2,'broker':3,'property':4}[a.type]||5)-({'overdue':0,'today':1,'meeting':2,'broker':3,'property':4}[b.type]||5));
-    const numSz=compact?'20px':'24px'; const fSz=compact?'11px':'13px';
-    const numStyle=isToday?`background:var(--green);color:#fff;border-radius:50%;width:${numSz};height:${numSz};display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:${fSz}`:`font-size:${fSz};font-weight:500;color:var(--text1)`;
-    const evSz=compact?'9px':'10px'; const evPad=compact?'1px 4px':'2px 6px';
-    const evHTML=dayEvents.slice(0,maxEvents).map(e=>{const eid=e.id;return`<div class="cal-event ev-${e.type}" onclick="event.stopPropagation();openEventDetail('${eid}')" style="font-size:${evSz};padding:${evPad};margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${e.title}">${compact?'':( e.time?e.time+' ':'')} ${e.title}</div>`;}).join('');
-    const moreHTML=dayEvents.length>maxEvents?`<div style="font-size:${evSz};color:var(--text3)">+${dayEvents.length-maxEvents} more</div>`:'';
-    const clickFn=onDayClick?onDayClick.replace('__DATE__',ds):`openDayModal('${ds}')`;
-    html+=`<div style="background:${isToday?'var(--green-l)':'var(--surface)'};min-height:${cellHeight}px;padding:${compact?4:6}px;cursor:pointer;display:flex;flex-direction:column;gap:${compact?2:3}px" onclick="${clickFn}">`;
-    html+=`<span style="${numStyle}">${d}</span>${evHTML}${moreHTML}</div>`;
+    const order={'overdue':0,'today':1,'meeting':2,'broker':3,'property':4};
+    const dayEvents=events.filter(e=>e.date===ds).sort((a,b)=>(order[a.type]||5)-(order[b.type]||5));
+    const numSz=compact?20:24;
+    const numStyle=isToday?'background:var(--green);color:#fff;border-radius:50%;width:'+numSz+'px;height:'+numSz+'px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:'+(compact?11:13)+'px':'font-size:'+(compact?11:13)+'px;font-weight:500;color:var(--text1)';
+    const evSz=compact?9:10;
+    const evPad=compact?'1px 4px':'2px 6px';
+    let evHTML='';
+    dayEvents.slice(0,maxEvents).forEach(e=>{
+      const clickPart=onDayClick?'':'openEventDetail(''+e.id+'')';
+      const timePart=(!compact&&e.time)?e.time+' ':'';
+      evHTML+='<div class="cal-event ev-'+e.type+'" onclick="event.stopPropagation();'+clickPart+'" style="font-size:'+evSz+'px;padding:'+evPad+';margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+timePart+e.title+'</div>';
+    });
+    const moreHTML=dayEvents.length>maxEvents?'<div style="font-size:'+evSz+'px;color:var(--text3)">+'+(dayEvents.length-maxEvents)+' more</div>':'';
+    const clickFn=onDayClick?onDayClick.replace('__DATE__',ds):'openDayModal(''+ds+'')';
+    html+='<div style="background:'+(isToday?'var(--green-l)':'var(--surface)')+';min-height:'+cellHeight+'px;padding:'+pad+'px;cursor:pointer;display:flex;flex-direction:column;gap:'+(compact?2:3)+'px" onclick="'+clickFn+'">';
+    html+='<span style="'+numStyle+'">'+d+'</span>'+evHTML+moreHTML+'</div>';
   }
   const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
   for(let d=1;d<=totalCells-(startDow+lastDay.getDate());d++){
-    html+=`<div style="background:var(--surface2);min-height:${cellHeight}px;padding:${compact?4:6}px"><span style="${compact?'font-size:11px':'font-size:13px'};color:var(--text3)">${d}</span></div>`;
+    html+='<div style="background:var(--surface2);min-height:'+cellHeight+'px;padding:'+pad+'px"><span style="font-size:'+(compact?11:13)+'px;color:var(--text3)">'+d+'</span></div>';
   }
   html+='</div>';
   grid.innerHTML=html;
