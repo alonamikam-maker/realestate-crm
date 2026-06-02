@@ -950,7 +950,9 @@ function addPropertyNote(propertyId){
   if(!text){showToast('⚠ Note cannot be empty');return;}
   const noteId=db.ref('notes').push().key;
   const prop=state.properties[propertyId]||{};
-  const noteData={id:noteId,propertyId,text,createdBy:currentUser.name,createdById:currentUser.id,createdAt:Date.now(),readBy:{[currentUser.id]:true}};
+  const now=Date.now();
+  const dateStr=new Date(now).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const noteData={id:noteId,propertyId,text:text+' · '+dateStr,createdBy:currentUser.name,createdById:currentUser.id,createdAt:now,readBy:{[currentUser.id]:true}};
   if(prop.brokerId)noteData.brokerId=prop.brokerId;
   db.ref(`notes/${noteId}`).set(noteData).then(()=>{ta.value='';showToast('✓ Note added');});
 }
