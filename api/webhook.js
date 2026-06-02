@@ -199,7 +199,9 @@ module.exports = async (req, res) => {
         name, phone, area: '', status: 'active',
         addedBy: 'Quo', createdAt: Date.now()
       };
-      await firebaseRequest('PUT', `/brokers/${brokerId}`, brokerData);
+      console.log('Creating broker:', brokerId, name, phone);
+      const writeResult = await firebaseRequest('PUT', `/brokers/${brokerId}`, brokerData);
+      console.log('Write result:', JSON.stringify(writeResult));
 
       if (data.notes) {
         const noteId = generateId();
