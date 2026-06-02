@@ -186,11 +186,13 @@ module.exports = async (req, res) => {
       const lastName = data.lastName || data.defaultFields?.lastName || '';
       const name = (firstName + ' ' + lastName).trim() || data.name || null;
       const phone = data.fields?.Phone || data.phoneNumbers?.[0]?.value || data.phoneNumbers?.[0]?.phoneNumber || data.defaultFields?.phoneNumbers?.[0]?.value || '';
+      console.log('contact.updated name:', name, 'phone:', phone);
       if (!name || !phone) return res.status(200).json({ success: true, skipped: true, reason: 'No name or phone' });
 
       // Check for duplicate
       const existing = matchBrokerByPhone(brokers, phone);
-      if (existing) return res.status(200).json({ success: true, skipped: true, reason: 'Already exists' });
+      console.log('existing broker:', existing ? existing.name : 'none');
+      if (existing) return res.status(200).json({ success: true, skipped: true, reason: 'Already exists: '+existing.name });
 
       const brokerId = generateId();
       const brokerData = {
