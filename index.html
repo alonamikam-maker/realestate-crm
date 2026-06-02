@@ -1073,8 +1073,7 @@ function addNote(brokerId){
   });
 }
 function deleteNote(noteId){
-  if(!confirm('Delete this note?'))return;
-  db.ref(`notes/${noteId}`).remove().then(()=>showToast('Note deleted'));
+  db.ref('notes/'+noteId).remove().then(()=>showToast('Note deleted'));
 }
 function toggleNotes(brokerId){
   const panel=document.getElementById(`notes-panel-${brokerId}`);
@@ -1854,7 +1853,7 @@ function openDayModal(dateStr){
         <div style="font-size:11px;color:var(--text3);margin-top:2px">${typeLabel}${broker?' · '+broker.name:''}${prop?' · '+prop.address:''}</div>
         ${e.subtitle?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${e.subtitle}</div>`:''}
       </div>
-      ${e.kind==='meeting'?`<button class="btn btn-ghost btn-sm" onclick="closeDayModal();openMeetingModal('${e.id}')"><i class="ti ti-edit"></i></button>`:''}
+      ${e.kind==='meeting'?`<div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm" onclick="closeDayModal();openMeetingModal('${e.id}')"><i class="ti ti-edit"></i></button><button class="btn btn-del btn-sm" onclick="deleteMeeting('${e.id}')"><i class="ti ti-trash"></i></button></div>`:''}
     </div>`;
   }).join('');
   document.getElementById('day-modal').classList.add('open');
@@ -1932,7 +1931,7 @@ function saveMeeting(){
   db.ref('meetings/'+id).set(data).then(()=>{showToast(editingMeetingId?'✓ Meeting updated':'✓ Meeting added');renderCalendar();});
   closeMeetingModal();
 }
-function deleteMeeting(id){if(!confirm('Delete this meeting?'))return;db.ref('meetings/'+id).remove().then(()=>{showToast('Meeting deleted');renderCalendar();});}
+function deleteMeeting(id){db.ref('meetings/'+id).remove().then(()=>{showToast('Meeting deleted');renderCalendar();});}
 
 // Listen for meetings in Firebase
 db.ref('meetings').on('value',snap=>{state.meetings=snap.val()||{};renderCalendar();});
