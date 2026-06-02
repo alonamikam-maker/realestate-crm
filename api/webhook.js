@@ -7,7 +7,7 @@ function firebaseRequest(method, path, data) {
     const body = data ? JSON.stringify(data) : null;
     const options = {
       hostname: FIREBASE_URL,
-      path: `${path}.json`,
+      path: `${path}.json${process.env.FIREBASE_SECRET ? '?auth=' + process.env.FIREBASE_SECRET : ''}`,
       method,
       headers: { 'Content-Type': 'application/json' }
     };
