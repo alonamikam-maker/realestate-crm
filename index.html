@@ -375,11 +375,6 @@ select{width:auto;cursor:pointer;}
 .cal-upcoming-text{font-size:12px;font-weight:500;color:var(--text1);}
 .cal-upcoming-sub{font-size:11px;color:var(--text3);}
 @media(max-width:400px){.cal-dropdown{width:calc(100vw - 24px);right:12px;}}
-
-/* ── Utility classes ── */
-.auto-tag{font-size:10px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:100px;font-weight:500;}
-.call-note-child{margin-bottom:5px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2);line-height:1.5;}
-.inline-edit-area{display:none;margin-bottom:5px;gap:6px;align-items:flex-end;}
 </style>
 </head>
 <body>
@@ -1185,23 +1180,6 @@ function renderDashboard(){setTimeout(()=>{renderDashCalendar();renderDashUpcomi
   }).join('');
 }
 
-
-// ── Shared note display helper ───────────────────────────────
-function getNoteDisplay(n){
-  const isAutoLogged=n.createdById==='openphone';
-  let bg='#F5F3FF',color='#4C1D95',icon='ti-notes',label=n.createdBy||'';
-  if(n.type==='call'&&n.direction==='incoming'&&n.durationSeconds>0){bg='#ECFDF5';color='#065F46';icon='ti-phone-incoming';label='Incoming call';}
-  else if(n.type==='call'&&n.direction==='incoming'&&!n.durationSeconds){bg='#FEF2F2';color='#991B1B';icon='ti-phone-off';label='Missed call';}
-  else if(n.type==='call'&&n.direction==='outgoing'){bg='#EFF6FF';color='#1E40AF';icon='ti-phone-outgoing';label='Outgoing call';}
-  else if(n.type==='call_missed'){bg='#FEF2F2';color='#991B1B';icon='ti-phone-off';label='Missed call';}
-  else if(n.type==='sms'&&n.direction==='incoming'){bg='#FFFBEB';color='#92400E';icon='ti-message';label='SMS received';}
-  else if(n.type==='sms'&&n.direction==='outgoing'){bg='#FFFBEB';color='#92400E';icon='ti-message-share';label='SMS sent';}
-  const isMissed=n.type==='call_missed'||(n.type==='call'&&n.direction==='incoming'&&!n.durationSeconds);
-  const isCall=n.type==='call'||n.type==='call_missed';
-  const isSms=n.type==='sms';
-  return {bg,color,icon,label,isAutoLogged,isCall,isSms,isMissed};
-}
-// ── End shared note display helper ──────────────────────────
 function renderBrokers(){
   const search=(document.getElementById('broker-search')||{}).value?.toLowerCase()||'';
   const filter=(document.getElementById('broker-filter')||{}).value||'';
@@ -1259,12 +1237,22 @@ function renderBrokers(){
             const isUnread=currentUser.id&&!(n.readBy&&n.readBy[currentUser.id]);
             const uc=userColors[n.createdById]||{bg:'#F3F4F6',color:'#374151'};
             const childNotes=allNotesForBroker(b.id).filter(cn=>cn.parentNoteId===n.id);
-            const {bg:noteIconBg,color:noteIconColor,icon:noteIcon,label:callLabel,isAutoLogged,isCall,isSms,isMissed}=getNoteDisplay(n);
+            const isCall=n.type==='call'||n.type==='call_missed';
+            const isSms=n.type==='sms';
+            const isAutoLogged=n.createdById==='openphone';
+            let noteIconBg='#F5F3FF',noteIconColor='#4C1D95',noteIcon='ti-notes';
+            let callLabel=n.createdBy;
+            if(n.type==='call'&&n.direction==='incoming'&&n.durationSeconds>0){noteIconBg='#ECFDF5';noteIconColor='#065F46';noteIcon='ti-phone-incoming';callLabel='Incoming call';}
+            else if(n.type==='call'&&n.direction==='incoming'&&!n.durationSeconds){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';callLabel='Missed call';}
+            else if(n.type==='call'&&n.direction==='outgoing'){noteIconBg='#EFF6FF';noteIconColor='#1E40AF';noteIcon='ti-phone-outgoing';callLabel='Outgoing call';}
+            else if(n.type==='call_missed'){noteIconBg='#FEF2F2';noteIconColor='#991B1B';noteIcon='ti-phone-off';callLabel='Missed call';}
+            else if(n.type==='sms'&&n.direction==='incoming'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message';callLabel='SMS received';}
+            else if(n.type==='sms'&&n.direction==='outgoing'){noteIconBg='#FFFBEB';noteIconColor='#92400E';noteIcon='ti-message-share';callLabel='SMS sent';}
             return`<div class="note-item ${isUnread?'unread':''}">
               <div class="note-meta">
                 <div class="note-avatar" style="background:${noteIconBg};color:${noteIconColor}"><i class="ti ${noteIcon}" style="font-size:12px"></i></div>
-                <span class="note-author" style="${isMissed?'color:#991B1B':''}"> ${callLabel}</span>
-                ${isAutoLogged?`<span class="auto-tag">auto-logged</span>`:''}
+                <span class="note-author" style="${n.type==='call_missed'?'color:#991B1B':''}"> ${callLabel}</span>
+                ${isAutoLogged?`<span style="font-size:10px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:100px;font-weight:500">auto-logged</span>`:''}
                 ${n.duration?`<span style="font-size:11px;color:var(--text2)">${n.duration}</span>`:''}
                 <span class="note-time">${fmtDateTime(n.createdAt)}</span>
                 ${isUnread?`<div class="note-unread-dot" title="Unread"></div>`:''}
@@ -1404,12 +1392,21 @@ function renderProperties(){
             const isUnread=currentUser.id&&!(n.readBy&&n.readBy[currentUser.id]);
             const uc=userColors[n.createdById]||{bg:'#F3F4F6',color:'#374151'};
             const pChildNotes=allNotesForProperty(p.id).filter(cn=>cn.parentNoteId===n.id);
-            const {bg:pNIBg,color:pNIC,icon:pNII,label:pCallLabel,isAutoLogged:pIsAuto,isCall:pIsCall,isSms:pIsSms,isMissed:pIsMissed}=getNoteDisplay(n);
+            const pIsCall=n.type==='call'||n.type==='call_missed';
+            const pIsSms=n.type==='sms';
+            const pIsAuto=n.createdById==='openphone';
+            let pNIBg='#F5F3FF',pNIC='#4C1D95',pNII='ti-notes';
+            let pCallLabel=n.createdBy;
+            if(n.type==='call'&&n.direction==='incoming'){pNIBg='#ECFDF5';pNIC='#065F46';pNII='ti-phone-incoming';pCallLabel='Incoming call';}
+            else if(n.type==='call'&&n.direction==='outgoing'){pNIBg='#EFF6FF';pNIC='#1E40AF';pNII='ti-phone-outgoing';pCallLabel='Outgoing call';}
+            else if(n.type==='call_missed'){pNIBg='#FEF2F2';pNIC='#991B1B';pNII='ti-phone-off';pCallLabel='Missed call';}
+            else if(n.type==='sms'&&n.direction==='incoming'){pNIBg='#FFFBEB';pNIC='#92400E';pNII='ti-message';pCallLabel='SMS received';}
+            else if(n.type==='sms'&&n.direction==='outgoing'){pNIBg='#FFFBEB';pNIC='#92400E';pNII='ti-message-share';pCallLabel='SMS sent';}
             return`<div class="note-item ${isUnread?'unread':''}">
               <div class="note-meta">
                 <div class="note-avatar" style="background:${pNIBg};color:${pNIC}"><i class="ti ${pNII}" style="font-size:12px"></i></div>
                 <span class="note-author">${pCallLabel}</span>
-                ${pIsAuto?`<span class="auto-tag">auto-logged</span>`:''}
+                ${pIsAuto?`<span style="font-size:10px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:100px;font-weight:500">auto-logged</span>`:''}
                 ${n.duration?`<span style="font-size:11px;color:var(--text2)">${n.duration}</span>`:''}
                 <span class="note-time">${fmtDateTime(n.createdAt)}</span>
                 ${isUnread?`<div class="note-unread-dot" title="Unread"></div>`:''}
@@ -1700,16 +1697,81 @@ function dashCalToday(){dashCalYear=new Date().getFullYear();dashCalMonth=new Da
 function renderDashCalendar(){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const el=document.getElementById('dash-cal-title');if(el)el.textContent=months[dashCalMonth]+' '+dashCalYear;
-  renderCalGrid(dashCalYear,dashCalMonth,'dash-cal-grid',{cellHeight:90,maxEvents:3});
+  const today=new Date();today.setHours(0,0,0,0);
+  const firstDay=new Date(dashCalYear,dashCalMonth,1);
+  const lastDay=new Date(dashCalYear,dashCalMonth+1,0);
+  const startDow=firstDay.getDay();
+  const events=getCalEvents();
+  const grid=document.getElementById('dash-cal-grid');
+  if(!grid)return;
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)">';
+  html+=dows.map(d=>`<div style="background:var(--surface2);padding:10px 4px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2)">${d}</div>`).join('');
+  const prevLastDay=new Date(dashCalYear,dashCalMonth,0);
+  for(let i=startDow-1;i>=0;i--){
+    html+=`<div style="background:var(--surface2);min-height:90px;padding:6px"><span style="font-size:13px;color:var(--text3)">${prevLastDay.getDate()-i}</span></div>`;
+  }
+  for(let d=1;d<=lastDay.getDate();d++){
+    const dateStr=`${dashCalYear}-${String(dashCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayDate=new Date(dashCalYear,dashCalMonth,d);dayDate.setHours(0,0,0,0);
+    const isToday=dayDate.getTime()===today.getTime();
+    const dayEvents=events.filter(e=>e.date===dateStr).sort((a,b)=>({overdue:0,today:1,meeting:2,broker:3,property:4}[a.type]??5)-({overdue:0,today:1,meeting:2,broker:3,property:4}[b.type]??5));
+    const numStyle=isToday?`background:var(--green);color:#fff;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:13px`:`font-size:13px;font-weight:500;color:var(--text1)`;
+    const maxShow=3;
+    const evHTML=dayEvents.slice(0,maxShow).map(e=>`<div class="cal-event ev-${e.type}" onclick="event.stopPropagation();openEventDetail('${e.id}')" style="margin-bottom:2px">${e.time?e.time+' ':''} ${e.title}</div>`).join('');
+    const moreHTML=dayEvents.length>maxShow?`<div style="font-size:10px;color:var(--text3)">+${dayEvents.length-maxShow} more</div>`:'';
+    html+=`<div style="background:${isToday?'var(--green-l)':'var(--surface)'};min-height:90px;padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:3px" onclick="openDayModal('${dateStr}')">
+      <span style="${numStyle}">${d}</span>
+      ${evHTML}${moreHTML}
+    </div>`;
+  }
+  const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
+  for(let d=1;d<=totalCells-(startDow+lastDay.getDate());d++){
+    html+=`<div style="background:var(--surface2);min-height:90px;padding:6px"><span style="font-size:13px;color:var(--text3)">${d}</span></div>`;
+  }
+  html+='</div>';
+  grid.innerHTML=html;
 }
 function renderDropCalendar(){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('drop-cal-title').textContent=months[dropCalMonth]+' '+dropCalYear;
-  renderCalGrid(dropCalYear,dropCalMonth,'drop-cal-grid',{cellHeight:56,maxEvents:2,compact:true,onDayClick:"closeCalDropdown();openDayModal('__DATE__')"});
+  const today=new Date();today.setHours(0,0,0,0);
+  const firstDay=new Date(dropCalYear,dropCalMonth,1);
+  const lastDay=new Date(dropCalYear,dropCalMonth+1,0);
+  const startDow=firstDay.getDay();
+  const events=getCalEvents();
+  const grid=document.getElementById('drop-cal-grid');
+  if(!grid)return;
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden">';
+  html+=dows.map(d=>`<div style="background:var(--surface2);padding:7px 2px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text2)">${d}</div>`).join('');
+  const prevLastDay=new Date(dropCalYear,dropCalMonth,0);
+  for(let i=startDow-1;i>=0;i--){html+=`<div style="background:var(--surface2);min-height:56px;padding:4px"><span style="font-size:11px;color:var(--text3)">${prevLastDay.getDate()-i}</span></div>`;}
+  for(let d=1;d<=lastDay.getDate();d++){
+    const dateStr=dropCalYear+'-'+String(dropCalMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const dayDate=new Date(dropCalYear,dropCalMonth,d);dayDate.setHours(0,0,0,0);
+    const isToday=dayDate.getTime()===today.getTime();
+    const dayEvents=events.filter(e=>e.date===dateStr).sort((a,b)=>({'overdue':0,'today':1,'meeting':2,'broker':3,'property':4}[a.type]||5)-({'overdue':0,'today':1,'meeting':2,'broker':3,'property':4}[b.type]||5));
+    const numStyle=isToday?'background:var(--green);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px':'font-size:11px;font-weight:500;color:var(--text1)';
+    const evHTML=dayEvents.slice(0,2).map(e=>'<div class="cal-event ev-'+e.type+'" style="font-size:9px;padding:1px 4px;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.title+'</div>').join('');
+    const moreHTML=dayEvents.length>2?'<div style="font-size:9px;color:var(--text3)">+'+(dayEvents.length-2)+'</div>':'';
+    html+='<div style="background:'+(isToday?'var(--green-l)':'var(--surface)')+';min-height:56px;padding:4px;cursor:pointer;display:flex;flex-direction:column;gap:2px" onclick="closeCalDropdown();openDayModal(\"'+dateStr+'\")">'; 
+    html+='<span style="'+numStyle+'">'+d+'</span>'+evHTML+moreHTML+'</div>';
+  }
+  const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
+  for(let d=1;d<=totalCells-(startDow+lastDay.getDate());d++){html+='<div style="background:var(--surface2);min-height:56px;padding:4px"><span style="font-size:11px;color:var(--text3)">'+d+'</span></div>';}
+  html+='</div>';
+  grid.innerHTML=html;
+
+  // Upcoming events (next 5 days)
   renderDropUpcoming();
+  // Update badge
+  const todayStr=today.toISOString().slice(0,10);
+  const urgentCount=events.filter(e=>e.date<=todayStr&&e.type!=='meeting'||e.date===todayStr).length;
   const badge=document.getElementById('cal-badge');
-  if(badge){const overdue=getCalEvents().filter(e=>e.type==='overdue').length;badge.style.display=overdue>0?'block':'none';}
+  if(badge){const overdue=events.filter(e=>e.type==='overdue').length;badge.style.display=overdue>0?'block':'none';}
 }
+
 function renderDropUpcoming(){
   const today=new Date();today.setHours(0,0,0,0);
   const in5=new Date(today.getTime()+5*86400000);
@@ -1734,57 +1796,6 @@ document.addEventListener('click',e=>{
   if(calDropOpen&&!e.target.closest('#cal-dropdown')&&!e.target.closest('#cal-dropdown-btn'))closeCalDropdown();
 });
 // ── End Calendar Dropdown ────────────────────
-
-
-// ── Shared calendar grid renderer ──────────────────────────
-function renderCalGrid(year, month, gridId, opts){
-  const {cellHeight=90, maxEvents=3, onDayClick, compact=false} = opts||{};
-  const grid = document.getElementById(gridId);
-  if(!grid) return;
-  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const today=new Date(); today.setHours(0,0,0,0);
-  const firstDay=new Date(year,month,1);
-  const lastDay=new Date(year,month+1,0);
-  const startDow=firstDay.getDay();
-  const events=getCalEvents();
-  const dows=compact?['S','M','T','W','T','F','S']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const fs=compact?'font-size:10px':'font-size:11px;text-transform:uppercase;letter-spacing:0.05em';
-  const pad=compact?4:6;
-  let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)'+(compact?';border:1px solid var(--border);border-radius:8px;overflow:hidden':'')+'">';
-  html+=dows.map(d=>'<div style="background:var(--surface2);padding:'+(compact?7:10)+'px 2px;text-align:center;'+fs+';font-weight:600;color:var(--text2)">'+d+'</div>').join('');
-  const prevLastDay=new Date(year,month,0);
-  for(let i=startDow-1;i>=0;i--){
-    html+='<div style="background:var(--surface2);min-height:'+cellHeight+'px;padding:'+pad+'px"><span style="font-size:'+(compact?11:13)+'px;color:var(--text3)">'+(prevLastDay.getDate()-i)+'</span></div>';
-  }
-  for(let d=1;d<=lastDay.getDate();d++){
-    const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const dayDate=new Date(year,month,d); dayDate.setHours(0,0,0,0);
-    const isToday=dayDate.getTime()===today.getTime();
-    const order={'overdue':0,'today':1,'meeting':2,'broker':3,'property':4};
-    const dayEvents=events.filter(e=>e.date===ds).sort((a,b)=>(order[a.type]||5)-(order[b.type]||5));
-    const numSz=compact?20:24;
-    const numStyle=isToday?'background:var(--green);color:#fff;border-radius:50%;width:'+numSz+'px;height:'+numSz+'px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:'+(compact?11:13)+'px':'font-size:'+(compact?11:13)+'px;font-weight:500;color:var(--text1)';
-    const evSz=compact?9:10;
-    const evPad=compact?'1px 4px':'2px 6px';
-    let evHTML='';
-    dayEvents.slice(0,maxEvents).forEach(e=>{
-      const clickPart=onDayClick?'':'openEventDetail(''+e.id+'')';
-      const timePart=(!compact&&e.time)?e.time+' ':'';
-      evHTML+='<div class="cal-event ev-'+e.type+'" onclick="event.stopPropagation();'+clickPart+'" style="font-size:'+evSz+'px;padding:'+evPad+';margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+timePart+e.title+'</div>';
-    });
-    const moreHTML=dayEvents.length>maxEvents?'<div style="font-size:'+evSz+'px;color:var(--text3)">+'+(dayEvents.length-maxEvents)+' more</div>':'';
-    const clickFn=onDayClick?onDayClick.replace('__DATE__',ds):'openDayModal(''+ds+'')';
-    html+='<div style="background:'+(isToday?'var(--green-l)':'var(--surface)')+';min-height:'+cellHeight+'px;padding:'+pad+'px;cursor:pointer;display:flex;flex-direction:column;gap:'+(compact?2:3)+'px" onclick="'+clickFn+'">';
-    html+='<span style="'+numStyle+'">'+d+'</span>'+evHTML+moreHTML+'</div>';
-  }
-  const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
-  for(let d=1;d<=totalCells-(startDow+lastDay.getDate());d++){
-    html+='<div style="background:var(--surface2);min-height:'+cellHeight+'px;padding:'+pad+'px"><span style="font-size:'+(compact?11:13)+'px;color:var(--text3)">'+d+'</span></div>';
-  }
-  html+='</div>';
-  grid.innerHTML=html;
-}
-// ── End shared calendar grid renderer ──────────────────────
 
 // ── Calendar ──────────────────────────────────
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
@@ -1840,7 +1851,46 @@ function getCalEvents(){
 function renderCalendar(){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
-  renderCalGrid(calYear,calMonth,'cal-grid',{cellHeight:90,maxEvents:3});
+  const today=new Date();today.setHours(0,0,0,0);
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0);
+  const startDow=firstDay.getDay();
+  const events=getCalEvents();
+  const grid=document.getElementById('cal-grid');
+  if(!grid)return;
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  // Prev month padding
+  const prevLastDay=new Date(calYear,calMonth,0);
+  for(let i=startDow-1;i>=0;i--){
+    const d=prevLastDay.getDate()-i;
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+  }
+  // Current month days
+  for(let d=1;d<=lastDay.getDate();d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayDate=new Date(calYear,calMonth,d);dayDate.setHours(0,0,0,0);
+    const isToday=dayDate.getTime()===today.getTime();
+    const dayEvents=events.filter(e=>e.date===dateStr).sort((a,b)=>{
+      const order={overdue:0,today:1,meeting:2,broker:3,property:4};
+      return (order[a.type]??5)-(order[b.type]??5);
+    });
+    const hasEvents=dayEvents.length>0;
+    const maxShow=3;
+    const evHTML=dayEvents.slice(0,maxShow).map(e=>`<div class="cal-event ev-${e.type}" onclick="event.stopPropagation();openEventDetail('${e.id}')" title="${e.title}">${e.time?'<span>'+e.time+'</span> ':''} ${e.title}</div>`).join('');
+    const moreHTML=dayEvents.length>maxShow?`<div class="cal-more">+${dayEvents.length-maxShow} more</div>`:'';
+    html+=`<div class="cal-day${isToday?' today':''}${hasEvents?' has-events':''}" onclick="openDayModal('${dateStr}')">
+      <div class="cal-day-num">${d}</div>
+      <div class="cal-events">${evHTML}${moreHTML}</div>
+    </div>`;
+  }
+  // Next month padding
+  const totalCells=Math.ceil((startDow+lastDay.getDate())/7)*7;
+  const nextDays=totalCells-(startDow+lastDay.getDate());
+  for(let d=1;d<=nextDays;d++){
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+  }
+  grid.innerHTML=html;
 }
 
 function openDayModal(dateStr){
@@ -1941,7 +1991,7 @@ function saveMeeting(){
 function deleteMeeting(id){db.ref('meetings/'+id).remove().then(()=>{showToast('Meeting deleted');renderCalendar();});}
 
 // Listen for meetings in Firebase
-db.ref('meetings').on('value',snap=>{state.meetings=snap.val()||{};renderCalendar();});
+db.ref('meetings').on('value',snap=>{state.meetings=snap.val()||{};renderCalendar();renderDashCalendar();renderDashUpcoming();renderDropCalendar();updateBadge();});
 
 // Upcoming meeting alert
 function checkUpcomingMeetings(){
