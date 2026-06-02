@@ -736,7 +736,17 @@ select{width:auto;cursor:pointer;}
     </div>
     <div class="form-row">
       <div class="form-g"><label class="form-lbl">Renovation Cost ($)</label><input type="number" id="p-reno-cost" placeholder="45000" /></div>
-      <div class="form-g"><label class="form-lbl">Linked broker</label><select id="p-broker" style="width:100%"></select></div>
+      <div class="form-g"><label class="form-lbl">Linked Broker</label>
+              <div style="position:relative">
+                <input type="text" id="p-broker-search" placeholder="Search broker name..." autocomplete="off"
+                  oninput="filterBrokerDropdown(this.value)"
+                  onfocus="filterBrokerDropdown(this.value)"
+                  style="width:100%"
+                />
+                <input type="hidden" id="p-broker" value="" />
+                <div id="broker-dropdown-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;max-height:200px;overflow-y:auto;z-index:300;box-shadow:var(--shadow-md);margin-top:2px"></div>
+              </div>
+            </div>
     </div>
     <div class="form-sep"><i class="ti ti-ruler"></i>Details</div>
     <div class="form-row3">
@@ -894,7 +904,7 @@ function clearPropertyReminder(propId){
 }
 function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
 function bArr(){return Object.entries(state.brokers).map(([id,v])=>({id,...v}));}
-function pArr(){return Object.entries(state.properties).map(([id,v])=>({id,...v}));}
+function pArr(){return Object.entries(state.properties).map(([id,v])=>({id,...v})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));}
 function calcDOM(ts){if(!ts)return 0;return Math.floor((Date.now()-Number(ts))/86400000);}
 
 // ── Notes helpers
@@ -1506,7 +1516,36 @@ function switchTab(tab){
 }
 
 
-function populateBrokerSelect(sel){document.getElementById('p-broker').innerHTML='<option value="">None</option>'+bArr().map(b=>`<option value="${b.id}" ${b.id===sel?'selected':''}>${b.name}</option>`).join('');}
+function populateBrokerSelect(sel){
+  const hiddenInput=document.getElementById('p-broker');
+  const searchInput=document.getElementById('p-broker-search');
+  if(hiddenInput)hiddenInput.value=sel||'';
+  if(searchInput){
+    if(sel&&state.brokers[sel]){searchInput.value=state.brokers[sel].name||'';}
+    else{searchInput.value='';}
+  }
+}
+function filterBrokerDropdown(query){
+  const list=document.getElementById('broker-dropdown-list');
+  if(!list)return;
+  const brokers=bArr();
+  const q=(query||'').toLowerCase();
+  const filtered=q?brokers.filter(b=>(b.name||'').toLowerCase().includes(q)):brokers;
+  list.innerHTML='<div onclick="selectBrokerFromDropdown(\'\',\'\')" style="padding:8px 12px;font-size:13px;color:var(--text3);cursor:pointer;border-bottom:0.5px solid var(--border)" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'" >None</div>'+
+    filtered.map(b=>`<div onclick="selectBrokerFromDropdown('${b.id}','${(b.name||'').replace(/'/g,"&apos;")}')" style="padding:9px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:0.5px solid var(--border)" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--green-d);flex-shrink:0">${(b.name||'??').slice(0,2).toUpperCase()}</div>
+      <div><div style="font-weight:500">${b.name}</div>${b.phone?`<div style="font-size:11px;color:var(--text3)">${b.phone}</div>`:''}</div>
+    </div>`).join('');
+  list.style.display=filtered.length||!q?'block':'block';
+}
+function selectBrokerFromDropdown(id,name){
+  const hiddenInput=document.getElementById('p-broker');
+  const searchInput=document.getElementById('p-broker-search');
+  if(hiddenInput)hiddenInput.value=id;
+  if(searchInput)searchInput.value=name;
+  const list=document.getElementById('broker-dropdown-list');
+  if(list)list.style.display='none';
+}
 function populatePropertySelect(sel){document.getElementById('b-linked-property').innerHTML='<option value="">None</option>'+pArr().map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${p.address}</option>`).join('');}
 
 function openBrokerModal(id){
@@ -1589,7 +1628,7 @@ function openPropertyModal(id){
 function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
 function saveProperty(){
   const address=document.getElementById('p-address').value.trim();if(!address){showToast('⚠ Address is required');return;}
-  const data={address,zip:document.getElementById('p-zip').value,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:document.getElementById('p-notes').value,url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
+  const data={address,zip:document.getElementById('p-zip').value,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:(()=>{const n=document.getElementById('p-notes').value;return n?n+' · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''})(),url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
   const id=editingPropertyId||db.ref('properties').push().key;
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
