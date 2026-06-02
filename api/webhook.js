@@ -181,8 +181,11 @@ module.exports = async (req, res) => {
 
     // ── contact.updated — ongoing sync (also fires on create)
     if (type === 'contact.updated') {
-      const name = data.defaultFields?.firstName ? `${data.defaultFields.firstName} ${data.defaultFields.lastName||''}`.trim() : (data.name || (data.firstName ? `${data.firstName} ${data.lastName||''}`.trim() : null));
-      const phone = data.phoneNumbers?.[0]?.value || data.phoneNumbers?.[0]?.phoneNumber || '';
+      // Handle both v1 (defaultFields) and v3 (firstName + fields.Phone) API formats
+      const firstName = data.firstName || data.defaultFields?.firstName || '';
+      const lastName = data.lastName || data.defaultFields?.lastName || '';
+      const name = (firstName + ' ' + lastName).trim() || data.name || null;
+      const phone = data.fields?.Phone || data.phoneNumbers?.[0]?.value || data.phoneNumbers?.[0]?.phoneNumber || data.defaultFields?.phoneNumbers?.[0]?.value || '';
       if (!name || !phone) return res.status(200).json({ success: true, skipped: true, reason: 'No name or phone' });
 
       // Check for duplicate
