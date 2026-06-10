@@ -70,6 +70,7 @@ select{width:auto;cursor:pointer;}
 .btn-primary{background:var(--green);color:#fff;}.btn-primary:hover{background:var(--green-d);}
 .btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border2);}.btn-ghost:hover{background:var(--surface2);color:var(--text1);}
 .btn-del{background:transparent;color:#DC2626;border:1px solid #FECACA;}.btn-del:hover{background:#FEF2F2;}
+.btn-del-confirm{background:#DC2626;color:#fff;border:1px solid #DC2626;}.btn-del-confirm:hover{background:#B91C1C;}
 .btn-sm{padding:5px 10px;font-size:12px;border-radius:8px;}
 
 /* Broker card */
@@ -379,18 +380,25 @@ select{width:auto;cursor:pointer;}
 </head>
 <body>
 
-<!-- User selector (shown on first visit) -->
+<!-- Login modal -->
 <div class="user-modal" id="user-modal" style="display:none">
   <div class="user-modal-box">
-    <div class="user-modal-title">Who are you?</div>
-    <div class="user-modal-sub">This identifies you for notes and activity tracking</div>
-    <button class="user-btn" onclick="setUser('alon','Alon')">
-      <div class="user-btn-av" style="background:#E8F8F2;color:#0F6E56">AL</div>
-      <span>Alon</span>
-    </button>
-    <button class="user-btn" onclick="setUser('niv','Niv')">
-      <div class="user-btn-av" style="background:#EFF6FF;color:#1E40AF">NV</div>
-      <span>Niv</span>
+    <div style="width:48px;height:48px;background:var(--green);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+      <i class="ti ti-building" style="font-size:24px;color:#fff"></i>
+    </div>
+    <div class="user-modal-title">Maple Holdings CRM</div>
+    <div id="login-error" style="font-size:13px;color:#EF4444;display:none;margin-bottom:12px;background:#FEF2F2;padding:8px 12px;border-radius:8px;text-align:left"></div>
+    <div class="form-g" style="text-align:left;margin-top:16px">
+      <label class="form-lbl">Email</label>
+      <input type="email" id="login-email" placeholder="your@email.com" />
+    </div>
+    <div class="form-g" style="text-align:left">
+      <label class="form-lbl">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()">
+      <i class="ti ti-login"></i>Sign In
     </button>
   </div>
 </div>
@@ -774,29 +782,80 @@ select{width:auto;cursor:pointer;}
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
-firebase.initializeApp({databaseURL:"https://maple-holdings-group-default-rtdb.firebaseio.com/"});
+firebase.initializeApp({
+  databaseURL:"https://maple-holdings-group-default-rtdb.firebaseio.com/",
+  apiKey:"AIzaSyBCFSyCwhKvhdRbQpqxgaSc0gRVxsA1ExU",
+  authDomain:"maple-holdings-group.firebaseapp.com"
+});
 const db=firebase.database();
 
-// ── Current user (persisted in localStorage)
+// ── Auth
 let currentUser={id:'',name:''};
-function initUser(){
-  const saved=localStorage.getItem('crm_user');
-  if(saved){currentUser=JSON.parse(saved);updateUserLabel();}
-  else{document.getElementById('user-modal').style.display='flex';}
+
+firebase.auth().onAuthStateChanged(user=>{
+  if(user){
+    const isAlon=user.email.toLowerCase().includes('alon');
+    currentUser={
+      id: isAlon?'alon':'niv',
+      name: isAlon?'Alon':'Niv'
+    };
+    document.getElementById('user-modal').style.display='none';
+    updateUserLabel();
+    renderAll();
+  } else {
+    document.getElementById('user-modal').style.display='flex';
+  }
+});
+
+function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const errEl=document.getElementById('login-error');
+  errEl.style.display='none';
+  firebase.auth().signInWithEmailAndPassword(email,password)
+    .catch(()=>{
+      errEl.textContent='Wrong email or password. Please try again.';
+      errEl.style.display='block';
+    });
 }
-function setUser(id,name){
-  currentUser={id,name};
-  localStorage.setItem('crm_user',JSON.stringify(currentUser));
-  document.getElementById('user-modal').style.display='none';
-  updateUserLabel();
-  renderAll();
-}
+
 function updateUserLabel(){
   const el=document.getElementById('current-user-label');
-  if(currentUser.name) el.innerHTML=`<i class="ti ti-user-circle" style="font-size:15px"></i>${currentUser.name} <button onclick="switchUser()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);padding:0;font-family:inherit">(switch)</button>`;
+  if(currentUser.name) el.innerHTML=`<i class="ti ti-user-circle" style="font-size:15px"></i>${currentUser.name} <button onclick="firebase.auth().signOut()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);padding:0;font-family:inherit">(sign out)</button>`;
 }
-function switchUser(){localStorage.removeItem('crm_user');document.getElementById('user-modal').style.display='flex';}
+
+function initUser(){}
+function switchUser(){firebase.auth().signOut();}
+// ── pending deletes for 2-step confirmation
+const pendingDeletes={};
+function requestDelete(key, btnEl, label){
+  Object.keys(pendingDeletes).forEach(k=>{
+    if(k!==key&&pendingDeletes[k]){
+      clearTimeout(pendingDeletes[k].timer);
+      const oldBtn=pendingDeletes[k].btn;
+      if(oldBtn){oldBtn.className='btn btn-del btn-sm';oldBtn.innerHTML='<i class="ti ti-trash"></i>';}
+      delete pendingDeletes[k];
+    }
+  });
+  if(pendingDeletes[key]){
+    clearTimeout(pendingDeletes[key].timer);
+    delete pendingDeletes[key];
+    return true;
+  }
+  btnEl.className='btn btn-del-confirm btn-sm';
+  btnEl.innerHTML='<i class="ti ti-trash"></i> Sure?';
+  const timer=setTimeout(()=>{
+    if(pendingDeletes[key]){
+      btnEl.className='btn btn-del btn-sm';
+      btnEl.innerHTML='<i class="ti ti-trash"></i>';
+      delete pendingDeletes[key];
+    }
+  },3000);
+  pendingDeletes[key]={timer,btn:btnEl};
+  return false;
+}
 
 // ── State
 let state={brokers:{},properties:{},notes:{}};
@@ -1221,7 +1280,7 @@ function renderBrokers(){
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn btn-ghost btn-sm" onclick="openBrokerModal('${b.id}')"><i class="ti ti-edit"></i></button>
-          <button class="btn btn-del btn-sm" onclick="deleteBroker('${b.id}')"><i class="ti ti-trash"></i></button>
+          <button class="btn btn-del btn-sm" onclick="deleteBroker('${b.id}',this)"><i class="ti ti-trash"></i></button>
         </div>
       </div>
 
@@ -1377,7 +1436,7 @@ function renderProperties(){
               </div>
             </div>
             <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
-            <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}')"><i class="ti ti-trash"></i></button>
+            <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}',this)"><i class="ti ti-trash"></i></button>
           </div>
         </div>
       </div>
@@ -1595,8 +1654,8 @@ function saveBroker(){
   db.ref('brokers/'+id).set(data).then(()=>showToast(editingBrokerId?'✓ Broker updated':'✓ Broker added'));
   closeBrokerModal();
 }
-function deleteBroker(id){
-  if(!confirm('Delete this broker and all their notes?'))return;
+function deleteBroker(id, btnEl){
+  if(!requestDelete('broker-'+id, btnEl, 'broker')) return;
   db.ref('brokers/'+id).remove();
   Object.entries(state.notes).filter(([,n])=>n.brokerId===id).forEach(([nid])=>db.ref('notes/'+nid).remove());
   showToast('Broker deleted');
@@ -1636,13 +1695,10 @@ function saveProperty(){
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
 }
-function deleteProperty(id){
-  const p=state.properties[id];
-  const name=p?.address||'this property';
-  if(!window.confirm('Delete '+name+'?'))return;
+function deleteProperty(id, btnEl){
+  if(!requestDelete('prop-'+id, btnEl, 'property')) return;
   db.ref('properties/'+id).remove();
-  // Also remove linked notes
-  Object.entries(state.notes).forEach(([nid,n])=>{if(n.propertyId===id||( n.propertyIds&&n.propertyIds.includes(id)))db.ref('notes/'+nid).remove();});
+  Object.entries(state.notes).forEach(([nid,n])=>{if(n.propertyId===id||(n.propertyIds&&n.propertyIds.includes(id)))db.ref('notes/'+nid).remove();});
   showToast('Property deleted');
 }
 
@@ -2020,7 +2076,7 @@ function checkUpcomingMeetings(){
 setInterval(checkUpcomingMeetings, 60000);
 // ── End Calendar ──────────────────────────────
 
-initUser();
+// auth handled by onAuthStateChanged
 const _savedTab=sessionStorage.getItem('crm_tab');
 if(_savedTab)switchTab(_savedTab);
 
