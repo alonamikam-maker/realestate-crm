@@ -744,16 +744,26 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">Status</label><select id="p-status" style="width:100%"><option value="active">Active</option><option value="pending">Pending</option><option value="uc">UC (Under Contract)</option><option value="offer_sent">Offer Sent</option><option value="rejected">Rejected</option><option value="follow_up">In Follow Up</option></select></div>
     </div>
     <div class="form-sep"><i class="ti ti-currency-dollar"></i>Pricing</div>
-    <div class="form-row3">
+    <div class="form-row">
       <div class="form-g"><label class="form-lbl">List Price ($)</label><input type="number" id="p-list-price" placeholder="350000" /></div>
       <div class="form-g"><label class="form-lbl">Asking Price ($)</label><input type="number" id="p-asking-price" placeholder="340000" /></div>
-      <div class="form-g"><label class="form-lbl">ARV ($)</label><input type="number" id="p-arv" placeholder="420000" /></div>
     </div>
+    <div class="form-sep" style="margin-top:4px"><i class="ti ti-home"></i>Flip</div>
+    <div class="form-row3">
+      <div class="form-g"><label class="form-lbl">ARV Flip ($)</label><input type="number" id="p-arv-flip" placeholder="420000" oninput="calcModalMAO()" /></div>
+      <div class="form-g"><label class="form-lbl">Reno Flip ($)</label><input type="number" id="p-reno-flip" placeholder="45000" oninput="calcModalMAO()" /></div>
+      <div class="form-g"><label class="form-lbl">MAO Flip</label><div style="background:#EAF3DE;border:1px solid #C0DD97;border-radius:var(--r);padding:7px 12px;min-height:38px;display:flex;align-items:center"><span style="font-size:14px;font-weight:600;color:#27500A" id="p-mao-flip-display">—</span></div><input type="hidden" id="p-mao-flip" /></div>
+    </div>
+    <div class="form-sep" style="margin-top:4px"><i class="ti ti-refresh"></i>BRRR</div>
+    <div class="form-row3">
+      <div class="form-g"><label class="form-lbl">ARV BRRR ($)</label><input type="number" id="p-arv-brrr" placeholder="420000" oninput="calcModalMAO()" /></div>
+      <div class="form-g"><label class="form-lbl">Reno BRRR ($)</label><input type="number" id="p-reno-brrr" placeholder="45000" oninput="calcModalMAO()" /></div>
+      <div class="form-g"><label class="form-lbl">MAO BRRR</label><div style="background:#EEEDFE;border:1px solid #CECBF6;border-radius:var(--r);padding:7px 12px;min-height:38px;display:flex;align-items:center"><span style="font-size:14px;font-weight:600;color:#3C3489" id="p-mao-brrr-display">—</span></div><input type="hidden" id="p-mao-brrr" /></div>
+    </div>
+    <div class="form-sep" style="margin-top:4px"><i class="ti ti-building-store"></i>WLS</div>
     <div class="form-row">
-      <div class="form-g"><label class="form-lbl">Renovation Cost ($)</label><input type="number" id="p-reno-cost" placeholder="45000" /></div>
-      <div class="form-g"><label class="form-lbl">MAO Flip</label><input type="number" id="p-mao-flip" placeholder="0" /></div>
-      <div class="form-g"><label class="form-lbl">MAO WLS</label><input type="number" id="p-mao-wls" placeholder="0" /></div>
-      <div class="form-g"><label class="form-lbl">MAO BRRR</label><input type="number" id="p-mao-brrr" placeholder="0" /></div>
+      <div class="form-g"><label class="form-lbl">MAO WLS ($)</label><input type="number" id="p-mao-wls" placeholder="Enter manually" /></div>
+    </div
       <div class="form-g"><label class="form-lbl">Linked Broker</label>
               <div style="position:relative">
                 <input type="text" id="p-broker-search" placeholder="Search broker name..." autocomplete="off"
@@ -1405,8 +1415,7 @@ function renderProperties(){
             ${p.size?`<span><i class="ti ti-arrows-maximize"></i>${Number(p.size).toLocaleString()} sqft</span>`:''}
           </div>
           ${hp?`<div class="prices">
-            ${p.listPrice?`<div class="price-item"><div class="price-lbl">List</div><div class="price-val">${fmtMoney(p.listPrice)}</div></div>`:''}
-            ${p.askingPrice?`<div class="price-item"><div class="price-lbl">Asking</div><div class="price-val">${fmtMoney(p.askingPrice)}</div></div>`:''}
+            ${p.listPrice?`<div class="price-item"><div class="price-lbl">List</div><div class="price-val">${fmtMoney(p.listPrice)}</div></div>`:''} ${p.askingPrice?`<div class="price-item"><div class="price-lbl">Asking</div><div class="price-val">${fmtMoney(p.askingPrice)}</div></div>`:''} ${(p.arvFlip||p.renoFlip)?`<div style="width:0.5px;background:var(--border);margin:0 2px;align-self:stretch"></div>`:''} ${p.arvFlip?`<div class="price-item"><div class="price-lbl">ARV Flip</div><div class="price-val green">${fmtMoney(p.arvFlip)}</div></div>`:''} ${p.renoFlip?`<div class="price-item"><div class="price-lbl">Reno Flip</div><div class="price-val amber">${fmtMoney(p.renoFlip)}</div></div>`:''} ${(p.arvBrrr||p.renoBrrr)?`<div style="width:0.5px;background:var(--border);margin:0 2px;align-self:stretch"></div>`:''} ${p.arvBrrr?`<div class="price-item"><div class="price-lbl">ARV BRRR</div><div class="price-val green">${fmtMoney(p.arvBrrr)}</div></div>`:''} ${p.renoBrrr?`<div class="price-item"><div class="price-lbl">Reno BRRR</div><div class="price-val amber">${fmtMoney(p.renoBrrr)}</div></div>`:''}
             ${p.arv?`<div class="price-item"><div class="price-lbl">ARV</div><div class="price-val green">${fmtMoney(p.arv)}</div></div>`:''}
             ${p.renoCost?`<div class="price-item"><div class="price-lbl">Reno Cost</div><div class="price-val amber">${fmtMoney(p.renoCost)}</div></div>`:''}${(p.maoFlip||p.maoWls||p.maoBrrr)?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;width:100%">${p.maoFlip?`<div style="flex:1;min-width:80px;background:#EAF3DE;border:0.5px solid #C0DD97;border-radius:8px;padding:6px 10px"><div style="font-size:9px;font-weight:600;color:#3B6D11;text-transform:uppercase;letter-spacing:0.05em">MAO Flip</div><div style="font-size:14px;font-weight:600;color:#27500A;margin-top:1px">${fmtMoney(p.maoFlip)}</div></div>`:''} ${p.maoWls?`<div style="flex:1;min-width:80px;background:#E6F1FB;border:0.5px solid #B5D4F4;border-radius:8px;padding:6px 10px"><div style="font-size:9px;font-weight:600;color:#185FA5;text-transform:uppercase;letter-spacing:0.05em">MAO WLS</div><div style="font-size:14px;font-weight:600;color:#0C447C;margin-top:1px">${fmtMoney(p.maoWls)}</div></div>`:''} ${p.maoBrrr?`<div style="flex:1;min-width:80px;background:#EEEDFE;border:0.5px solid #CECBF6;border-radius:8px;padding:6px 10px"><div style="font-size:9px;font-weight:600;color:#534AB7;text-transform:uppercase;letter-spacing:0.05em">MAO BRRR</div><div style="font-size:14px;font-weight:600;color:#3C3489;margin-top:1px">${fmtMoney(p.maoBrrr)}</div></div>`:''}</div>`:''}
           </div>`:''}
@@ -1685,17 +1694,29 @@ function updatePropertyStatus(propId, newStatus){
 }
 function openPropertyModal(id){
   editingPropertyId=id||null;populateBrokerSelect('');
-  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-zip').value=p.zip||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv').value=p.arv||'';document.getElementById('p-reno-cost').value=p.renoCost||'';document.getElementById('p-mao-flip').value=p.maoFlip||'';document.getElementById('p-mao-wls').value=p.maoWls||'';document.getElementById('p-mao-brrr').value=p.maoBrrr||'';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';populateBrokerSelect(p.brokerId||'');document.getElementById('p-broker-email').value=p.brokerEmail||'';}
-  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-zip','p-list-price','p-asking-price','p-arv','p-reno-cost','p-mao-flip','p-mao-wls','p-mao-brrr','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';document.getElementById('p-broker-email').value='';}
+  if(id){const p=state.properties[id];document.getElementById('prop-modal-title').textContent='Edit Property';document.getElementById('p-address').value=p.address||'';document.getElementById('p-zip').value=p.zip||'';document.getElementById('p-type').value=p.type||'SFR';document.getElementById('p-status').value=p.status||'active';document.getElementById('p-list-price').value=p.listPrice||'';document.getElementById('p-asking-price').value=p.askingPrice||'';document.getElementById('p-arv-flip').value=p.arvFlip||'';document.getElementById('p-reno-flip').value=p.renoFlip||'';document.getElementById('p-arv-brrr').value=p.arvBrrr||'';document.getElementById('p-reno-brrr').value=p.renoBrrr||'';document.getElementById('p-mao-flip').value=p.maoFlip||'';document.getElementById('p-mao-brrr').value=p.maoBrrr||'';document.getElementById('p-mao-wls').value=p.maoWls||'';document.getElementById('p-mao-flip-display').textContent=p.maoFlip?fmtMoney(p.maoFlip):'—';document.getElementById('p-mao-brrr-display').textContent=p.maoBrrr?fmtMoney(p.maoBrrr):'—';document.getElementById('p-rooms').value=p.rooms||'';document.getElementById('p-baths').value=p.baths||'';document.getElementById('p-size').value=p.size||'';document.getElementById('p-notes').value=p.notes||'';document.getElementById('p-url').value=p.url||'';document.getElementById('p-added-by').value=p.addedBy||'';document.getElementById('p-dom').value=p.domStart?calcDOM(p.domStart):'';populateBrokerSelect(p.brokerId||'');document.getElementById('p-broker-email').value=p.brokerEmail||'';}
+  else{document.getElementById('prop-modal-title').textContent='Add Property';['p-address','p-zip','p-list-price','p-asking-price','p-arv-flip','p-reno-flip','p-arv-brrr','p-reno-brrr','p-mao-flip','p-mao-wls','p-mao-brrr','p-rooms','p-baths','p-size','p-notes','p-url','p-added-by','p-dom'].forEach(i=>document.getElementById(i).value='');document.getElementById('p-type').value='SFR';document.getElementById('p-status').value='active';document.getElementById('p-broker-email').value='';document.getElementById('p-mao-flip-display').textContent='—';document.getElementById('p-mao-brrr-display').textContent='—';}
   document.getElementById('property-modal').classList.add('open');
 }
 function closePropertyModal(){document.getElementById('property-modal').classList.remove('open');}
 function saveProperty(){
   const address=document.getElementById('p-address').value.trim();if(!address){showToast('⚠ Address is required');return;}
-  const data={address,zip:document.getElementById('p-zip').value,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arv:document.getElementById('p-arv').value,renoCost:document.getElementById('p-reno-cost').value,maoFlip:document.getElementById('p-mao-flip').value||'',maoWls:document.getElementById('p-mao-wls').value||'',maoBrrr:document.getElementById('p-mao-brrr').value||'',rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:(()=>{const n=document.getElementById('p-notes').value;return n?n+' · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''})(),url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,brokerEmail:document.getElementById('p-broker-email').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
+  const data={address,zip:document.getElementById('p-zip').value,type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,listPrice:document.getElementById('p-list-price').value,askingPrice:document.getElementById('p-asking-price').value,arvFlip:document.getElementById('p-arv-flip').value||'',renoFlip:document.getElementById('p-reno-flip').value||'',maoFlip:document.getElementById('p-mao-flip').value||'',arvBrrr:document.getElementById('p-arv-brrr').value||'',renoBrrr:document.getElementById('p-reno-brrr').value||'',maoBrrr:document.getElementById('p-mao-brrr').value||'',maoWls:document.getElementById('p-mao-wls').value||'',rooms:document.getElementById('p-rooms').value,baths:document.getElementById('p-baths').value,size:document.getElementById('p-size').value,notes:(()=>{const n=document.getElementById('p-notes').value;return n?n+' · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''})(),url:document.getElementById('p-url').value,addedBy:document.getElementById('p-added-by').value,domStart:document.getElementById('p-dom').value?Date.now()-Number(document.getElementById('p-dom').value)*86400000:(editingPropertyId&&state.properties[editingPropertyId]?.domStart?state.properties[editingPropertyId].domStart:''),brokerId:document.getElementById('p-broker').value,brokerEmail:document.getElementById('p-broker-email').value,createdAt:editingPropertyId?(state.properties[editingPropertyId]?.createdAt||Date.now()):Date.now()};
   const id=editingPropertyId||db.ref('properties').push().key;
   db.ref('properties/'+id).set(data).then(()=>showToast(editingPropertyId?'✓ Property updated':'✓ Property added'));
   closePropertyModal();
+}
+function calcModalMAO(){
+  const arvF=parseFloat(document.getElementById('p-arv-flip').value)||0;
+  const renoF=parseFloat(document.getElementById('p-reno-flip').value)||0;
+  const arvB=parseFloat(document.getElementById('p-arv-brrr').value)||0;
+  const renoB=parseFloat(document.getElementById('p-reno-brrr').value)||0;
+  const maoFlip=arvF?Math.round(arvF*0.7-renoF):null;
+  const maoBrrr=arvB?Math.round(arvB*0.62-renoB):null;
+  document.getElementById('p-mao-flip').value=maoFlip||'';
+  document.getElementById('p-mao-brrr').value=maoBrrr||'';
+  document.getElementById('p-mao-flip-display').textContent=maoFlip?fmtMoney(maoFlip):'—';
+  document.getElementById('p-mao-brrr-display').textContent=maoBrrr?fmtMoney(maoBrrr):'—';
 }
 function deleteProperty(id, btnEl){
   if(!requestDelete('prop-'+id, btnEl, 'property')) return;
