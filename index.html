@@ -731,7 +731,7 @@ select{width:auto;cursor:pointer;}
 
 <!-- Property Modal -->
 <div class="overlay" id="property-modal">
-  <div class="modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
     <div class="modal-hd"><span id="prop-modal-title">Add Property</span><button class="btn btn-ghost btn-sm" onclick="closePropertyModal()"><i class="ti ti-x"></i></button></div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><label class="form-lbl" style="margin:0;white-space:nowrap">Added by</label><select id="p-added-by" style="width:auto;font-size:12px;padding:5px 10px"><option value="">— select —</option><option value="Alon">Alon</option><option value="Niv">Niv</option></select></div>
     <div class="form-sep"><i class="ti ti-building"></i>Property Info</div>
@@ -763,8 +763,8 @@ select{width:auto;cursor:pointer;}
     <div class="form-sep" style="margin-top:4px"><i class="ti ti-building-store"></i>WLS</div>
     <div class="form-row">
       <div class="form-g"><label class="form-lbl">MAO WLS ($)</label><input type="number" id="p-mao-wls" placeholder="Enter manually" /></div>
-    </div
-      <div class="form-g"><label class="form-lbl">Linked Broker</label>
+    </div>
+    <div class="form-g"><label class="form-lbl">Linked Broker</label>
               <div style="position:relative">
                 <input type="text" id="p-broker-search" placeholder="Search broker name..." autocomplete="off"
                   oninput="filterBrokerDropdown(this.value)"
