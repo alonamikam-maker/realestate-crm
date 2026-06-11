@@ -765,17 +765,17 @@ select{width:auto;cursor:pointer;}
       <div class="form-g"><label class="form-lbl">MAO WLS ($)</label><input type="number" id="p-mao-wls" placeholder="Enter manually" /></div>
     </div>
     <div class="form-g"><label class="form-lbl">Linked Broker</label>
-              <div style="position:relative">
-                <input type="text" id="p-broker-search" placeholder="Search broker name..." autocomplete="off"
-                  oninput="filterBrokerDropdown(this.value)"
-                  onfocus="filterBrokerDropdown(this.value)"
-                  style="width:100%"
-                />
-                <input type="hidden" id="p-broker" value="" />
-                <div id="broker-dropdown-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;max-height:200px;overflow-y:auto;z-index:300;box-shadow:var(--shadow-md);margin-top:2px"></div>
-              </div>
-            </div>
-            <div class="form-g"><label class="form-lbl">Broker Email</label><input type="email" id="p-broker-email" placeholder="broker@example.com" /></div>
+      <div style="position:relative">
+        <input type="text" id="p-broker-search" placeholder="Search broker name..." autocomplete="off"
+          oninput="filterBrokerDropdown(this.value)"
+          onfocus="filterBrokerDropdown(this.value)"
+          style="width:100%"
+        />
+        <input type="hidden" id="p-broker" value="" />
+        <div id="broker-dropdown-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;max-height:200px;overflow-y:auto;z-index:300;box-shadow:var(--shadow-md);margin-top:2px"></div>
+      </div>
+    </div>
+    <div class="form-g"><label class="form-lbl">Broker Email</label><input type="email" id="p-broker-email" placeholder="broker@example.com" /></div>
     </div>
     <div class="form-sep"><i class="ti ti-ruler"></i>Details</div>
     <div class="form-row3">
