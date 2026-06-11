@@ -752,30 +752,41 @@ select{width:auto;cursor:pointer;}
     <div class="form-row3">
       <div class="form-g"><label class="form-lbl">ARV Flip ($)</label><input type="number" id="p-arv-flip" placeholder="420000" oninput="calcModalMAO()" /></div>
       <div class="form-g"><label class="form-lbl">Reno Flip ($)</label><input type="number" id="p-reno-flip" placeholder="45000" oninput="calcModalMAO()" /></div>
-      <div class="form-g"><label class="form-lbl">MAO Flip</label><div style="background:#EAF3DE;border:1px solid #C0DD97;border-radius:var(--r);padding:7px 12px;min-height:38px;display:flex;align-items:center"><span style="font-size:14px;font-weight:600;color:#27500A" id="p-mao-flip-display">—</span></div><input type="hidden" id="p-mao-flip" /></div>
+      <div class="form-g"><label class="form-lbl">MAO Flip</label>
+        <div style="background:#EAF3DE;border:1px solid #C0DD97;border-radius:var(--r);padding:7px 12px;min-height:38px;display:flex;align-items:center">
+          <span style="font-size:14px;font-weight:600;color:#27500A" id="p-mao-flip-display">—</span>
+        </div>
+        <input type="hidden" id="p-mao-flip" />
+      </div>
     </div>
     <div class="form-sep" style="margin-top:4px"><i class="ti ti-refresh"></i>BRRR</div>
     <div class="form-row3">
       <div class="form-g"><label class="form-lbl">ARV BRRR ($)</label><input type="number" id="p-arv-brrr" placeholder="420000" oninput="calcModalMAO()" /></div>
       <div class="form-g"><label class="form-lbl">Reno BRRR ($)</label><input type="number" id="p-reno-brrr" placeholder="45000" oninput="calcModalMAO()" /></div>
-      <div class="form-g"><label class="form-lbl">MAO BRRR</label><div style="background:#EEEDFE;border:1px solid #CECBF6;border-radius:var(--r);padding:7px 12px;min-height:38px;display:flex;align-items:center"><span style="font-size:14px;font-weight:600;color:#3C3489" id="p-mao-brrr-display">—</span></div><input type="hidden" id="p-mao-brrr" /></div>
+      <div class="form-g"><label class="form-lbl">MAO BRRR</label>
+        <div style="background:#EEEDFE;border:1px solid #CECBF6;border-radius:var(--r);padding:7px 12px;min-height:38px;display:flex;align-items:center">
+          <span style="font-size:14px;font-weight:600;color:#3C3489" id="p-mao-brrr-display">—</span>
+        </div>
+        <input type="hidden" id="p-mao-brrr" />
+      </div>
     </div>
     <div class="form-sep" style="margin-top:4px"><i class="ti ti-building-store"></i>WLS</div>
     <div class="form-row">
       <div class="form-g"><label class="form-lbl">MAO WLS ($)</label><input type="number" id="p-mao-wls" placeholder="Enter manually" /></div>
     </div>
-    <div class="form-g"><label class="form-lbl">Linked Broker</label>
-      <div style="position:relative">
-        <input type="text" id="p-broker-search" placeholder="Search broker name..." autocomplete="off"
-          oninput="filterBrokerDropdown(this.value)"
-          onfocus="filterBrokerDropdown(this.value)"
-          style="width:100%"
-        />
-        <input type="hidden" id="p-broker" value="" />
-        <div id="broker-dropdown-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;max-height:200px;overflow-y:auto;z-index:300;box-shadow:var(--shadow-md);margin-top:2px"></div>
+    <div class="form-row">
+      <div class="form-g"><label class="form-lbl">Linked Broker</label>
+        <div style="position:relative">
+          <input type="text" id="p-broker-search" placeholder="Search broker name..." autocomplete="off"
+            oninput="filterBrokerDropdown(this.value)"
+            onfocus="filterBrokerDropdown(this.value)"
+            style="width:100%"
+          />
+          <input type="hidden" id="p-broker" value="" />
+          <div id="broker-dropdown-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;max-height:200px;overflow-y:auto;z-index:300;box-shadow:var(--shadow-md);margin-top:2px"></div>
+        </div>
       </div>
-    </div>
-    <div class="form-g"><label class="form-lbl">Broker Email</label><input type="email" id="p-broker-email" placeholder="broker@example.com" /></div>
+      <div class="form-g"><label class="form-lbl">Broker Email</label><input type="email" id="p-broker-email" placeholder="broker@example.com" /></div>
     </div>
     <div class="form-sep"><i class="ti ti-ruler"></i>Details</div>
     <div class="form-row3">
@@ -789,7 +800,6 @@ select{width:auto;cursor:pointer;}
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closePropertyModal()">Cancel</button><button class="btn btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i>Save</button></div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
