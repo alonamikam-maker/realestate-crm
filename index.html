@@ -1246,35 +1246,33 @@ function renderTasksPanel(){
   const el=document.getElementById('tasks-panel-body');
   if(!el)return;
   const people=[
-    {id:'alon',name:'Alon'},
-    {id:'niv',name:'Niv'}
+    {id:'alon',name:'Alon',bg:'#E8F8F2',color:'#0F6E56'},
+    {id:'niv',name:'Niv',bg:'#EFF6FF',color:'#1E40AF'}
   ];
   el.innerHTML=people.map((person,idx)=>{
     const todo=tArr().filter(t=>t.assignedTo===person.name&&t.status==='pending').sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
     const done=tArr().filter(t=>t.createdBy===person.name&&t.status==='done').sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
     const borderStyle=idx===0?'border-right:1px solid var(--border)':'';
     return`<div style="${borderStyle}">
-      <div style="padding:10px 14px 8px;display:flex;align-items:center;gap:6px">
-        <span style="font-size:13px;font-weight:600;color:var(--text1)">${person.name}</span>
-        <button onclick="openTaskModal('${person.name}')" style="width:18px;height:18px;border-radius:50%;background:var(--surface2);border:none;display:flex;align-items:center;justify-content:center;color:var(--text2);padding:0;margin-left:auto;cursor:pointer" title="Add task for ${person.name}"><i class="ti ti-plus" style="font-size:13px"></i></button>
+      <div style="padding:12px 16px;background:${person.bg};display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;font-weight:700;color:${person.color}">${person.name}</span>
+        ${todo.length>0?`<span style="font-size:10px;background:#fff;color:${person.color};padding:1px 7px;border-radius:100px;font-weight:600">${todo.length} pending</span>`:''}
+        <button onclick="openTaskModal('${person.name}')" style="width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid ${person.color}40;display:flex;align-items:center;justify-content:center;color:${person.color};padding:0;margin-left:auto;cursor:pointer" title="Add task for ${person.name}"><i class="ti ti-plus" style="font-size:14px"></i></button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        <div style="padding:0 10px 10px;border-right:0.5px dashed var(--border)">
-          <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">To do</div>
-          ${todo.length===0?'<div style="font-size:11px;color:var(--text3)">Nothing pending</div>':todo.map(t=>`
-            <div style="display:flex;align-items:flex-start;gap:5px;padding:3px 0;cursor:pointer" onclick="completeTask('${t.id}')" title="Mark done">
-              <div style="width:13px;height:13px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;margin-top:2px"></div>
-              <span style="font-size:11.5px;color:var(--text1)">${t.text}</span>
-            </div>`).join('')}
-        </div>
-        <div style="padding:0 10px 10px">
-          <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Done for you</div>
-          ${done.length===0?'<div style="font-size:11px;color:var(--text3)">Nothing yet</div>':done.map(t=>`
-            <div style="display:flex;align-items:flex-start;gap:5px;padding:3px 0">
-              <span style="font-size:11.5px;color:var(--text3);text-decoration:line-through;flex:1">${t.text}</span>
-              <i class="ti ti-x" style="font-size:12px;color:var(--text3);cursor:pointer;margin-top:1px" onclick="deleteTask('${t.id}')" title="Remove"></i>
-            </div>`).join('')}
-        </div>
+      <div style="padding:12px 16px">
+        <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">To do</div>
+        ${todo.length===0?'<div style="font-size:12px;color:var(--text3);padding-bottom:4px">Nothing pending</div>':todo.map(t=>`
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;margin-bottom:4px;border-radius:8px;cursor:pointer;background:var(--surface2)" onclick="completeTask('${t.id}')" title="Mark done">
+            <div style="width:15px;height:15px;border-radius:50%;border:2px solid ${person.color};flex-shrink:0;margin-top:1px"></div>
+            <span style="font-size:12.5px;color:var(--text1);font-weight:500">${t.text}</span>
+          </div>`).join('')}
+        <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--border)">Done for you</div>
+        ${done.length===0?'<div style="font-size:12px;color:var(--text3)">Nothing yet</div>':done.map(t=>`
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;margin-bottom:4px;border-radius:8px;background:#ECFDF5">
+            <i class="ti ti-circle-check-filled" style="font-size:15px;color:#065F46;flex-shrink:0;margin-top:1px"></i>
+            <span style="font-size:12.5px;color:#065F46;text-decoration:line-through;flex:1;font-weight:500">${t.text}</span>
+            <i class="ti ti-x" style="font-size:13px;color:#065F46;cursor:pointer;margin-top:1px;flex-shrink:0" onclick="deleteTask('${t.id}')" title="Remove"></i>
+          </div>`).join('')}
       </div>
     </div>`;
   }).join('');
@@ -1327,7 +1325,7 @@ function renderDashboard(){setTimeout(()=>{renderDashCalendar();renderDashUpcomi
       return`<div class="act-row" style="cursor:pointer" onclick="switchTab('brokers');setTimeout(()=>openBrokerModal('${item.id}'),120)">
         <div class="av" style="width:32px;height:32px;font-size:11px">${initials(item.name)}</div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span>${item.addedBy?`<span style="font-size:10px;background:${item.addedBy==='Alon'?'#E8F8F2':'#EFF6FF'};color:${item.addedBy==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 7px;border-radius:100px;font-weight:500;margin-left:auto">${item.addedBy}</span>`:''}</div>
           ${item.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${item.reminderNote}</div>`:''}
           ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
         </div></div>`;
@@ -1336,7 +1334,7 @@ function renderDashboard(){setTimeout(()=>{renderDashCalendar();renderDashUpcomi
       return`<div class="act-row" style="cursor:pointer" onclick="scrollToProperty('${item.id}')">
         <div class="act-dot" style="width:32px;height:32px"><i class="ti ti-building" style="font-size:14px"></i></div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.address}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span></div>
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.address}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span>${item.addedBy?`<span style="font-size:10px;background:${item.addedBy==='Alon'?'#E8F8F2':'#EFF6FF'};color:${item.addedBy==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 7px;border-radius:100px;font-weight:500;margin-left:auto">${item.addedBy}</span>`:''}</div>
           ${item.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${item.reminderNote}</div>`:''}
           ${broker?`<div class="linked"><i class="ti ti-user" style="font-size:11px"></i>${broker.name}</div>`:''}
         </div></div>`;
