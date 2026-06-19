@@ -1445,6 +1445,7 @@ function renderBrokers(){
     const cc=s==='overdue'?'chip-red':s==='today'?'chip-green':'chip-amber';
     const cl=s==='overdue'?`${Math.abs(d)}d overdue`:s==='today'?'Follow-up today!':s?`In ${d} days`:'';
     const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
+    const assignedProps=pArr().filter(p=>p.brokerId===b.id);
     const notes=notesForBroker(b.id);
     const unread=unreadCount(b.id);
     const isOpen=openNotesPanels.has(b.id);
@@ -1464,7 +1465,7 @@ function renderBrokers(){
             ${b.email?`<span id="bew-${b.id}" style="display:inline-flex;align-items:center;gap:6px"><button onclick="(function(){const w=document.getElementById('bew-${b.id}');const t=document.getElementById('bet-${b.id}');if(w.dataset.s!=='1'){w.dataset.s='1';t.style.display='inline';}else{w.dataset.s='0';t.style.display='none';}})(  )" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit"><i class="ti ti-mail" style="font-size:12px"></i>Email</button><span id="bet-${b.id}" style="display:none;font-size:12px;color:var(--text2);cursor:pointer" onclick="navigator.clipboard.writeText('${b.email}').then(()=>showToast('Email copied'))">${b.email} <i class="ti ti-copy" style="font-size:11px;color:var(--text3)"></i></span></span>`:''}${b.area?`<span><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px"></i>${b.area}</span>`:''}
             ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i>${fmtDate(b.reminder)}</span>`:''}
           </div>
-          ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
+          ${assignedProps.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${assignedProps.map(p=>`<div onclick="scrollToProperty('${p.id}')" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border-radius:8px;padding:7px 12px;cursor:pointer" title="View property"><i class="ti ti-building" style="font-size:13px;color:var(--text2)"></i><span style="font-size:12px;font-weight:500;color:var(--text1)">${p.address}</span><span style="font-size:11px;color:var(--text3)">${p.type||''}${p.type&&p.status?' · ':''}${pSLbl[p.status]||''}</span></div>`).join('')}</div>`:''}
           ${b.reminderNote&&s?`<div style="font-size:11px;color:#92400E;margin-top:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-message" style="font-size:12px"></i>${b.reminderNote}</div>`:''}
         </div>
         <div style="display:flex;gap:6px">
