@@ -1736,24 +1736,70 @@ function rCard(b){
   const s=rStatus(b),d=daysUntil(b.reminder);
   const lbl=s==='overdue'?`${Math.abs(d)} days overdue`:s==='today'?'Today':`In ${d} days`;
   const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
+  const assignedProps=pArr().filter(p=>p.brokerId===b.id);
   const notes=notesForBroker(b.id);
   const lastNote=notes[0];
   return`<div class="r-card ${s||'upcoming'}">
-    <div>
+    <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <div class="r-name">${b.name}${b.phone?` · <span style="font-weight:400;color:var(--text2)">${b.phone}</span>`:''}</div>
+        <div class="r-name" onclick="scrollToBroker('${b.id}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${b.name}${b.phone?` · <span style="font-weight:400;color:var(--text2);text-decoration:none">${b.phone}</span>`:''}</div>
         ${b.addedBy?`<span style="font-size:10px;background:${b.addedBy==='Alon'?'#E8F8F2':'#EFF6FF'};color:${b.addedBy==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 8px;border-radius:100px;font-weight:600">${b.addedBy}</span>`:''}
       </div>
       <div class="r-date"><i class="ti ti-calendar" style="font-size:12px"></i>${fmtDate(b.reminder)} · ${lbl}</div>
       ${b.reminderNote?`<div class="r-note">${b.reminderNote}</div>`:''}
       ${lastNote?`<div class="r-note" style="margin-top:5px"><i class="ti ti-notes" style="font-size:12px;margin-right:3px;vertical-align:-2px"></i><strong>${lastNote.createdBy}:</strong> ${lastNote.text.slice(0,100)}${lastNote.text.length>100?'...':''}</div>`:''}
-      ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
+      ${assignedProps.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${assignedProps.map(p=>`<div onclick="scrollToProperty('${p.id}')" style="display:flex;align-items:center;gap:5px;background:var(--surface2);border-radius:8px;padding:5px 10px;cursor:pointer" title="View property"><i class="ti ti-building" style="font-size:12px;color:var(--text2)"></i><span style="font-size:11.5px;font-weight:500;color:var(--text1)">${p.address}</span></div>`).join('')}</div>`:''}
     </div>
-    <div style="display:flex;flex-direction:column;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="switchTab('brokers')" style="white-space:nowrap"><i class="ti ti-notes"></i>View Notes</button>
+    <div style="display:flex;flex-direction:column;gap:6px;position:relative">
+      <button class="btn btn-ghost btn-sm" onclick="toggleRCardEditPopover('${b.id}',this)" style="white-space:nowrap"><i class="ti ti-edit"></i>Edit</button>
       <button class="btn btn-sm" style="background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0" onclick="clearReminder('${b.id}')"><i class="ti ti-check"></i>Done</button>
+      <div class="reminder-popover" id="rcard-edit-${b.id}" style="display:none">
+        <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-bell" style="color:var(--green)"></i>Edit Reminder</div>
+        <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Date</label>
+        <input type="date" id="rcard-edit-date-${b.id}" value="${b.reminder||''}" style="width:100%;margin-bottom:10px" />
+        <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Note</label>
+        <input type="text" id="rcard-edit-note-${b.id}" value="${(b.reminderNote||'').replace(/"/g,'&quot;')}" placeholder="Call about..." style="width:100%;margin-bottom:12px" />
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="saveRCardEdit('${b.id}')"><i class="ti ti-check"></i>Save</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeRCardEditPopover()"><i class="ti ti-x"></i>Cancel</button>
+        </div>
+      </div>
     </div>
   </div>`;
+}
+let openRCardEditPopover=null;
+function toggleRCardEditPopover(brokerId,btnEl){
+  if(openRCardEditPopover&&openRCardEditPopover!==brokerId){closeRCardEditPopover();}
+  const el=document.getElementById('rcard-edit-'+brokerId);
+  if(!el)return;
+  const isOpen=el.style.display==='block';
+  if(isOpen){closeRCardEditPopover();}
+  else{
+    const rect=btnEl.getBoundingClientRect();
+    const popW=280;
+    let left=rect.right-popW;
+    if(left<8)left=8;
+    el.style.top=(rect.bottom+6)+'px';
+    el.style.left=left+'px';
+    el.style.right='auto';
+    el.style.display='block';
+    openRCardEditPopover=brokerId;
+  }
+}
+function closeRCardEditPopover(){
+  if(openRCardEditPopover){
+    const el=document.getElementById('rcard-edit-'+openRCardEditPopover);
+    if(el)el.style.display='none';
+    openRCardEditPopover=null;
+  }
+}
+function saveRCardEdit(brokerId){
+  const date=document.getElementById('rcard-edit-date-'+brokerId)?.value||'';
+  const note=document.getElementById('rcard-edit-note-'+brokerId)?.value||'';
+  db.ref('brokers/'+brokerId).update({reminder:date,reminderNote:note}).then(()=>{
+    showToast(date?'✓ Reminder updated':'Reminder cleared');
+    closeRCardEditPopover();
+  });
 }
 
 function updateBadge(){const nb=bArr().filter(b=>rStatus(b)==='overdue'||rStatus(b)==='today').length;const np=pArr().filter(p=>pReminderStatus(p)==='overdue'||pReminderStatus(p)==='today').length;const n=nb+np;const el=document.getElementById('reminder-badge');el.textContent=n;el.style.display=n>0?'inline':'none';const mel=document.getElementById('mobile-reminder-badge');if(mel){mel.textContent=n;mel.style.display=n>0?'inline':'none';}}
@@ -1925,7 +1971,7 @@ document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target
 document.getElementById('meeting-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMeetingModal();});
 document.getElementById('quick-reminder-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeQuickReminderModal();});
 document.getElementById('day-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDayModal();});
-document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();if(openBrokerReminderPopover&&!e.target.closest('.broker-bell-wrap'))closeBrokerReminderPopover();});
+document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();if(openBrokerReminderPopover&&!e.target.closest('.broker-bell-wrap'))closeBrokerReminderPopover();if(openRCardEditPopover&&!e.target.closest('.reminder-popover')&&!e.target.closest('.btn-ghost'))closeRCardEditPopover();});
 document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
 document.getElementById('task-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeTaskModal();});
 
