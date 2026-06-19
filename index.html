@@ -1266,7 +1266,7 @@ function renderTasksPanel(){
           const broker=t.brokerId?state.brokers[t.brokerId]:null;
           const linkParts=[];
           if(prop)linkParts.push(`<span onclick="event.stopPropagation();scrollToProperty('${t.propertyId}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${prop.address}</span>`);
-          if(broker)linkParts.push(`<span onclick="event.stopPropagation();openBrokerModal('${t.brokerId}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${broker.name}</span>`);
+          if(broker)linkParts.push(`<span onclick="event.stopPropagation();scrollToBroker('${t.brokerId}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${broker.name}</span>`);
           const linkStr=linkParts.length?' — '+linkParts.join(' · '):'';
           const canComplete=currentUser.name===person.name;
           return`
@@ -1285,7 +1285,7 @@ function renderTasksPanel(){
             <i class="ti ti-circle-check-filled" style="font-size:15px;color:#065F46;flex-shrink:0;margin-top:1px"></i>
             <div style="flex:1">
               <span style="font-size:12.5px;color:#065F46;text-decoration:line-through;font-weight:500">${t.text}</span>
-              ${(prop||broker)?`<div style="font-size:10.5px;color:#065F46;opacity:0.75;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">${prop?`<span onclick="event.stopPropagation();scrollToProperty('${t.propertyId}')" style="display:flex;align-items:center;gap:3px;cursor:pointer;text-decoration:underline;text-underline-offset:2px"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</span>`:''}${broker?`<span onclick="event.stopPropagation();openBrokerModal('${t.brokerId}')" style="display:flex;align-items:center;gap:3px;cursor:pointer;text-decoration:underline;text-underline-offset:2px"><i class="ti ti-user" style="font-size:11px"></i>${broker.name}</span>`:''}</div>`:''}
+              ${(prop||broker)?`<div style="font-size:10.5px;color:#065F46;opacity:0.75;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">${prop?`<span onclick="event.stopPropagation();scrollToProperty('${t.propertyId}')" style="display:flex;align-items:center;gap:3px;cursor:pointer;text-decoration:underline;text-underline-offset:2px"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</span>`:''}${broker?`<span onclick="event.stopPropagation();scrollToBroker('${t.brokerId}')" style="display:flex;align-items:center;gap:3px;cursor:pointer;text-decoration:underline;text-underline-offset:2px"><i class="ti ti-user" style="font-size:11px"></i>${broker.name}</span>`:''}</div>`:''}
             </div>
             <i class="ti ti-x" style="font-size:13px;color:#065F46;cursor:pointer;margin-top:1px;flex-shrink:0" onclick="deleteTask('${t.id}')" title="Remove"></i>
           </div>`;
@@ -1394,7 +1394,7 @@ function renderBrokers(){
     const unread=unreadCount(b.id);
     const isOpen=openNotesPanels.has(b.id);
 
-    return`<div class="card">
+    return`<div class="card" id="broker-card-${b.id}">
       <div class="card-top">
         <div class="av">${initials(b.name)}</div>
         <div>
@@ -1754,6 +1754,17 @@ function scrollToProperty(propId){
   switchTab('properties');
   setTimeout(()=>{
     const el=document.getElementById('prop-card-'+propId);
+    if(!el)return;
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.classList.add('prop-highlight');
+    setTimeout(()=>el.classList.remove('prop-highlight'),30000);
+  },120);
+}
+function scrollToBroker(brokerId){
+  closePropertyModal();
+  switchTab('brokers');
+  setTimeout(()=>{
+    const el=document.getElementById('broker-card-'+brokerId);
     if(!el)return;
     el.scrollIntoView({behavior:'smooth',block:'center'});
     el.classList.add('prop-highlight');
