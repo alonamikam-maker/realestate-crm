@@ -1394,10 +1394,13 @@ function renderDashboard(){setTimeout(()=>{renderDashCalendar();renderDashUpcomi
     }
     if(isBroker){
       const prop=item.linkedProperty?state.properties[item.linkedProperty]:null;
+      const assignedProps2=pArr().filter(p2=>p2.brokerId===item.id);
+      const primaryProp2=prop||assignedProps2[0]||null;
+      const ownerName2=primaryProp2?.addedBy||item.addedBy;
       return`<div class="act-row" style="cursor:pointer" onclick="switchTab('brokers');setTimeout(()=>openBrokerModal('${item.id}'),120)">
         <div class="av" style="width:32px;height:32px;font-size:11px">${initials(item.name)}</div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span>${item.addedBy?`<span style="font-size:10px;background:${item.addedBy==='Alon'?'#E8F8F2':'#EFF6FF'};color:${item.addedBy==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 7px;border-radius:100px;font-weight:500;margin-left:auto">${item.addedBy}</span>`:''}</div>
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600">${item.name}</span><span class="chip ${cc}"><i class="ti ti-bell" style="font-size:10px"></i>${cl}</span>${ownerName2?`<span style="font-size:10px;background:${ownerName2==='Alon'?'#E8F8F2':'#EFF6FF'};color:${ownerName2==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 7px;border-radius:100px;font-weight:500;margin-left:auto">${ownerName2}</span>`:''}</div>
           ${item.reminderNote?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${item.reminderNote}</div>`:''}
           ${prop?`<div class="linked"><i class="ti ti-building" style="font-size:11px"></i>${prop.address}</div>`:''}
         </div></div>`;
@@ -1737,13 +1740,15 @@ function rCard(b){
   const lbl=s==='overdue'?`${Math.abs(d)} days overdue`:s==='today'?'Today':`In ${d} days`;
   const prop=b.linkedProperty?state.properties[b.linkedProperty]:null;
   const assignedProps=pArr().filter(p=>p.brokerId===b.id);
+  const primaryProp=prop||assignedProps[0]||null;
+  const ownerName=primaryProp?.addedBy||b.addedBy;
   const notes=notesForBroker(b.id);
   const lastNote=notes[0];
   return`<div class="r-card ${s||'upcoming'}">
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="r-name" onclick="scrollToBroker('${b.id}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${b.name}${b.phone?` · <span style="font-weight:400;color:var(--text2);text-decoration:none">${b.phone}</span>`:''}</div>
-        ${b.addedBy?`<span style="font-size:10px;background:${b.addedBy==='Alon'?'#E8F8F2':'#EFF6FF'};color:${b.addedBy==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 8px;border-radius:100px;font-weight:600">${b.addedBy}</span>`:''}
+        ${ownerName?`<span style="font-size:10px;background:${ownerName==='Alon'?'#E8F8F2':'#EFF6FF'};color:${ownerName==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 8px;border-radius:100px;font-weight:600">${ownerName}</span>`:''}
       </div>
       <div class="r-date"><i class="ti ti-calendar" style="font-size:12px"></i>${fmtDate(b.reminder)} · ${lbl}</div>
       ${b.reminderNote?`<div class="r-note">${b.reminderNote}</div>`:''}
