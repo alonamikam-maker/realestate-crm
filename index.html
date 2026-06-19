@@ -808,8 +808,19 @@ select{width:auto;cursor:pointer;}
 <div class="overlay" id="task-modal">
   <div class="modal" style="max-width:380px">
     <div class="modal-hd"><span id="task-modal-title">New task</span><button class="btn btn-ghost btn-sm" onclick="closeTaskModal()"><i class="ti ti-x"></i></button></div>
+    <div id="task-linked-banner" style="display:none;background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+      <i class="ti ti-building" style="font-size:14px;color:var(--text2)"></i>
+      <span style="font-size:12px;color:var(--text2)">Linked to <span id="task-linked-name" style="font-weight:600;color:var(--text1)"></span></span>
+    </div>
     <div class="form-g"><textarea id="task-text" placeholder="What needs to be done..." rows="3"></textarea></div>
-    <div class="form-g"><label class="form-lbl">Linked property (optional)</label><select id="task-property" style="width:100%"><option value="">None</option></select></div>
+    <div id="task-assign-section" style="margin-bottom:14px">
+      <label class="form-lbl">Assign to</label>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button type="button" class="task-assign-btn" data-person="Alon" onclick="selectTaskAssignee('Alon')" style="flex:1;padding:8px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer">Alon</button>
+        <button type="button" class="task-assign-btn" data-person="Niv" onclick="selectTaskAssignee('Niv')" style="flex:1;padding:8px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer">Niv</button>
+      </div>
+    </div>
+    <div class="form-g" id="task-property-row"><label class="form-lbl">Linked property (optional)</label><select id="task-property" style="width:100%"><option value="">None</option></select></div>
     <div class="form-g"><label class="form-lbl">Linked broker (optional)</label><select id="task-broker" style="width:100%"><option value="">None</option></select></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeTaskModal()">Cancel</button>
@@ -1204,22 +1215,66 @@ const userColors={alon:{bg:'#E8F8F2',color:'#0F6E56'},niv:{bg:'#EFF6FF',color:'#
 
 // ── Tasks
 let openTaskModalFor=null;
+let taskFixedPropertyId=null;
 function tArr(){return Object.entries(state.tasks).map(([id,v])=>({id,...v}));}
+
+function styleTaskAssignBtns(){
+  document.querySelectorAll('.task-assign-btn').forEach(btn=>{
+    const isAlon=btn.dataset.person==='Alon';
+    const active=btn.dataset.person===openTaskModalFor;
+    btn.style.border=active?(isAlon?'1.5px solid #C0DD97':'1.5px solid #B5D4F4'):'1.5px solid var(--border2)';
+    btn.style.background=active?(isAlon?'#EAF3DE':'#E6F1FB'):'var(--surface)';
+    btn.style.color=active?(isAlon?'#3B6D11':'#185FA5'):'var(--text2)';
+  });
+}
+function selectTaskAssignee(person){
+  openTaskModalFor=person;
+  styleTaskAssignBtns();
+}
+
 function openTaskModal(assignTo){
-  openTaskModalFor=assignTo;
-  document.getElementById('task-modal-title').textContent='New task for '+assignTo;
+  taskFixedPropertyId=null;
+  openTaskModalFor=assignTo||null;
+  document.getElementById('task-modal-title').textContent=assignTo?('New task for '+assignTo):'New task';
   document.getElementById('task-text').value='';
   document.getElementById('task-property').innerHTML='<option value="">None</option>'+pArr().map(p=>`<option value="${p.id}">${p.address}</option>`).join('');
   document.getElementById('task-broker').innerHTML='<option value="">None</option>'+bArr().map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
   document.getElementById('task-property').value='';
   document.getElementById('task-broker').value='';
+  document.getElementById('task-linked-banner').style.display='none';
+  document.getElementById('task-property-row').style.display='block';
+  document.getElementById('task-assign-section').style.display=assignTo?'none':'block';
+  if(!assignTo){
+    openTaskModalFor='Alon';
+    styleTaskAssignBtns();
+  }
   document.getElementById('task-modal').classList.add('open');
 }
-function closeTaskModal(){document.getElementById('task-modal').classList.remove('open');openTaskModalFor=null;}
+
+function openTaskModalFromProperty(propId){
+  const prop=state.properties[propId];
+  if(!prop)return;
+  taskFixedPropertyId=propId;
+  openTaskModalFor='Alon';
+  document.getElementById('task-modal-title').textContent='New task';
+  document.getElementById('task-text').value='';
+  document.getElementById('task-property').innerHTML=`<option value="${propId}">${prop.address}</option>`;
+  document.getElementById('task-property').value=propId;
+  document.getElementById('task-broker').innerHTML='<option value="">None</option>'+bArr().map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  document.getElementById('task-broker').value=prop.brokerId||'';
+  document.getElementById('task-linked-name').textContent=prop.address;
+  document.getElementById('task-linked-banner').style.display='flex';
+  document.getElementById('task-property-row').style.display='none';
+  document.getElementById('task-assign-section').style.display='block';
+  styleTaskAssignBtns();
+  document.getElementById('task-modal').classList.add('open');
+}
+
+function closeTaskModal(){document.getElementById('task-modal').classList.remove('open');openTaskModalFor=null;taskFixedPropertyId=null;}
 function saveTask(){
   const text=document.getElementById('task-text').value.trim();
   if(!text){showToast('⚠ Task cannot be empty');return;}
-  if(!openTaskModalFor){showToast('⚠ Something went wrong');return;}
+  if(!openTaskModalFor){showToast('⚠ Please choose who this task is for');return;}
   const id=db.ref('tasks').push().key;
   const data={
     text,
@@ -1227,7 +1282,7 @@ function saveTask(){
     createdBy:currentUser.name||'',
     createdById:currentUser.id||'',
     status:'pending',
-    propertyId:document.getElementById('task-property').value||'',
+    propertyId:taskFixedPropertyId||document.getElementById('task-property').value||'',
     brokerId:document.getElementById('task-broker').value||'',
     createdAt:Date.now()
   };
@@ -1568,6 +1623,7 @@ function renderProperties(){
                 </div>
               </div>
             </div>
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openTaskModalFromProperty('${p.id}')" title="Add task"><i class="ti ti-checklist"></i></button>
             <button class="btn btn-ghost btn-sm" onclick="openPropertyModal('${p.id}')"><i class="ti ti-edit"></i></button>
             <button class="btn btn-del btn-sm" onclick="deleteProperty('${p.id}',this)"><i class="ti ti-trash"></i></button>
           </div>
