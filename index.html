@@ -1717,7 +1717,10 @@ function pReminderCard(p){
   return`<div class="r-card ${s||'upcoming'}">
     <div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><i class="ti ti-building" style="font-size:13px;color:var(--green)"></i><span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Property</span></div>
-      <div class="r-name">${p.address}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="r-name">${p.address}</div>
+        ${p.addedBy?`<span style="font-size:10px;background:${p.addedBy==='Alon'?'#E8F8F2':'#EFF6FF'};color:${p.addedBy==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 8px;border-radius:100px;font-weight:600">${p.addedBy}</span>`:''}
+      </div>
       <div class="r-date"><i class="ti ti-calendar" style="font-size:12px"></i>${fmtDate(p.reminder)} · ${lbl}</div>
       ${p.reminderNote?`<div class="r-note">${p.reminderNote}</div>`:''}
       ${broker?`<div class="linked" style="margin-top:5px"><i class="ti ti-user" style="font-size:11px"></i>${broker.name}${broker.phone?' · '+broker.phone:''}</div>`:''}
@@ -1737,7 +1740,10 @@ function rCard(b){
   const lastNote=notes[0];
   return`<div class="r-card ${s||'upcoming'}">
     <div>
-      <div class="r-name">${b.name}${b.phone?` · <span style="font-weight:400;color:var(--text2)">${b.phone}</span>`:''}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="r-name">${b.name}${b.phone?` · <span style="font-weight:400;color:var(--text2)">${b.phone}</span>`:''}</div>
+        ${b.addedBy?`<span style="font-size:10px;background:${b.addedBy==='Alon'?'#E8F8F2':'#EFF6FF'};color:${b.addedBy==='Alon'?'#0F6E56':'#1E40AF'};padding:1px 8px;border-radius:100px;font-weight:600">${b.addedBy}</span>`:''}
+      </div>
       <div class="r-date"><i class="ti ti-calendar" style="font-size:12px"></i>${fmtDate(b.reminder)} · ${lbl}</div>
       ${b.reminderNote?`<div class="r-note">${b.reminderNote}</div>`:''}
       ${lastNote?`<div class="r-note" style="margin-top:5px"><i class="ti ti-notes" style="font-size:12px;margin-right:3px;vertical-align:-2px"></i><strong>${lastNote.createdBy}:</strong> ${lastNote.text.slice(0,100)}${lastNote.text.length>100?'...':''}</div>`:''}
