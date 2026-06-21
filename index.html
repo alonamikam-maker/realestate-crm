@@ -1165,6 +1165,70 @@ function addCallNote(noteId, brokerId){
     showToast('✓ Note added');
   });
 }
+
+// ── SMS sending via Quo/OpenPhone API ────────────────────────
+const SEND_MESSAGE_URL='https://realestate-crm-nine.vercel.app/api/send-message';
+
+function toggleMessageBox(brokerId){
+  const el=document.getElementById('msgbox-'+brokerId);
+  if(!el)return;
+  const isOpen=el.style.display==='block';
+  el.style.display=isOpen?'none':'block';
+  if(!isOpen){
+    const ta=document.getElementById('msgbox-text-'+brokerId);
+    if(ta){ta.value='';setTimeout(()=>ta.focus(),50);}
+  }
+}
+
+function sendSMS(brokerId,text,btnEl,onDone){
+  if(!currentUser.name){showToast('⚠ Please select a user first');return;}
+  const broker=state.brokers[brokerId];
+  if(!broker||!broker.phone){showToast('⚠ This broker has no phone number');return;}
+  if(!text||!text.trim()){showToast('⚠ Message cannot be empty');return;}
+  if(btnEl){btnEl.disabled=true;btnEl.style.opacity='0.6';}
+  fetch(SEND_MESSAGE_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({to:broker.phone,text:text.trim(),sender:currentUser.name,brokerId})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(btnEl){btnEl.disabled=false;btnEl.style.opacity='1';}
+    if(data.success){
+      showToast('✓ Message sent');
+      if(onDone)onDone();
+    }else{
+      console.error('Send failed:',data);
+      showToast('⚠ Failed to send: '+(data.error||'unknown error'));
+    }
+  })
+  .catch(err=>{
+    if(btnEl){btnEl.disabled=false;btnEl.style.opacity='1';}
+    console.error('Send error:',err);
+    showToast('⚠ Network error sending message');
+  });
+}
+
+function sendBrokerMessage(brokerId){
+  const ta=document.getElementById('msgbox-text-'+brokerId);
+  const btn=document.getElementById('msgbox-send-'+brokerId);
+  const text=ta?.value||'';
+  sendSMS(brokerId,text,btn,()=>{
+    ta.value='';
+    document.getElementById('msgbox-'+brokerId).style.display='none';
+  });
+}
+
+function sendSmsReply(noteId,brokerId){
+  const ta=document.getElementById('sms-reply-input-'+noteId);
+  const btn=document.getElementById('sms-reply-send-'+noteId);
+  const text=ta?.value||'';
+  sendSMS(brokerId,text,btn,()=>{
+    ta.value='';
+    document.getElementById('sms-reply-'+noteId).style.display='none';
+  });
+}
+
 function addNote(brokerId){
   if(!currentUser.id){showToast('⚠ Please select a user first');return;}
   const ta=document.getElementById(`note-input-${brokerId}`);
@@ -1464,11 +1528,18 @@ function renderBrokers(){
             ${b.addedBy?`<span style="font-size:10px;font-weight:500;color:var(--text3);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-user-check" style="font-size:11px"></i>${b.addedBy}</span>`:''}
           </div>
           <div style="font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap">
-            ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span><button onclick="(function(){const num='${(b.phone||String()).replace(/\D/g,"")}';const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);if(isMobile){window.location.href='openphone://dial?number='+num+'&action=call';}else{window.location.href='tel:'+num;}})()" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Call via Quo"><i class="ti ti-phone-outgoing" style="font-size:12px"></i>Call</button><div class="broker-bell-wrap" style="display:inline-block;position:relative"><button class="btn btn-ghost btn-sm" id="broker-bell-btn-${b.id}" onclick="event.stopPropagation();toggleBrokerReminderPopover('${b.id}')" title="Set reminder" style="position:relative;padding:3px 7px;${b.reminder?'color:var(--green-d);border-color:var(--green-m);background:var(--green-l)':''}"><i class="ti ti-bell${b.reminder?'-ringing':''}" style="font-size:13px"></i></button><div class="reminder-popover" id="brp-${b.id}" style="display:none"><div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-bell" style="color:var(--green)"></i>Follow-up Reminder</div><label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Date</label><input type="date" id="brp-date-${b.id}" style="width:100%;margin-bottom:10px" /><label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Note</label><input type="text" id="brp-note-${b.id}" placeholder="Call about..." style="width:100%;margin-bottom:12px" /><div style="display:flex;gap:6px"><button class="btn btn-primary btn-sm" style="flex:1" onclick="saveBrokerReminder('${b.id}')"><i class="ti ti-check"></i>Save</button>${b.reminder?`<button class="btn btn-ghost btn-sm" onclick="clearBrokerReminderPopover('${b.id}')"><i class="ti ti-x"></i>Clear</button>`:''}</div></div></div>`:''}
+            ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span><button onclick="(function(){const num='${(b.phone||String()).replace(/\D/g,"")}';const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);if(isMobile){window.location.href='openphone://dial?number='+num+'&action=call';}else{window.location.href='tel:'+num;}})()" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Call via Quo"><i class="ti ti-phone-outgoing" style="font-size:12px"></i>Call</button><button onclick="event.stopPropagation();toggleMessageBox('${b.id}')" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--blue-d,#185FA5);background:var(--blue-l,#E6F1FB);border:1px solid rgba(24,95,165,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Send a text message"><i class="ti ti-message" style="font-size:12px"></i>Message</button><div class="broker-bell-wrap" style="display:inline-block;position:relative"><button class="btn btn-ghost btn-sm" id="broker-bell-btn-${b.id}" onclick="event.stopPropagation();toggleBrokerReminderPopover('${b.id}')" title="Set reminder" style="position:relative;padding:3px 7px;${b.reminder?'color:var(--green-d);border-color:var(--green-m);background:var(--green-l)':''}"><i class="ti ti-bell${b.reminder?'-ringing':''}" style="font-size:13px"></i></button><div class="reminder-popover" id="brp-${b.id}" style="display:none"><div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-bell" style="color:var(--green)"></i>Follow-up Reminder</div><label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Date</label><input type="date" id="brp-date-${b.id}" style="width:100%;margin-bottom:10px" /><label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Note</label><input type="text" id="brp-note-${b.id}" placeholder="Call about..." style="width:100%;margin-bottom:12px" /><div style="display:flex;gap:6px"><button class="btn btn-primary btn-sm" style="flex:1" onclick="saveBrokerReminder('${b.id}')"><i class="ti ti-check"></i>Save</button>${b.reminder?`<button class="btn btn-ghost btn-sm" onclick="clearBrokerReminderPopover('${b.id}')"><i class="ti ti-x"></i>Clear</button>`:''}</div></div></div>`:''}
             ${b.email?`<span id="bew-${b.id}" style="display:inline-flex;align-items:center;gap:6px"><button onclick="(function(){const w=document.getElementById('bew-${b.id}');const t=document.getElementById('bet-${b.id}');if(w.dataset.s!=='1'){w.dataset.s='1';t.style.display='inline';}else{w.dataset.s='0';t.style.display='none';}})(  )" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit"><i class="ti ti-mail" style="font-size:12px"></i>Email</button><span id="bet-${b.id}" style="display:none;font-size:12px;color:var(--text2);cursor:pointer" onclick="navigator.clipboard.writeText('${b.email}').then(()=>showToast('Email copied'))">${b.email} <i class="ti ti-copy" style="font-size:11px;color:var(--text3)"></i></span></span>`:''}${b.area?`<span><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px"></i>${b.area}</span>`:''}
             ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i>${fmtDate(b.reminder)}</span>`:''}
           </div>
           ${assignedProps.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${assignedProps.map(p=>`<div onclick="scrollToProperty('${p.id}')" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border-radius:8px;padding:7px 12px;cursor:pointer" title="View property"><i class="ti ti-building" style="font-size:13px;color:var(--text2)"></i><span style="font-size:12px;font-weight:500;color:var(--text1)">${p.address}</span><span style="font-size:11px;color:var(--text3)">${p.type||''}${p.type&&p.status?' · ':''}${pSLbl[p.status]||''}</span></div>`).join('')}</div>`:''}
+          <div id="msgbox-${b.id}" style="display:none;margin-top:10px;background:var(--surface2);border-radius:10px;padding:10px">
+            <textarea id="msgbox-text-${b.id}" placeholder="Type a message to ${b.name}..." style="width:100%;min-height:54px"></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:8px">
+              <button class="btn btn-ghost btn-sm" onclick="toggleMessageBox('${b.id}')">Cancel</button>
+              <button class="btn btn-primary btn-sm" id="msgbox-send-${b.id}" onclick="sendBrokerMessage('${b.id}')"><i class="ti ti-send"></i>Send</button>
+            </div>
+          </div>
           ${b.reminderNote&&s?`<div style="font-size:11px;color:#92400E;margin-top:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-message" style="font-size:12px"></i>${b.reminderNote}</div>`:''}
         </div>
         <div style="display:flex;gap:6px">
@@ -1520,10 +1591,15 @@ function renderBrokers(){
               ${isAutoLogged?`<div style="margin-top:6px">
                 ${childNotes.map(cn=>`<div style="margin-bottom:5px;padding:6px 10px;background:var(--surface2);border-radius:7px;border-left:2px solid var(--green-m);font-size:12px;color:var(--text2);line-height:1.5" id="child-note-view-${cn.id}">${cn.text.replace(/\n/g,'<br>')}<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span style="font-size:10px;color:var(--text3)">${cn.createdBy} · ${fmtDateTime(cn.createdAt)}</span>${currentUser.id===cn.createdById?`<div style="display:flex;gap:4px"><button onclick="startEditCallNote('${cn.id}','${b.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);padding:1px 4px;border-radius:4px;font-family:inherit"><i class=\"ti ti-edit\" style=\"font-size:11px\"></i></button><button onclick="deleteNote('${cn.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:#DC2626;padding:1px 4px;border-radius:4px;font-family:inherit"><i class=\"ti ti-trash\" style=\"font-size:11px\"></i></button></div>`:''}</div></div><div id="child-note-edit-${cn.id}" style="display:none;margin-bottom:5px;gap:6px;align-items:flex-end"><textarea id="child-note-edit-input-${cn.id}" style="flex:1;font-size:12px;min-height:40px;resize:vertical">${cn.text}</textarea><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="saveEditCallNote('${cn.id}')"><i class=\"ti ti-check\"></i></button><button class="btn btn-ghost btn-sm" onclick="cancelEditCallNote('${cn.id}')"><i class=\"ti ti-x\"></i></button></div></div>`).join('')}
                 <button onclick="(function(){const el=document.getElementById('call-note-${n.id}');el.style.display=el.style.display==='none'?'flex':'none';})()" style="background:none;border:none;cursor:pointer;color:var(--text3);display:inline-flex;align-items:center;padding:2px 0;font-family:inherit" title="Add note to this call"><i class="ti ti-plus" style="font-size:15px;font-weight:700"></i></button>
+                ${isSms&&n.direction==='incoming'?`<button onclick="(function(){const el=document.getElementById('sms-reply-${n.id}');el.style.display=el.style.display==='none'?'flex':'none';})()" style="background:none;border:none;cursor:pointer;color:var(--blue-d,#185FA5);display:inline-flex;align-items:center;padding:2px 0 2px 8px;font-family:inherit" title="Reply by SMS"><i class="ti ti-arrow-back-up" style="font-size:15px;font-weight:700"></i></button>`:''}
                 <div id="call-note-${n.id}" style="display:none;margin-top:6px;gap:8px;align-items:flex-end">
                   <textarea id="call-note-input-${n.id}" placeholder="What happened in this call..." rows="2" style="flex:1;font-size:12px;min-height:44px;resize:vertical"></textarea>
                   <button class="btn btn-primary btn-sm" onclick="addCallNote('${n.id}','${b.id}')"><i class="ti ti-check"></i></button>
                 </div>
+                ${isSms&&n.direction==='incoming'?`<div id="sms-reply-${n.id}" style="display:none;margin-top:6px;gap:8px;align-items:flex-end">
+                  <textarea id="sms-reply-input-${n.id}" placeholder="Reply to ${b.name}..." rows="2" style="flex:1;font-size:12px;min-height:44px;resize:vertical"></textarea>
+                  <button class="btn btn-primary btn-sm" id="sms-reply-send-${n.id}" onclick="sendSmsReply('${n.id}','${b.id}')"><i class="ti ti-send"></i></button>
+                </div>`:''}
               </div>`:''}
             </div>`;
           }).join('')}
