@@ -1602,7 +1602,12 @@ function openUnansweredViewAll(){
 }
 function closeUnansweredViewAll(){document.getElementById('unanswered-viewall-modal').classList.remove('open');}
 
-function renderAll(){renderStats();renderDashboard();renderBrokers();renderProperties();renderReminders();updateBadge();renderDashCalendar();renderDashUpcoming();renderTasksPanel();renderUnansweredPanel();}
+function renderAll(){
+  const steps=[renderStats,renderDashboard,renderBrokers,renderProperties,renderReminders,updateBadge,renderDashCalendar,renderDashUpcoming,renderTasksPanel,renderUnansweredPanel];
+  for(const fn of steps){
+    try{fn();}catch(err){console.error('renderAll step failed:',fn.name,err);}
+  }
+}
 
 function renderStats(){
   const br=bArr(),pr=pArr();
