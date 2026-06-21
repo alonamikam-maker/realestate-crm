@@ -74,11 +74,23 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
+function matchSenderByNumber(fromNumber) {
+  if (!fromNumber) return null;
+  const clean = cleanPhone(fromNumber);
+  const senders = {
+    Alon: cleanPhone(process.env.OPENPHONE_FROM_ALON || ''),
+    Niv: cleanPhone(process.env.OPENPHONE_FROM_NIV || '')
+  };
+  for (const [name, num] of Object.entries(senders)) {
+    if (num && num === clean) return name;
+  }
+  return null;
+}
+
 // ── One-time import of all Quo contacts ──────────────────────
 async function runQuoImport() {
   try {
     console.log('Starting Quo contacts import...');
-    // Set flag immediately to prevent duplicate runs
     await firebaseRequest('PUT', '/meta/quo_import_done', true);
 
     const brokers = await firebaseRequest('GET', '/brokers') || {};
@@ -102,16 +114,13 @@ async function runQuoImport() {
         const name = contact.defaultFields?.firstName ? `${contact.defaultFields.firstName} ${contact.defaultFields.lastName||''}`.trim() : (contact.name || (contact.firstName ? `${contact.firstName} ${contact.lastName||''}`.trim() : null));
         if (!name) { skipped++; continue; }
 
-        // Get first phone number
         const phoneObj = contact.defaultFields?.phoneNumbers?.[0] || contact.phoneNumbers?.[0];
         const phone = phoneObj?.value || phoneObj?.phoneNumber || '';
         if (!phone) { skipped++; continue; }
 
-        // Check if broker already exists by phone
         const existing = matchBrokerByPhone(brokers, phone);
         if (existing) { skipped++; continue; }
 
-        // Create broker card
         const brokerId = generateId();
         const brokerData = {
           name,
@@ -124,7 +133,6 @@ async function runQuoImport() {
         await firebaseRequest('PUT', `/brokers/${brokerId}`, brokerData);
         brokers[brokerId] = brokerData;
 
-        // Import notes if any
         if (contact.notes) {
           const noteId = generateId();
           await firebaseRequest('PUT', `/notes/${noteId}`, {
@@ -145,20 +153,17 @@ async function runQuoImport() {
     return { imported, skipped };
   } catch (err) {
     console.error('Import error:', err);
-    // Reset flag so it can retry
     await firebaseRequest('PUT', '/meta/quo_import_done', false);
     throw err;
   }
 }
 
 module.exports = async (req, res) => {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // ── Manual import trigger (GET request)
   if (req.method === 'GET' && req.query?.action === 'import') {
     try {
       const result = await runQuoImport();
@@ -179,9 +184,7 @@ module.exports = async (req, res) => {
 
     const brokers = await firebaseRequest('GET', '/brokers') || {};
 
-    // ── contact.updated — ongoing sync (also fires on create)
     if (type === 'contact.updated') {
-      // Handle both v1 (defaultFields) and v3 (firstName + fields.Phone) API formats
       const firstName = data.firstName || data.defaultFields?.firstName || '';
       const lastName = data.lastName || data.defaultFields?.lastName || '';
       const name = (firstName + ' ' + lastName).trim() || data.name || null;
@@ -189,7 +192,6 @@ module.exports = async (req, res) => {
       console.log('contact.updated name:', name, 'phone:', phone);
       if (!name || !phone) return res.status(200).json({ success: true, skipped: true, reason: 'No name or phone' });
 
-      // Check for duplicate
       const existing = matchBrokerByPhone(brokers, phone);
       console.log('existing broker:', existing ? existing.name : 'none');
       if (existing) return res.status(200).json({ success: true, skipped: true, reason: 'Already exists: '+existing.name });
@@ -214,7 +216,6 @@ module.exports = async (req, res) => {
       return res.status(200).json({ success: true, brokerId, action: 'created' });
     }
 
-    // ── call.summary.completed
     if (type === 'call.summary.completed') {
       const callId = data.callId || data.id;
       const summary = data.summary || data.text || '';
@@ -233,7 +234,6 @@ module.exports = async (req, res) => {
 
     let note = null;
 
-    // ── call.completed
     if (type === 'call.completed') {
       const from = data.from;
       const to = Array.isArray(data.to) ? data.to[0] : data.to;
@@ -261,7 +261,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // ── call.missed
     if (type === 'call.missed') {
       const from = data.from;
       const callId = data.id;
@@ -277,7 +276,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // ── message.received / message.delivered
     if (type === 'message.received' || type === 'message.delivered') {
       const from = data.from;
       const to = Array.isArray(data.to) ? data.to[0] : data.to;
@@ -286,11 +284,12 @@ module.exports = async (req, res) => {
       const lookupPhone = direction === 'incoming' ? from : to;
       const broker = matchBrokerByPhone(brokers, lookupPhone);
       if (broker) {
+        const senderName = direction === 'outgoing' ? matchSenderByNumber(from) : null;
         note = {
           id: generateId(), brokerId: broker.id,
           type: 'sms', direction,
           phone: lookupPhone, text: body, smsBody: body,
-          createdBy: 'OpenPhone', createdById: 'openphone',
+          createdBy: senderName || 'OpenPhone', createdById: senderName ? senderName.toLowerCase() : 'openphone',
           createdAt: Date.now(), readBy: {}
         };
       }
