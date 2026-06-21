@@ -871,7 +871,10 @@ firebase.auth().onAuthStateChanged(user=>{
     };
     document.getElementById('user-modal').style.display='none';
     updateUserLabel();
-    renderAll();
+    // Don't renderAll() here - state.brokers/properties/notes may still be empty at this point,
+    // since the Firebase data listeners below resolve independently and can arrive after auth does.
+    // Rendering now would show an empty/incorrect dashboard until the real data listeners catch up.
+    // The data listeners themselves are responsible for the first real render once all data has loaded.
   } else {
     document.getElementById('user-modal').style.display='flex';
   }
@@ -1478,7 +1481,12 @@ function dismissUnanswered(brokerId,u){
   const updates={};
   if(u.manuallyTracked){updates.trackReplies=false;updates.trackRepliesDays=null;}
   if(u.autoTracked){updates.ignoreUnanswered=true;}
-  db.ref('brokers/'+brokerId).update(updates).then(()=>showToast('✓ Removed from tracking'));
+  db.ref('brokers/'+brokerId).update(updates).then(()=>{
+    showToast('✓ Removed from tracking');
+    // Don't rely solely on the Firebase listener round-trip - refresh immediately for instant feedback.
+    renderUnansweredPanel();
+    if(document.getElementById('unanswered-viewall-modal').classList.contains('open'))openUnansweredViewAll();
+  });
 }
 
 function getAllUnanswered(){
@@ -1586,7 +1594,7 @@ function openUnansweredViewAll(){
         </div>
         <div style="display:flex;gap:4px">
           ${u.isDue?`<button class="btn btn-ghost btn-sm" onclick="closeUnansweredViewAll();toggleUnansweredReplyBox('${u.brokerId}')" title="Reply"><i class="ti ti-arrow-back-up"></i></button>`:''}
-          <button class="btn btn-ghost btn-sm" onclick="dismissUnanswered('${u.brokerId}',{manuallyTracked:${u.manuallyTracked},autoTracked:${u.autoTracked}});openUnansweredViewAll()" title="Remove from tracking"><i class="ti ti-x"></i></button>
+          <button class="btn btn-ghost btn-sm" onclick="dismissUnanswered('${u.brokerId}',{manuallyTracked:${u.manuallyTracked},autoTracked:${u.autoTracked}})" title="Remove from tracking"><i class="ti ti-x"></i></button>
         </div>
       </div>`).join('');
   }
