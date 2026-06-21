@@ -458,6 +458,15 @@ select{width:auto;cursor:pointer;}
       <div class="panel-hd"><i class="ti ti-checklist"></i><span class="panel-hd-title">Tasks</span></div>
       <div id="tasks-panel-body" style="display:grid;grid-template-columns:1fr 1fr"></div>
     </div>
+    <div class="panel" id="unanswered-panel" style="margin-bottom:18px;display:none">
+      <div class="panel-hd">
+        <i class="ti ti-message-x" style="color:#92400E"></i>
+        <span class="panel-hd-title">Unanswered Messages</span>
+        <span id="unanswered-count-badge" style="font-size:10px;background:#FFFBEB;color:#92400E;padding:1px 7px;border-radius:100px;font-weight:600;margin-left:8px"></span>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="openUnansweredViewAll()">View all</button>
+      </div>
+      <div id="unanswered-panel-body" style="padding:4px 6px"></div>
+    </div>
     <div class="dash-grid">
       <div class="panel"><div class="panel-hd"><i class="ti ti-bell-ringing"></i><span class="panel-hd-title">Upcoming Follow-ups</span></div><div class="panel-body" id="dash-reminders"></div></div>
       <div class="panel"><div class="panel-hd"><i class="ti ti-clock"></i><span class="panel-hd-title">Recent Activity</span></div><div class="panel-body" id="dash-activity"></div></div>
@@ -804,6 +813,14 @@ select{width:auto;cursor:pointer;}
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closePropertyModal()">Cancel</button><button class="btn btn-primary" onclick="saveProperty()"><i class="ti ti-check"></i>Save</button></div>
   </div>
 </div>
+<!-- Unanswered Messages View All Modal -->
+<div class="overlay" id="unanswered-viewall-modal">
+  <div class="modal" style="max-width:480px;max-height:80vh;overflow-y:auto">
+    <div class="modal-hd"><span>All Tracked Replies</span><button class="btn btn-ghost btn-sm" onclick="closeUnansweredViewAll()"><i class="ti ti-x"></i></button></div>
+    <div id="unanswered-viewall-body"></div>
+  </div>
+</div>
+
 <!-- Task Modal -->
 <div class="overlay" id="task-modal">
   <div class="modal" style="max-width:380px">
@@ -1414,7 +1431,143 @@ function renderTasksPanel(){
   }).join('');
 }
 
-function renderAll(){renderStats();renderDashboard();renderBrokers();renderProperties();renderReminders();updateBadge();renderDashCalendar();renderDashUpcoming();renderTasksPanel();}
+// ── Unanswered message tracking ──────────────────────────────
+const UNANSWERED_DAYS_DEFAULT=7;
+
+function getUnansweredInfo(brokerId){
+  const b=state.brokers[brokerId];
+  if(!b||!b.phone)return null;
+  const smsNotes=Object.entries(state.notes)
+    .filter(([,n])=>n.brokerId===brokerId&&n.type==='sms'&&!n.parentNoteId)
+    .map(([id,n])=>({id,...n}))
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(smsNotes.length===0)return null;
+  const last=smsNotes[0];
+  if(last.direction!=='outgoing')return null;
+
+  const hasEverReplied=smsNotes.some(n=>n.direction==='incoming');
+  const autoTracked=!hasEverReplied;
+  const manuallyTracked=!!b.trackReplies;
+  if(!autoTracked&&!manuallyTracked)return null;
+
+  const thresholdDays=manuallyTracked?(b.trackRepliesDays||UNANSWERED_DAYS_DEFAULT):UNANSWERED_DAYS_DEFAULT;
+  const thresholdMs=thresholdDays*24*60*60*1000;
+  const elapsed=Date.now()-(last.createdAt||0);
+  const daysSince=Math.floor(elapsed/(24*60*60*1000));
+  const isDue=elapsed>=thresholdMs;
+  return{brokerId,brokerName:b.name,lastMessageAt:last.createdAt,daysSince,isDue,autoTracked,manuallyTracked,thresholdDays};
+}
+
+function getAllUnanswered(){
+  return Object.keys(state.brokers)
+    .map(id=>getUnansweredInfo(id))
+    .filter(Boolean)
+    .sort((a,b)=>(b.daysSince||0)-(a.daysSince||0));
+}
+
+function toggleTrackReplies(brokerId,on,days){
+  const update=on?{trackReplies:true,trackRepliesDays:days||UNANSWERED_DAYS_DEFAULT}:{trackReplies:false,trackRepliesDays:null};
+  db.ref('brokers/'+brokerId).update(update).then(()=>{
+    showToast(on?`✓ Tracking replies (${days||UNANSWERED_DAYS_DEFAULT}d)`:'Tracking turned off');
+  });
+}
+
+let openTrackDaysPopover=null;
+function toggleTrackDaysPopover(brokerId,btnEl){
+  if(openTrackDaysPopover&&openTrackDaysPopover!==brokerId){closeTrackDaysPopover();}
+  const el=document.getElementById('track-days-'+brokerId);
+  if(!el)return;
+  const isOpen=el.style.display==='block';
+  if(isOpen){closeTrackDaysPopover();}
+  else{
+    const rect=btnEl.getBoundingClientRect();
+    el.style.top=(rect.bottom+6)+'px';
+    el.style.left=Math.max(8,rect.left)+'px';
+    el.style.display='block';
+    openTrackDaysPopover=brokerId;
+  }
+}
+function closeTrackDaysPopover(){
+  if(openTrackDaysPopover){
+    const el=document.getElementById('track-days-'+openTrackDaysPopover);
+    if(el)el.style.display='none';
+    openTrackDaysPopover=null;
+  }
+}
+function pickTrackDays(brokerId,days){
+  toggleTrackReplies(brokerId,true,days);
+  closeTrackDaysPopover();
+}
+
+function renderUnansweredPanel(){
+  const panel=document.getElementById('unanswered-panel');
+  const body=document.getElementById('unanswered-panel-body');
+  const badge=document.getElementById('unanswered-count-badge');
+  if(!panel||!body)return;
+  panel.style.display='block';
+  const all=getAllUnanswered();
+  const due=all.filter(u=>u.isDue);
+  if(due.length===0){
+    badge.style.display='none';
+    body.innerHTML='<div style="padding:18px 10px;text-align:center;color:var(--text3);font-size:13px">No unanswered messages right now.</div>';
+    return;
+  }
+  badge.style.display='inline-block';
+  badge.textContent=due.length+(due.length===1?' due':' due');
+  body.innerHTML=due.map(u=>`
+    <div style="padding:9px 10px;${u!==due[due.length-1]?'border-bottom:0.5px solid var(--border)':''}">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="av" style="width:26px;height:26px;font-size:10px;flex-shrink:0">${initials(u.brokerName)}</div>
+        <span onclick="scrollToBroker('${u.brokerId}')" style="font-size:13px;font-weight:600;color:var(--text1);cursor:pointer">${u.brokerName}</span>
+        <span style="font-size:11px;color:#92400E">No reply · ${u.daysSince}d</span>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="toggleUnansweredReplyBox('${u.brokerId}')"><i class="ti ti-arrow-back-up"></i>Reply</button>
+      </div>
+      <div id="unanswered-reply-${u.brokerId}" style="display:none;margin-top:8px;margin-left:34px">
+        <textarea id="unanswered-reply-text-${u.brokerId}" placeholder="Reply to ${u.brokerName}..." style="width:100%;min-height:50px"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:6px">
+          <button class="btn btn-primary btn-sm" id="unanswered-reply-send-${u.brokerId}" onclick="sendUnansweredReply('${u.brokerId}')"><i class="ti ti-send"></i>Send</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleUnansweredReplyBox(brokerId){
+  const el=document.getElementById('unanswered-reply-'+brokerId);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function sendUnansweredReply(brokerId){
+  const ta=document.getElementById('unanswered-reply-text-'+brokerId);
+  const btn=document.getElementById('unanswered-reply-send-'+brokerId);
+  const text=ta?.value||'';
+  sendSMS(brokerId,text,btn,()=>{
+    ta.value='';
+    document.getElementById('unanswered-reply-'+brokerId).style.display='none';
+  });
+}
+
+function openUnansweredViewAll(){
+  const all=getAllUnanswered();
+  const body=document.getElementById('unanswered-viewall-body');
+  if(all.length===0){
+    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">No brokers are currently being tracked.</div>';
+  }else{
+    body.innerHTML=all.map(u=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:0.5px solid var(--border)">
+        <div class="av" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${initials(u.brokerName)}</div>
+        <div style="flex:1;min-width:0">
+          <span style="font-size:13px;font-weight:600;color:var(--text1);cursor:pointer" onclick="closeUnansweredViewAll();scrollToBroker('${u.brokerId}')">${u.brokerName}</span>
+          <div style="font-size:11px;color:${u.isDue?'#92400E':'var(--text3)'};margin-top:2px">${u.isDue?'No reply · ':'Waiting · '}${u.daysSince}d / ${u.thresholdDays}d${u.manuallyTracked&&!u.autoTracked?' · manual':''}</div>
+        </div>
+        ${u.isDue?`<button class="btn btn-ghost btn-sm" onclick="closeUnansweredViewAll();toggleUnansweredReplyBox('${u.brokerId}')"><i class="ti ti-arrow-back-up"></i></button>`:''}
+      </div>`).join('');
+  }
+  document.getElementById('unanswered-viewall-modal').classList.add('open');
+}
+function closeUnansweredViewAll(){document.getElementById('unanswered-viewall-modal').classList.remove('open');}
+
+function renderAll(){renderStats();renderDashboard();renderBrokers();renderProperties();renderReminders();updateBadge();renderDashCalendar();renderDashUpcoming();renderTasksPanel();renderUnansweredPanel();}
 
 function renderStats(){
   const br=bArr(),pr=pArr();
@@ -1528,7 +1681,7 @@ function renderBrokers(){
             ${b.addedBy?`<span style="font-size:10px;font-weight:500;color:var(--text3);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-user-check" style="font-size:11px"></i>${b.addedBy}</span>`:''}
           </div>
           <div style="font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap">
-            ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span><button onclick="(function(){const num='${(b.phone||String()).replace(/\D/g,"")}';const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);if(isMobile){window.location.href='openphone://dial?number='+num+'&action=call';}else{window.location.href='tel:'+num;}})()" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Call via Quo"><i class="ti ti-phone-outgoing" style="font-size:12px"></i>Call</button><button onclick="event.stopPropagation();toggleMessageBox('${b.id}')" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--blue-d,#185FA5);background:var(--blue-l,#E6F1FB);border:1px solid rgba(24,95,165,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Send a text message"><i class="ti ti-message" style="font-size:12px"></i>Message</button><div class="broker-bell-wrap" style="display:inline-block;position:relative"><button class="btn btn-ghost btn-sm" id="broker-bell-btn-${b.id}" onclick="event.stopPropagation();toggleBrokerReminderPopover('${b.id}')" title="Set reminder" style="position:relative;padding:3px 7px;${b.reminder?'color:var(--green-d);border-color:var(--green-m);background:var(--green-l)':''}"><i class="ti ti-bell${b.reminder?'-ringing':''}" style="font-size:13px"></i></button><div class="reminder-popover" id="brp-${b.id}" style="display:none"><div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-bell" style="color:var(--green)"></i>Follow-up Reminder</div><label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Date</label><input type="date" id="brp-date-${b.id}" style="width:100%;margin-bottom:10px" /><label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Note</label><input type="text" id="brp-note-${b.id}" placeholder="Call about..." style="width:100%;margin-bottom:12px" /><div style="display:flex;gap:6px"><button class="btn btn-primary btn-sm" style="flex:1" onclick="saveBrokerReminder('${b.id}')"><i class="ti ti-check"></i>Save</button>${b.reminder?`<button class="btn btn-ghost btn-sm" onclick="clearBrokerReminderPopover('${b.id}')"><i class="ti ti-x"></i>Clear</button>`:''}</div></div></div>`:''}
+            ${b.phone?`<span><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px"></i>${b.phone}</span><button onclick="(function(){const num='${(b.phone||String()).replace(/\D/g,"")}';const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);if(isMobile){window.location.href='openphone://dial?number='+num+'&action=call';}else{window.location.href='tel:'+num;}})()" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Call via Quo"><i class="ti ti-phone-outgoing" style="font-size:12px"></i>Call</button><button onclick="event.stopPropagation();toggleMessageBox('${b.id}')" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--blue-d,#185FA5);background:var(--blue-l,#E6F1FB);border:1px solid rgba(24,95,165,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Send a text message"><i class="ti ti-message" style="font-size:12px"></i>Message</button>${b.phone?(b.trackReplies?`<button onclick="event.stopPropagation();toggleTrackReplies('${b.id}',false)" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--blue-d,#185FA5);background:var(--blue-l,#E6F1FB);border:1px solid rgba(24,95,165,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Stop tracking replies"><i class="ti ti-bell-check" style="font-size:12px"></i>Tracking · ${b.trackRepliesDays&&b.trackRepliesDays<1?'1m (test)':(b.trackRepliesDays||7)+'d'}</button>`:`<div style="display:inline-block;position:relative"><button onclick="event.stopPropagation();toggleTrackDaysPopover('${b.id}',this)" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--text2);background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit" title="Track replies on this broker"><i class="ti ti-bell-plus" style="font-size:12px"></i>Track replies</button><div class="reminder-popover" id="track-days-${b.id}" style="display:none;width:180px;padding:12px"><div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:10px">Remind me after</div><div style="display:flex;gap:6px;flex-wrap:wrap">${[1,3,5,7].map(d=>`<button onclick="event.stopPropagation();pickTrackDays('${b.id}',${d})" style="flex:1;min-width:36px;padding:6px 0;font-size:12px;font-weight:600;border-radius:6px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;color:var(--text1)">${d}d</button>`).join('')}</div><div style="margin-top:8px;padding-top:8px;border-top:0.5px dashed var(--border)"><button onclick="event.stopPropagation();pickTrackDays('${b.id}',0.0007)" style="width:100%;padding:5px 0;font-size:11px;font-weight:500;border-radius:6px;border:1px dashed var(--border2);background:var(--surface);cursor:pointer;color:var(--text3)">1 min (test)</button></div></div></div>`):''}<div class="broker-bell-wrap" style="display:inline-block;position:relative"><button class="btn btn-ghost btn-sm" id="broker-bell-btn-${b.id}" onclick="event.stopPropagation();toggleBrokerReminderPopover('${b.id}')" title="Set reminder" style="position:relative;padding:3px 7px;${b.reminder?'color:var(--green-d);border-color:var(--green-m);background:var(--green-l)':''}"><i class="ti ti-bell${b.reminder?'-ringing':''}" style="font-size:13px"></i></button><div class="reminder-popover" id="brp-${b.id}" style="display:none"><div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-bell" style="color:var(--green)"></i>Follow-up Reminder</div><label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Date</label><input type="date" id="brp-date-${b.id}" style="width:100%;margin-bottom:10px" /><label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Note</label><input type="text" id="brp-note-${b.id}" placeholder="Call about..." style="width:100%;margin-bottom:12px" /><div style="display:flex;gap:6px"><button class="btn btn-primary btn-sm" style="flex:1" onclick="saveBrokerReminder('${b.id}')"><i class="ti ti-check"></i>Save</button>${b.reminder?`<button class="btn btn-ghost btn-sm" onclick="clearBrokerReminderPopover('${b.id}')"><i class="ti ti-x"></i>Clear</button>`:''}</div></div></div>`:''}
             ${b.email?`<span id="bew-${b.id}" style="display:inline-flex;align-items:center;gap:6px"><button onclick="(function(){const w=document.getElementById('bew-${b.id}');const t=document.getElementById('bet-${b.id}');if(w.dataset.s!=='1'){w.dataset.s='1';t.style.display='inline';}else{w.dataset.s='0';t.style.display='none';}})(  )" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);border:1px solid rgba(29,158,117,0.25);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit"><i class="ti ti-mail" style="font-size:12px"></i>Email</button><span id="bet-${b.id}" style="display:none;font-size:12px;color:var(--text2);cursor:pointer" onclick="navigator.clipboard.writeText('${b.email}').then(()=>showToast('Email copied'))">${b.email} <i class="ti ti-copy" style="font-size:11px;color:var(--text3)"></i></span></span>`:''}${b.area?`<span><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px"></i>${b.area}</span>`:''}
             ${b.reminder?`<span><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i>${fmtDate(b.reminder)}</span>`:''}
           </div>
@@ -2060,9 +2213,10 @@ document.getElementById('broker-modal').addEventListener('click',e=>{if(e.target
 document.getElementById('meeting-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMeetingModal();});
 document.getElementById('quick-reminder-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeQuickReminderModal();});
 document.getElementById('day-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDayModal();});
-document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();if(openBrokerReminderPopover&&!e.target.closest('.broker-bell-wrap'))closeBrokerReminderPopover();if(openRCardEditPopover&&!e.target.closest('.reminder-popover')&&!e.target.closest('.btn-ghost'))closeRCardEditPopover();});
+document.addEventListener('click',e=>{if(openReminderPopover&&!e.target.closest('.bell-wrap'))closeReminderPopover();if(openBrokerReminderPopover&&!e.target.closest('.broker-bell-wrap'))closeBrokerReminderPopover();if(openRCardEditPopover&&!e.target.closest('.reminder-popover')&&!e.target.closest('.btn-ghost'))closeRCardEditPopover();if(openTrackDaysPopover&&!e.target.closest('.reminder-popover')&&!e.target.closest('.btn-ghost'))closeTrackDaysPopover();});
 document.getElementById('property-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePropertyModal();});
 document.getElementById('task-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeTaskModal();});
+document.getElementById('unanswered-viewall-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeUnansweredViewAll();});
 
 
 
