@@ -933,9 +933,17 @@ function showToast(m,d=2500){const t=document.getElementById('toast');t.textCont
 function setSyncStatus(s){const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-lbl');if(s==='ok'){dot.className='sync-dot ok';lbl.textContent='Live';}else if(s==='err'){dot.className='sync-dot err';lbl.textContent='Offline';}else{dot.className='sync-dot';lbl.textContent='Connecting...';}}
 
 // ── Firebase listeners
-db.ref('brokers').on('value',snap=>{state.brokers=snap.val()||{};setSyncStatus('ok');renderAll();},()=>setSyncStatus('err'));
-db.ref('properties').on('value',snap=>{state.properties=snap.val()||{};renderAll();});
-db.ref('notes').on('value',snap=>{state.notes=snap.val()||{};renderAll();});
+// Track initial load of each dataset separately - Firebase listeners resolve independently and
+// asynchronously, so on a fresh page load one dataset (e.g. notes) may still be empty while another
+// (e.g. brokers) has already arrived. Rendering before all three have loaded at least once can cause
+// data-dependent panels (like Unanswered Messages) to briefly flash empty/incorrect on refresh.
+let _loadedBrokers=false,_loadedProperties=false,_loadedNotes=false;
+function _maybeInitialRenderAll(){
+  if(_loadedBrokers&&_loadedProperties&&_loadedNotes)renderAll();
+}
+db.ref('brokers').on('value',snap=>{state.brokers=snap.val()||{};setSyncStatus('ok');if(_loadedBrokers)renderAll();else{_loadedBrokers=true;_maybeInitialRenderAll();}},()=>setSyncStatus('err'));
+db.ref('properties').on('value',snap=>{state.properties=snap.val()||{};if(_loadedProperties)renderAll();else{_loadedProperties=true;_maybeInitialRenderAll();}});
+db.ref('notes').on('value',snap=>{state.notes=snap.val()||{};if(_loadedNotes)renderAll();else{_loadedNotes=true;_maybeInitialRenderAll();}});
 // Unanswered-message status is time-based, not just data-based - a broker can become "due"
 // purely because time passed, with no new Firebase write to trigger the listeners above.
 // Re-check periodically so the panel updates on its own.
@@ -1453,7 +1461,7 @@ function getUnansweredInfo(brokerId){
   if(last.direction!=='outgoing')return null;
 
   const hasEverReplied=smsNotes.some(n=>n.direction==='incoming');
-  const autoTracked=!hasEverReplied;
+  const autoTracked=!hasEverReplied&&!b.ignoreUnanswered;
   if(!autoTracked&&!manuallyTracked)return null;
 
   const thresholdDays=manuallyTracked?(b.trackRepliesDays||UNANSWERED_DAYS_DEFAULT):UNANSWERED_DAYS_DEFAULT;
@@ -1462,6 +1470,15 @@ function getUnansweredInfo(brokerId){
   const daysSince=Math.floor(elapsed/(24*60*60*1000));
   const isDue=elapsed>=thresholdMs;
   return{brokerId,brokerName:b.name,lastMessageAt:last.createdAt,daysSince,isDue,autoTracked,manuallyTracked,thresholdDays};
+}
+
+function dismissUnanswered(brokerId,u){
+  // If manually tracked, turn that off. If only auto-tracked (never replied), mark as
+  // permanently ignored so it stops being auto-flagged, without affecting their broker record otherwise.
+  const updates={};
+  if(u.manuallyTracked){updates.trackReplies=false;updates.trackRepliesDays=null;}
+  if(u.autoTracked){updates.ignoreUnanswered=true;}
+  db.ref('brokers/'+brokerId).update(updates).then(()=>showToast('✓ Removed from tracking'));
 }
 
 function getAllUnanswered(){
@@ -1527,6 +1544,7 @@ function renderUnansweredPanel(){
         <span onclick="scrollToBroker('${u.brokerId}')" style="font-size:13px;font-weight:600;color:var(--text1);cursor:pointer">${u.brokerName}</span>
         <span style="font-size:11px;color:#92400E">No reply · ${u.daysSince}d</span>
         <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="toggleUnansweredReplyBox('${u.brokerId}')"><i class="ti ti-arrow-back-up"></i>Reply</button>
+        <button class="btn btn-ghost btn-sm" onclick="dismissUnanswered('${u.brokerId}',{manuallyTracked:${u.manuallyTracked},autoTracked:${u.autoTracked}})" title="Remove from tracking"><i class="ti ti-x"></i></button>
       </div>
       <div id="unanswered-reply-${u.brokerId}" style="display:none;margin-top:8px;margin-left:34px">
         <textarea id="unanswered-reply-text-${u.brokerId}" placeholder="Reply to ${u.brokerName}..." style="width:100%;min-height:50px"></textarea>
@@ -1566,7 +1584,10 @@ function openUnansweredViewAll(){
           <span style="font-size:13px;font-weight:600;color:var(--text1);cursor:pointer" onclick="closeUnansweredViewAll();scrollToBroker('${u.brokerId}')">${u.brokerName}</span>
           <div style="font-size:11px;color:${u.isDue?'#92400E':'var(--text3)'};margin-top:2px">${u.isDue?'No reply · ':'Waiting · '}${u.daysSince}d / ${u.thresholdDays}d${u.manuallyTracked&&!u.autoTracked?' · manual':''}</div>
         </div>
-        ${u.isDue?`<button class="btn btn-ghost btn-sm" onclick="closeUnansweredViewAll();toggleUnansweredReplyBox('${u.brokerId}')"><i class="ti ti-arrow-back-up"></i></button>`:''}
+        <div style="display:flex;gap:4px">
+          ${u.isDue?`<button class="btn btn-ghost btn-sm" onclick="closeUnansweredViewAll();toggleUnansweredReplyBox('${u.brokerId}')" title="Reply"><i class="ti ti-arrow-back-up"></i></button>`:''}
+          <button class="btn btn-ghost btn-sm" onclick="dismissUnanswered('${u.brokerId}',{manuallyTracked:${u.manuallyTracked},autoTracked:${u.autoTracked}});openUnansweredViewAll()" title="Remove from tracking"><i class="ti ti-x"></i></button>
+        </div>
       </div>`).join('');
   }
   document.getElementById('unanswered-viewall-modal').classList.add('open');
