@@ -936,6 +936,10 @@ function setSyncStatus(s){const dot=document.getElementById('sync-dot'),lbl=docu
 db.ref('brokers').on('value',snap=>{state.brokers=snap.val()||{};setSyncStatus('ok');renderAll();},()=>setSyncStatus('err'));
 db.ref('properties').on('value',snap=>{state.properties=snap.val()||{};renderAll();});
 db.ref('notes').on('value',snap=>{state.notes=snap.val()||{};renderAll();});
+// Unanswered-message status is time-based, not just data-based - a broker can become "due"
+// purely because time passed, with no new Firebase write to trigger the listeners above.
+// Re-check periodically so the panel updates on its own.
+setInterval(()=>{if(typeof renderUnansweredPanel==='function')renderUnansweredPanel();},30000);
 db.ref('tasks').on('value',snap=>{state.tasks=snap.val()||{};renderTasksPanel();},()=>{});
 
 // ── Helpers
@@ -1443,11 +1447,13 @@ function getUnansweredInfo(brokerId){
     .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   if(smsNotes.length===0)return null;
   const last=smsNotes[0];
+  const manuallyTracked=!!b.trackReplies;
+  // Manual tracking still requires the latest message to be unanswered (mine, with no reply after it) -
+  // it just doesn't require "never replied ever" the way auto-tracking does.
   if(last.direction!=='outgoing')return null;
 
   const hasEverReplied=smsNotes.some(n=>n.direction==='incoming');
   const autoTracked=!hasEverReplied;
-  const manuallyTracked=!!b.trackReplies;
   if(!autoTracked&&!manuallyTracked)return null;
 
   const thresholdDays=manuallyTracked?(b.trackRepliesDays||UNANSWERED_DAYS_DEFAULT):UNANSWERED_DAYS_DEFAULT;
