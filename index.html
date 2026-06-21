@@ -1472,7 +1472,7 @@ function getUnansweredInfo(brokerId){
   const elapsed=Date.now()-(last.createdAt||0);
   const daysSince=Math.floor(elapsed/(24*60*60*1000));
   const isDue=elapsed>=thresholdMs;
-  return{brokerId,brokerName:b.name,lastMessageAt:last.createdAt,daysSince,isDue,autoTracked,manuallyTracked,thresholdDays};
+  return{brokerId,brokerName:b.name,lastMessageAt:last.createdAt,daysSince,isDue,autoTracked,manuallyTracked,thresholdDays,lastMessageText:last.smsBody||last.text||'',lastMessageSender:last.createdBy||''};
 }
 
 function dismissUnanswered(brokerId,u){
@@ -1547,12 +1547,17 @@ function renderUnansweredPanel(){
   badge.textContent=due.length+(due.length===1?' due':' due');
   body.innerHTML=due.map(u=>`
     <div style="padding:9px 10px;${u!==due[due.length-1]?'border-bottom:0.5px solid var(--border)':''}">
-      <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleUnansweredPreview('${u.brokerId}')">
+        <i class="ti ti-chevron-right" id="unanswered-chevron-${u.brokerId}" style="font-size:13px;color:var(--text3);transition:transform 0.15s"></i>
         <div class="av" style="width:26px;height:26px;font-size:10px;flex-shrink:0">${initials(u.brokerName)}</div>
-        <span onclick="scrollToBroker('${u.brokerId}')" style="font-size:13px;font-weight:600;color:var(--text1);cursor:pointer">${u.brokerName}</span>
+        <span onclick="event.stopPropagation();scrollToBroker('${u.brokerId}')" style="font-size:13px;font-weight:600;color:var(--text1);cursor:pointer">${u.brokerName}</span>
         <span style="font-size:11px;color:#92400E">No reply · ${u.daysSince}d</span>
-        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="toggleUnansweredReplyBox('${u.brokerId}')"><i class="ti ti-arrow-back-up"></i>Reply</button>
-        <button class="btn btn-ghost btn-sm" onclick="dismissUnanswered('${u.brokerId}',{manuallyTracked:${u.manuallyTracked},autoTracked:${u.autoTracked}})" title="Remove from tracking"><i class="ti ti-x"></i></button>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="event.stopPropagation();toggleUnansweredReplyBox('${u.brokerId}')"><i class="ti ti-arrow-back-up"></i>Reply</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();dismissUnanswered('${u.brokerId}',{manuallyTracked:${u.manuallyTracked},autoTracked:${u.autoTracked}})" title="Remove from tracking"><i class="ti ti-x"></i></button>
+      </div>
+      <div id="unanswered-preview-${u.brokerId}" style="display:none;margin-top:8px;margin-left:34px;padding:8px 10px;background:var(--surface2);border-radius:8px;border-left:2px solid var(--border2)">
+        <div class="note-text" style="font-style:italic;color:var(--text2);font-size:13px">"${(u.lastMessageText||'').replace(/\n/g,'<br>')}"</div>
+        <span style="font-size:11px;color:var(--text3);margin-top:4px;display:block">Sent by ${u.lastMessageSender||'?'} · ${fmtDateTime(u.lastMessageAt)}</span>
       </div>
       <div id="unanswered-reply-${u.brokerId}" style="display:none;margin-top:8px;margin-left:34px">
         <textarea id="unanswered-reply-text-${u.brokerId}" placeholder="Reply to ${u.brokerName}..." style="width:100%;min-height:50px"></textarea>
@@ -1567,6 +1572,15 @@ function toggleUnansweredReplyBox(brokerId){
   const el=document.getElementById('unanswered-reply-'+brokerId);
   if(!el)return;
   el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function toggleUnansweredPreview(brokerId){
+  const el=document.getElementById('unanswered-preview-'+brokerId);
+  const chevron=document.getElementById('unanswered-chevron-'+brokerId);
+  if(!el)return;
+  const isOpen=el.style.display==='block';
+  el.style.display=isOpen?'none':'block';
+  if(chevron)chevron.style.transform=isOpen?'rotate(0deg)':'rotate(90deg)';
 }
 
 function sendUnansweredReply(brokerId){
